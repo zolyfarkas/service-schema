@@ -92,6 +92,9 @@ Trunk (not yet released)
     TestNettyServerWithCompression.testConnectionsCount
     (Gabor Szadovszky via tomwhite)
 
+    AVRO-1882: Java: Fix ConcurrentHashMap with non-string keys.
+    (Sachin Goyal via blue)
+
 Avro 1.8.1 (14 May 2016)
 
   INCOMPATIBLE CHANGES
