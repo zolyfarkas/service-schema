@@ -52,6 +52,42 @@ Trunk (not yet released)
     AVRO-1883: Java: Fix incompatible schema detection nested in unions.
     (Yibing Shi via blue)
 
+    AVRO-1908: Fix TestSpecificCompiler reference to private method.
+    (blue)
+
+    AVRO-1873: Ruby: Add CRC32 checksum to Snappy-compressed blocks.
+    (blue)
+
+    AVRO-1900: Java: Remove dev-tools to fix Java build. (blue)
+
+    AVRO-1913: No warnings in the generated Java code. (Niels Basjes)
+
+    AVRO-1914: Fix licencing errors reported by rat. (Niels Basjes)
+
+    AVRO-1901: Record named "Exception" generated bad code.
+    (Radai Rosenblatt via Niels Basjes)
+
+    AVRO-1849: C++: printJson fails on record with no fields.
+    (Simon Woodford vai tomwhite)
+
+    AVRO-1853: C++: Compiler::toBin crashes on empty string.
+    (Zoltan Ivanfi via tomwhite)
+
+    AVRO-1923, AVRO-1944: Stop infinite recursion in GenericData.toString. (Niels Basjes)
+
+    AVRO-1860: Java: Field#DefaultVal() returns Ints for Long fields.
+    (Gabor Szadovszky via cutting)
+
+    AVRO-1929: Java: SchemaCompatibility fails to recognize
+    string<->bytes promotion.  (Anders Sundelin via cutting)
+
+    AVRO-1882: Java: Fix ConcurrentHashMap with non-string keys.
+    (Sachin Goyal via blue)
+
+    AVRO-1943: Java: Flaky test:
+    TestNettyServerWithCompression.testConnectionsCount
+    (Gabor Szadovszky via tomwhite)
+
 Avro 1.8.1 (14 May 2016)
 
   INCOMPATIBLE CHANGES
