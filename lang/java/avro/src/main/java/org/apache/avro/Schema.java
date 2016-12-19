@@ -516,6 +516,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private boolean defaultValueEquals(JsonNode thatDefaultValue) {
       if (defaultValue == null)
         return thatDefaultValue == null;
+      if (thatDefaultValue == null)
+        return false;
       if (Double.isNaN(defaultValue.getDoubleValue()))
         return Double.isNaN(thatDefaultValue.getDoubleValue());
       return defaultValue.equals(thatDefaultValue);
@@ -639,6 +641,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private Object s1; private Object s2;
     private SeenPair(Object s1, Object s2) { this.s1 = s1; this.s2 = s2; }
     public boolean equals(Object o) {
+      if (!(o instanceof SeenPair)) return false;
       return this.s1 == ((SeenPair)o).s1 && this.s2 == ((SeenPair)o).s2;
     }
     public int hashCode() {
