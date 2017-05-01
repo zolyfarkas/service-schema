@@ -443,12 +443,6 @@
         <version>${hadoop2.version}</version>
       </dependency>
       <dependency>
-        <!-- for Hadoop's LocalJobRunner -->
-        <groupId>commons-httpclient</groupId>
-        <artifactId>commons-httpclient</artifactId>
-        <version>${commons-httpclient.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
         <version>${easymock.version}</version>
