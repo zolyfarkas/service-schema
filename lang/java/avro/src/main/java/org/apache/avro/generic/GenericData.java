@@ -263,14 +263,14 @@ public class GenericData {
     @Override
     public String toString() {
       StringBuilder buffer = new StringBuilder();
-      buffer.append("[");
+      buffer.append('[');
       int count = 0;
       for (T e : this) {
         buffer.append(e==null ? "null" : e.toString());
         if (++count < size())
           buffer.append(", ");
       }
-      buffer.append("]");
+      buffer.append(']');
       return buffer.toString();
     }
   }
