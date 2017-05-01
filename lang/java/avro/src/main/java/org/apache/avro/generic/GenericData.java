@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.WeakHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -424,10 +425,10 @@ public class GenericData {
     }
   }
 
-  /** Renders a Java datum as <a href="http://www.json.org/">JSON</a>. */
+/** Renders a Java datum as <a href="http://www.json.org/">JSON</a>. */
   public String toString(Object datum) {
     StringBuilder buffer = new StringBuilder();
-    toString(datum, buffer);
+    toString(datum, buffer, new IdentityHashMap<Object, Object>(128) );
     return buffer.toString();
   }
 
@@ -442,17 +443,17 @@ public class GenericData {
         return;
       }
       seenObjects.put(datum, datum);
-      buffer.append("{");
+      buffer.append('{');
       int count = 0;
       Schema schema = getRecordSchema(datum);
       for (Field f : schema.getFields()) {
-        toString(f.name(), buffer);
+        toString(f.name(), buffer, seenObjects);
         buffer.append(": ");
-        toString(getField(datum, f.name(), f.pos()), buffer);
+        toString(getField(datum, f.name(), f.pos()), buffer, seenObjects);
         if (++count < schema.getFields().size())
           buffer.append(", ");
       }
-      buffer.append("}");
+      buffer.append('}');
       seenObjects.remove(datum);
     } else if (isArray(datum)) {
       if (seenObjects.containsKey(datum)) {
@@ -461,15 +462,15 @@ public class GenericData {
       }
       seenObjects.put(datum, datum);
       Collection<?> array = getArrayAsCollection(datum);
-      buffer.append("[");
+      buffer.append('[');
       long last = array.size()-1;
       int i = 0;
       for (Object element : array) {
-        toString(element, buffer);
+        toString(element, buffer, seenObjects);
         if (i++ < last)
           buffer.append(", ");
       }
-      buffer.append("]");
+      buffer.append(']');
       seenObjects.remove(datum);
     } else if (isMap(datum)) {
       if (seenObjects.containsKey(datum)) {
@@ -477,23 +478,23 @@ public class GenericData {
         return;
       }
       seenObjects.put(datum, datum);
-      buffer.append("{");
+      buffer.append('{');
       int count = 0;
       @SuppressWarnings(value="unchecked")
       Map<Object,Object> map = (Map<Object,Object>)datum;
       for (Map.Entry<Object,Object> entry : map.entrySet()) {
-        toString(entry.getKey(), buffer);
+        toString(entry.getKey(), buffer, seenObjects);
         buffer.append(": ");
-        toString(entry.getValue(), buffer);
+        toString(entry.getValue(), buffer, seenObjects);
         if (++count < map.size())
           buffer.append(", ");
       }
       buffer.append("}");
       seenObjects.remove(datum);
     } else if (isString(datum)|| isEnum(datum)) {
-      buffer.append("\"");
+      buffer.append('\"');
       writeEscapedString(datum.toString(), buffer);
-      buffer.append("\"");
+      buffer.append('\"');
     } else if (isBytes(datum)) {
       buffer.append("{\"bytes\": \"");
       ByteBuffer bytes = ((ByteBuffer) datum).duplicate();
@@ -503,9 +504,9 @@ public class GenericData {
                 (((Float)datum).isInfinite() || ((Float)datum).isNaN()))
                || ((datum instanceof Double) &&
                    (((Double)datum).isInfinite() || ((Double)datum).isNaN()))) {
-      buffer.append("\"");
+      buffer.append('\"');
       buffer.append(datum);
-      buffer.append("\"");
+      buffer.append('\"');
     } else if (datum instanceof GenericData) {
       if (seenObjects.containsKey(datum)) {
         buffer.append(TOSTRING_CIRCULAR_REFERENCE_ERROR_TEXT);
@@ -519,8 +520,9 @@ public class GenericData {
     }
   }
 
+
   /* Adapted from http://code.google.com/p/json-simple */
-  private void writeEscapedString(CharSequence string, StringBuilder builder) {
+  private static void writeEscapedString(CharSequence string, StringBuilder builder) {
     for(int i = 0; i < string.length(); i++){
       char ch = string.charAt(i);
       switch(ch){
