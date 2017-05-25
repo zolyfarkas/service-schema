@@ -15,18 +15,17 @@
  */
 package org.apache.avro.util;
 
-import com.google.common.base.Charsets;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import org.slf4j.Logger;
@@ -40,79 +39,76 @@ import sun.nio.cs.ArrayEncoder;
  */
 public final class Strings {
 
-  private Strings() { }
+  private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
 
-    public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
-        if (len == 0) {
-            return "";
-        }
-        int en = (int) (len * (double) cd.maxCharsPerByte());
-        char[] ca = Arrays.getCharsTmp(en);
-        if (cd instanceof ArrayDecoder) {
-            int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
-            return new String(ca, 0, clen);
-        }
-        cd.reset();
-        ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
-        CharBuffer cb = CharBuffer.wrap(ca);
-        try {
-            CoderResult cr = cd.decode(bb, cb, true);
-            if (!cr.isUnderflow()) {
-                cr.throwException();
-            }
-            cr = cd.flush(cb);
-            if (!cr.isUnderflow()) {
-                cr.throwException();
-            }
-        } catch (CharacterCodingException x) {
-            throw new Error(x);
-        }
-        return new String(ca, 0, cb.position());
+  private static final MethodHandle CHARS_FIELD_GET;
+
+  private Strings() {
+  }
+
+  public static String decode(final CharsetDecoder cd, final byte[] ba, final int off, final int len) {
+    if (len == 0) {
+      return "";
+    }
+    int en = (int) (len * (double) cd.maxCharsPerByte());
+    char[] ca = Arrays.getCharsTmp(en);
+    if (cd instanceof ArrayDecoder) {
+      int clen = ((ArrayDecoder) cd).decode(ba, off, len, ca);
+      return new String(ca, 0, clen);
+    }
+    cd.reset();
+    ByteBuffer bb = ByteBuffer.wrap(ba, off, len);
+    CharBuffer cb = CharBuffer.wrap(ca);
+    try {
+      CoderResult cr = cd.decode(bb, cb, true);
+      if (!cr.isUnderflow()) {
+        cr.throwException();
+      }
+      cr = cd.flush(cb);
+      if (!cr.isUnderflow()) {
+        cr.throwException();
+      }
+    } catch (CharacterCodingException x) {
+      throw new Error(x);
+    }
+    return new String(ca, 0, cb.position());
+  }
+
+  private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
+
+    @Override
+    protected CharsetDecoder initialValue() {
+      return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+              .onUnmappableCharacter(CodingErrorAction.REPLACE);
     }
 
+  };
 
-    public static final Charset UTF_8 = Charset.forName("UTF-8");
+  private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
 
-    private static final ThreadLocal<CharsetDecoder> UTF8_DECODER = new ThreadLocal<CharsetDecoder>() {
-
-        @Override
-        protected CharsetDecoder initialValue() {
-            return UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
-                    .onUnmappableCharacter(CodingErrorAction.REPLACE);
-        }
-
-    };
-
-    private static final ThreadLocal<CharsetEncoder> UTF8_ENCODER = new ThreadLocal<CharsetEncoder>() {
-
-        @Override
-        protected CharsetEncoder initialValue() {
-            return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
-                    .onUnmappableCharacter(CodingErrorAction.REPLACE);
-        }
-
-    };
-
-    public static CharsetEncoder getUTF8CharsetEncoder() {
-        return UTF8_ENCODER.get();
+    @Override
+    protected CharsetEncoder initialValue() {
+      return StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+              .onUnmappableCharacter(CodingErrorAction.REPLACE);
     }
 
+  };
 
-    public static String fromUtf8(final byte[] bytes) {
-        return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
-    }
+  public static CharsetEncoder getUTF8CharsetEncoder() {
+    return UTF8_ENCODER.get();
+  }
 
-    public static String fromUtf8(final byte[] bytes, final int startIdx, final int length) {
-        return decode(UTF8_DECODER.get(), bytes, startIdx, length);
-    }
+  public static String fromUtf8(final byte[] bytes) {
+    return decode(UTF8_DECODER.get(), bytes, 0, bytes.length);
+  }
 
-    public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
-        return (int) (nrChars * (double) ce.maxBytesPerChar());
-    }
+  public static String fromUtf8(final byte[] bytes, final int startIdx, final int length) {
+    return decode(UTF8_DECODER.get(), bytes, startIdx, length);
+  }
 
-    private static final Logger LOG = LoggerFactory.getLogger(Strings.class);
-
-    private static final MethodHandle CHARS_FIELD_GET;
+  public static int getmaxNrBytes(final CharsetEncoder ce, final int nrChars) {
+    return (int) (nrChars * (double) ce.maxBytesPerChar());
+  }
 
   static {
     Field charsField = AccessController.doPrivileged(new PrivilegedAction<Field>() {
@@ -139,68 +135,66 @@ public final class Strings {
         throw new ExceptionInInitializerError(ex);
       }
     } else {
-        CHARS_FIELD_GET = null;
+      CHARS_FIELD_GET = null;
     }
-    }
+  }
 
-    /**
-     * Steal the underlying character array of a String.
-     *
-     * @param str
-     * @return
-     */
-    public static char[] steal(final String str) {
-        if (CHARS_FIELD_GET == null) {
-            return str.toCharArray();
-        } else {
-            try {
-                return (char[]) CHARS_FIELD_GET.invokeExact(str);
-            } catch (Error ex) {
-                throw ex;
-            } catch (RuntimeException ex) {
-                throw ex;
-            } catch (Throwable ex) {
-                throw new RuntimeException(ex);
-            }
+  /**
+   * Steal the underlying character array of a String.
+   *
+   * @param str
+   * @return
+   */
+  public static char[] steal(final String str) {
+    if (CHARS_FIELD_GET == null) {
+      return str.toCharArray();
+    } else {
+      try {
+        return (char[]) CHARS_FIELD_GET.invokeExact(str);
+      } catch (Error ex) {
+        throw ex;
+      } catch (RuntimeException ex) {
+        throw ex;
+      } catch (Throwable ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+  }
+
+  public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
+    if (len == 0) {
+      return Arrays.EMPTY_BYTE_ARRAY;
+    }
+    byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));
+    int nrBytes = encode(ce, ca, off, len, ba);
+    return java.util.Arrays.copyOf(ba, nrBytes);
+  }
+
+  public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
+          final byte[] targetArray) {
+    if (len == 0) {
+      return 0;
+    }
+    if (ce instanceof ArrayEncoder) {
+      return ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
+    } else {
+      ce.reset();
+      ByteBuffer bb = ByteBuffer.wrap(targetArray);
+      CharBuffer cb = CharBuffer.wrap(ca, off, len);
+      try {
+        CoderResult cr = ce.encode(cb, bb, true);
+        if (!cr.isUnderflow()) {
+          cr.throwException();
         }
-    }
-
-    public static byte[] encode(final CharsetEncoder ce, final char[] ca, final int off, final int len) {
-        if (len == 0) {
-            return Arrays.EMPTY_BYTE_ARRAY;
+        cr = ce.flush(bb);
+        if (!cr.isUnderflow()) {
+          cr.throwException();
         }
-        byte[] ba = Arrays.getBytesTmp(getmaxNrBytes(ce, len));
-        int nrBytes = encode(ce, ca, off, len, ba);
-        return java.util.Arrays.copyOf(ba, nrBytes);
+      } catch (CharacterCodingException x) {
+        throw new Error(x);
+      }
+      return bb.position();
     }
-
-
-    public static int encode(final CharsetEncoder ce, final char[] ca, final int off, final int len,
-            final byte[] targetArray) {
-        if (len == 0) {
-            return 0;
-        }
-        if (ce instanceof ArrayEncoder) {
-            return ((ArrayEncoder) ce).encode(ca, off, len, targetArray);
-        } else {
-            ce.reset();
-            ByteBuffer bb = ByteBuffer.wrap(targetArray);
-            CharBuffer cb = CharBuffer.wrap(ca, off, len);
-            try {
-                CoderResult cr = ce.encode(cb, bb, true);
-                if (!cr.isUnderflow()) {
-                    cr.throwException();
-                }
-                cr = ce.flush(bb);
-                if (!cr.isUnderflow()) {
-                    cr.throwException();
-                }
-            } catch (CharacterCodingException x) {
-                throw new Error(x);
-            }
-            return bb.position();
-        }
-    }
-
+  }
 
 }
