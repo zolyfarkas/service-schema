@@ -90,6 +90,7 @@
   <modules>
     <module>avro</module>
     <module>avro-joda</module>
+    <module>guava</module>
     <module>compiler</module>
     <module>maven-plugin</module>
     <module>ipc</module>
