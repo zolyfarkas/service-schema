@@ -18,6 +18,7 @@
 package org.apache.avro;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,8 +29,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.avro.Schema.Field;
+import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericData.Fixed;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.internal.JacksonUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.io.JsonStringEncoder;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -2111,20 +2115,19 @@ public class SchemaBuilder {
       return type(schema);
     }
 
-    private FieldAssembler<R> completeField(Schema schema, Object defaultVal) {
-      JsonNode defaultNode = toJsonNode(defaultVal);
-      return completeField(schema, defaultNode);
-    }
-
     private FieldAssembler<R> completeField(Schema schema) {
       return completeField(schema, null);
     }
 
-    private FieldAssembler<R> completeField(Schema schema, JsonNode defaultVal) {
+    private FieldAssembler<R> completeField(Schema schema, Object defaultVal) {
+      try {
       Field field = new Field(name(), schema, doc(), defaultVal, order);
       addPropsTo(field);
       addAliasesTo(field);
       return fields.addField(field);
+      } catch (AvroRuntimeException ex) {
+        throw new SchemaBuilderException(ex);
+      }
     }
 
     @Override
@@ -2136,7 +2139,7 @@ public class SchemaBuilder {
   /** Abstract base class for field defaults. **/
   public static abstract class FieldDefault<R, S extends FieldDefault<R, S>> extends Completion<S> {
     private final FieldBuilder<R> field;
-    private Schema schema;
+    protected Schema schema;
     FieldDefault(FieldBuilder<R> field) {
       this.field = field;
     }
@@ -2281,7 +2284,11 @@ public class SchemaBuilder {
      * The string is interpreted as a byte[], with each character code point
      * value equalling the byte value, as in the Avro spec JSON default. **/
     public final FieldAssembler<R> bytesDefault(String defaultVal) {
-      return super.usingDefault(defaultVal);
+      try {
+        return super.usingDefault(ByteBuffer.wrap(defaultVal.getBytes(JacksonUtils.BYTES_CHARSET)));
+      } catch (UnsupportedEncodingException ex) {
+        throw new SchemaBuilderException(ex);
+      }
     }
 
     @Override
@@ -2298,7 +2305,7 @@ public class SchemaBuilder {
 
     /** Completes this field with a default value of null **/
     public final FieldAssembler<R> nullDefault() {
-      return super.usingDefault(null);
+      return super.usingDefault(Schema.NULL_VALUE);
     }
 
     @Override
@@ -2341,6 +2348,14 @@ public class SchemaBuilder {
     }
   }
 
+    public static Schema resolveFixedSchema(final Schema schema) {
+      if (schema.getType() == Type.UNION) {
+        return schema.getTypes().get(0);
+      } else {
+        return schema;
+      }
+    }
+
   /** Choose whether to use a default value for the field or not. **/
   public static class FixedDefault<R> extends FieldDefault<R, FixedDefault<R>> {
     private FixedDefault(FieldBuilder<R> field) {
@@ -2349,19 +2364,24 @@ public class SchemaBuilder {
 
     /** Completes this field with the default value provided, cannot be null **/
     public final FieldAssembler<R> fixedDefault(byte[] defaultVal) {
-      return super.usingDefault(ByteBuffer.wrap(defaultVal));
+      return super.usingDefault(new Fixed(resolveFixedSchema(schema), defaultVal));
     }
 
     /** Completes this field with the default value provided, cannot be null **/
     public final FieldAssembler<R> fixedDefault(ByteBuffer defaultVal) {
-      return super.usingDefault(defaultVal);
+      return super.usingDefault(new Fixed(resolveFixedSchema(schema), JacksonUtils.copyOfBytes(defaultVal)));
     }
 
     /** Completes this field with the default value provided, cannot be null.
      * The string is interpreted as a byte[], with each character code point
      * value equalling the byte value, as in the Avro spec JSON default. **/
     public final FieldAssembler<R> fixedDefault(String defaultVal) {
-      return super.usingDefault(defaultVal);
+      try {
+        return super.usingDefault(new Fixed(resolveFixedSchema(schema),
+                defaultVal.getBytes(JacksonUtils.BYTES_CHARSET)));
+      } catch (UnsupportedEncodingException ex) {
+        throw new SchemaBuilderException(ex);
+      }
     }
 
     @Override
@@ -2378,7 +2398,7 @@ public class SchemaBuilder {
 
     /** Completes this field with the default value provided, cannot be null **/
     public final FieldAssembler<R> enumDefault(String defaultVal) {
-      return super.usingDefault(defaultVal);
+      return super.usingDefault(new GenericData.EnumSymbol(resolveFixedSchema(schema), defaultVal));
     }
 
     @Override
@@ -2464,7 +2484,7 @@ public class SchemaBuilder {
     protected FieldAssembler<R> complete(Schema schema) {
       // wrap the schema as a union of null and the schema
       Schema optional = Schema.createUnion(Arrays.asList(NULL_SCHEMA, schema));
-      return bldr.completeField(optional, (Object)null);
+      return bldr.completeField(optional, (Object)JsonProperties.NULL_VALUE);
     }
   }
 

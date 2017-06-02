@@ -18,16 +18,12 @@
 package org.apache.avro.generic;
 
 import java.nio.ByteBuffer;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.WeakHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -35,22 +31,17 @@ import java.util.Objects;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
+import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.UnresolvedUnionException;
 import org.apache.avro.io.BinaryData;
-import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.BinaryEncoder;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
-import org.apache.avro.io.parsing.ResolvingGrammarGenerator;
 import org.apache.avro.util.Utf8;
 
-import org.codehaus.jackson.JsonNode;
 
 /** Utilities for generic Java data. See {@link GenericRecordBuilder} for a convenient
  * way to build {@link GenericRecord} instances.
@@ -670,6 +661,8 @@ public class GenericData {
   protected String getSchemaName(Object datum) {
     if (datum == null)
       return Type.NULL.getName();
+    if (JsonProperties.NULL_VALUE.equals(datum))
+      return Type.NULL.getName();
     if (isRecord(datum))
       return getRecordSchema(datum).getFullName();
     if (isEnum(datum))
@@ -927,9 +920,6 @@ public class GenericData {
     }
   }
 
-  private final Map<Field, Object> defaultValueCache
-    = Collections.synchronizedMap(new WeakHashMap<Field, Object>());
-
   /**
    * Gets the default value of the given field, if any.
    * @param field the field whose default value should be retrieved.
@@ -937,37 +927,8 @@ public class GenericData {
    * or null if none is specified in the schema.
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public Object getDefaultValue(Field field) {
-    JsonNode json = field.defaultValue();
-    if (json == null)
-      throw new AvroRuntimeException("Field " + field
-                                     + " not set and has no default value");
-    final Schema schema = field.schema();
-    final Type type = schema.getType();
-    if (json.isNull() && (type == Type.NULL || (type == Type.UNION
-                && schema.getTypes().get(0).getType() == Type.NULL))) {
-      return null;
-    }
-
-    // Check the cache
-    Object defaultValue = defaultValueCache.get(field);
-
-    // If not cached, get the default Java value by encoding the default JSON
-    // value and then decoding it:
-    if (defaultValue == null)
-      try {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(baos, null);
-        ResolvingGrammarGenerator.encode(encoder, schema, json);
-        encoder.flush();
-        BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(baos.toByteArray(), null);
-        defaultValue = createDatumReader(schema).read(null, decoder);
-        defaultValueCache.put(field, defaultValue);
-      } catch (IOException e) {
-        throw new AvroRuntimeException(e);
-      }
-
-    return defaultValue;
+  public static Object getDefaultValue(final Field field) {
+    return field.defaultVal();
   }
 
   private static final Schema STRINGS = Schema.create(Type.STRING);
@@ -1024,7 +985,7 @@ public class GenericData {
         }
         return (T)mapCopy;
       case NULL:
-        return null;
+        return (T) JsonProperties.NULL_VALUE;
       case RECORD:
         Object oldState = getRecordState(value, schema);
         Object newRecord = newRecord(null, schema);

@@ -229,8 +229,18 @@ public class GenericRecordBuilder extends RecordBuilderBase<Record> {
    * @throws IOException
    */
   private Object getWithDefault(Field field) throws IOException {
-    return fieldSetFlags()[field.pos()] ?
-        record.get(field.pos()) : defaultValue(field);
+    if (fieldSetFlags()[field.pos()]) {
+      return record.get(field.pos());
+    } else {
+      Object defVal = defaultValue(field);
+      if (defVal == null) {
+          throw new AvroRuntimeException("Field " + field + " not set and has no default value");
+      }
+      if (Schema.NULL_VALUE.equals(defVal)) {
+        return null;
+      }
+      return defVal;
+    }
   }
 
   @Override

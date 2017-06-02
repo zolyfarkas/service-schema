@@ -438,6 +438,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private final Schema schema;
     private final String doc;
     private final JsonNode defaultValue;
+    private final Object defaultVal;
     private final Order order;
     private Set<String> aliases;
 
@@ -445,21 +446,31 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Deprecated
     public Field(String name, Schema schema, String doc,
         JsonNode defaultValue) {
-      this(name, schema, doc, defaultValue, Order.ASCENDING);
+      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), Order.ASCENDING);
     }
-    /** @deprecated use {@link #Field(String, Schema, String, Object, Order)} */
+
     @Deprecated
     public Field(String name, Schema schema, String doc,
         JsonNode defaultValue, Order order) {
+      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), order);
+    }
+
+    /** @deprecated use {@link #Field(String, Schema, String, Object, Order)} */
+    @Deprecated
+    public Field(String name, Schema schema, String doc,
+        JsonNode defaultValue, Object defaultVal, Order order) {
       super(FIELD_RESERVED);
       this.name = validateName(name);
       this.schema = schema;
       this.doc = doc;
       this.defaultValue = validateDefault(name, schema, defaultValue);
+      this.defaultVal = defaultVal;
       this.order = order;
     }
     /**
      * @param defaultValue the default value for this field specified using the mapping
+     * null means no default value.
+     * JsonProperties.NULL represents the null value
      *  in {@link JsonProperties}
      */
     public Field(String name, Schema schema, String doc,
@@ -472,7 +483,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
      */
     public Field(String name, Schema schema, String doc,
         Object defaultValue, Order order) {
-      this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), order);
+      this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), defaultValue, order);
     }
     public String name() { return name; };
     /** The position of this field within the record. */
@@ -487,7 +498,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
      * @return the default value for this field specified using the mapping
      *  in {@link JsonProperties}
      */
-    public Object defaultVal() { return JacksonUtils.toObject(defaultValue, schema); }
+    public Object defaultVal() { return defaultVal; }
     public Order order() { return order; }
     @Deprecated public Map<String,String> props() { return getProps(); }
     public void addAlias(String alias) {
@@ -914,7 +925,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
     public List<Schema> getTypes() { return types; }
-    public Integer getIndexNamed(String name) { return indexByName.get(name); }
+    public Integer getIndexNamed(String name) {      return indexByName.get(name); }
     public boolean equals(Object o) {
       if (o == this) return true;
       if (!(o instanceof UnionSchema)) return false;

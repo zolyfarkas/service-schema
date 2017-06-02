@@ -19,6 +19,7 @@ package org.apache.avro.util.internal;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,13 +29,24 @@ import java.util.Map;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericData.Fixed;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericEnumSymbol;
+import org.apache.avro.generic.GenericFixed;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.JsonEncoder;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.util.TokenBuffer;
 
 public class JacksonUtils {
-  static final String BYTES_CHARSET = "ISO-8859-1";
+  public static final String BYTES_CHARSET = "ISO-8859-1";
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private JacksonUtils() {
   }
@@ -44,9 +56,9 @@ public class JacksonUtils {
       return null;
     }
     try {
-      TokenBuffer generator = new TokenBuffer(new ObjectMapper());
+      TokenBuffer generator = new TokenBuffer(MAPPER);
       toJson(datum, generator);
-      return new ObjectMapper().readTree(generator.asParser());
+      return MAPPER.readTree(generator.asParser());
     } catch (IOException e) {
       throw new AvroRuntimeException(e);
     }
@@ -71,6 +83,12 @@ public class JacksonUtils {
       generator.writeEndArray();
     } else if (datum instanceof byte[]) { // bytes, fixed
       generator.writeString(new String((byte[]) datum, BYTES_CHARSET));
+    }  else if (datum instanceof GenericFixed) { // bytes, fixed
+      generator.writeString(new String(((GenericFixed) datum).bytes(), BYTES_CHARSET));
+    } else if (datum instanceof ByteBuffer) {
+        ByteBuffer bytes = ((ByteBuffer) datum);
+        byte[] data = copyOfBytes(bytes);
+       generator.writeString(new String(data, BYTES_CHARSET));
     } else if (datum instanceof CharSequence || datum instanceof Enum<?>) { // string, enum
       generator.writeString(datum.toString());
     } else if (datum instanceof Double) { // double
@@ -83,9 +101,32 @@ public class JacksonUtils {
       generator.writeNumber((Integer) datum);
     } else if (datum instanceof Boolean) { // boolean
       generator.writeBoolean((Boolean) datum);
+    } else if (datum instanceof GenericEnumSymbol) {
+      generator.writeString(datum.toString());
+    } else if (datum instanceof GenericRecord) {
+      GenericRecord record = (GenericRecord) datum;
+      try {
+        Schema schema = record.getSchema();
+        JsonEncoder encoder = EncoderFactory.get().jsonEncoder(schema, generator);
+        DatumWriter writer = new GenericDatumWriter(schema);
+        writer.write(record, encoder);
+        encoder.flush();
+      } catch (IOException e) {
+        throw new AvroRuntimeException(e);
+      }
+      JsonNode tree = MAPPER.readTree(GenericData.get().toString(datum));
+      generator.writeTree(tree);
     } else {
       throw new AvroRuntimeException("Unknown datum class: " + datum.getClass());
     }
+  }
+
+  public static byte[] copyOfBytes(final ByteBuffer bytes) {
+    bytes.mark();
+    byte[] data = new byte[bytes.remaining()];
+    bytes.get(data);
+    bytes.reset(); // put the buffer back the way we got it
+    return data;
   }
 
   public static Object toObject(JsonNode jsonNode) {
@@ -120,10 +161,15 @@ public class JacksonUtils {
       if (schema == null || schema.getType().equals(Schema.Type.STRING) ||
           schema.getType().equals(Schema.Type.ENUM)) {
         return jsonNode.asText();
-      } else if (schema.getType().equals(Schema.Type.BYTES)
-              || schema.getType().equals(Schema.Type.FIXED)) {
+      } else if (schema.getType().equals(Schema.Type.BYTES)) {
         try {
           return jsonNode.getTextValue().getBytes(BYTES_CHARSET);
+        } catch (UnsupportedEncodingException e) {
+          throw new AvroRuntimeException(e);
+        }
+      } else if (schema.getType().equals(Schema.Type.FIXED)) {
+        try {
+          return new Fixed(schema, jsonNode.getTextValue().getBytes(BYTES_CHARSET));
         } catch (UnsupportedEncodingException e) {
           throw new AvroRuntimeException(e);
         }
