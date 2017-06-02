@@ -59,8 +59,8 @@ public class ExtendedGenericDatumWriter<D> extends GenericDatumWriter<D> {
     protected void writeField(final Object datum, final Schema.Field f, final Encoder out, final Object state)
             throws IOException {
         GenericData data = getData();
-        if (f.defaultVal() != null) {
-            Object defaultValue = data.getDefaultValue(f);
+        Object defaultValue = f.defaultVal();
+        if (defaultValue != null) {
             Object value = data.getField(datum, f.name(), f.pos());
 
             if (equals(value, defaultValue) && out instanceof ExtendedJsonEncoder) {

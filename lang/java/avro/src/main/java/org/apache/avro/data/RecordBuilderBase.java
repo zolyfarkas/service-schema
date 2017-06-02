@@ -127,12 +127,19 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
    * Gets the default value of the given field, if any.
    * @param field the field whose default value should be retrieved.
    * @return the default value associated with the given field,
-   * or null if none is specified in the schema.
+   * throws exception if none is specified in the schema.
    * @throws IOException
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   protected Object defaultValue(Field field) throws IOException {
-    return data.deepCopy(field.schema(), data.getDefaultValue(field));
+    Object defaultValue = field.defaultVal();
+    if (defaultValue == null) {
+          throw new AvroRuntimeException("Field " + field + " not set and has no default value");
+    }
+    if (Schema.NULL_VALUE.equals(defaultValue)) {
+        return null;
+    }
+    return data.deepCopy(field.schema(), defaultValue);
   }
 
   @Override

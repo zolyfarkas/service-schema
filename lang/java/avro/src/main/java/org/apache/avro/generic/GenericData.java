@@ -920,17 +920,6 @@ public class GenericData {
     }
   }
 
-  /**
-   * Gets the default value of the given field, if any.
-   * @param field the field whose default value should be retrieved.
-   * @return the default value associated with the given field,
-   * or null if none is specified in the schema.
-   */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  public static Object getDefaultValue(final Field field) {
-    return field.defaultVal();
-  }
-
   private static final Schema STRINGS = Schema.create(Type.STRING);
 
   /**
