@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
@@ -131,7 +132,7 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
    * @throws IOException
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected Object defaultValue(Field field) throws IOException {
+  protected Object defaultValue(Field  field) throws IOException {
     Object defaultValue = field.defaultVal();
     if (defaultValue == null) {
           throw new AvroRuntimeException("Field " + field + " not set and has no default value");
@@ -139,7 +140,13 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
     if (Schema.NULL_VALUE.equals(defaultValue)) {
         return null;
     }
-    return data.deepCopy(field.schema(), defaultValue);
+    Schema schema1 = field.schema();
+    LogicalType logicalType = schema1.getLogicalType();
+    if (logicalType != null) {
+      return logicalType.deserialize(defaultValue);
+    } else {
+      return data.deepCopy(field.schema(), defaultValue);
+    }
   }
 
   @Override
