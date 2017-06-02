@@ -166,7 +166,7 @@ public class AvroColumnReader<D>
       recordDefaults = new HashMap<String,Object>();
       defaults.put(recordName, recordDefaults);
     }
-    recordDefaults.put(f.name(), model.getDefaultValue(f));
+    recordDefaults.put(f.name(), f.defaultVal());
   }
 
   @Override
