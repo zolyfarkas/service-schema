@@ -33,8 +33,19 @@ public class ExtendedGenericDatumWriter<D> extends GenericDatumWriter<D> {
     }
 
    public static boolean equals(Object a, Object b) {
-        return (a == b) || (a != null && a.equals(b));
-    }
+     if (a == b) {
+       return true;
+     }
+     boolean result = a != null && a.equals(b);
+     if (result) {
+       return true;
+     }
+     if ((a instanceof Enum || a instanceof GenericEnumSymbol) && b != null) {
+       return a.toString().equals(b.toString());
+     } else {
+       return false;
+     }
+   }
 
 
    private static final ThreadLocal<List<Symbol>> HOLDINGS = new ThreadLocal<List<Symbol>>() {

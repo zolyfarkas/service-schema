@@ -144,6 +144,15 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
     if (Schema.NULL_VALUE.equals(defaultValue)) {
       return null;
     }
+    if (Type.ENUM == schema1.getType()) {
+      Class enumClass;
+      try {
+        enumClass = Class.forName(schema1.getFullName());
+      } catch (ClassNotFoundException ex) {
+        return new GenericData.EnumSymbol(schema1, defaultValue);
+      }
+      return Enum.valueOf(enumClass, (String) defaultValue);
+    }
     LogicalType logicalType = schema1.getLogicalType();
     if (logicalType != null) {
       return logicalType.deserialize(defaultValue);
