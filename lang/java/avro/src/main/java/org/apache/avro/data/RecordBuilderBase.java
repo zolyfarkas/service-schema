@@ -132,7 +132,7 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
    * @throws IOException
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public static Object defaultValue(Field  field) throws IOException {
+  public Object defaultValue(Field  field) throws IOException {
     Object defaultValue = field.defaultVal();
     if (defaultValue == null) {
           throw new AvroRuntimeException("Field " + field + " not set and has no default value");
