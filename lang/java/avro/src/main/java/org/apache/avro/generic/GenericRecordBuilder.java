@@ -62,7 +62,7 @@ public class GenericRecordBuilder extends RecordBuilderBase<Record> {
       // Only set the value if it is not null, if the schema type is null,
       // or if the schema type is a union that accepts nulls.
       if (isValidValue(f, value)) {
-        set(f, data().deepCopy(f.schema(), value));
+        set(f, GenericData.get().deepCopy(f.schema(), value));
       }
     }
   }

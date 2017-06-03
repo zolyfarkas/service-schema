@@ -9,6 +9,7 @@ import org.apache.avro.io.parsing.Symbol;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.avro.data.RecordBuilderBase;
 
 /**
  * Extension of the AVRO GenericDatumWriter that does the following extras over the base class
@@ -61,6 +62,7 @@ public class ExtendedGenericDatumWriter<D> extends GenericDatumWriter<D> {
         GenericData data = getData();
         Object defaultValue = f.defaultVal();
         if (defaultValue != null) {
+            defaultValue = RecordBuilderBase.javaDefaultValue(defaultValue, f.schema());
             Object value = data.getField(datum, f.name(), f.pos());
 
             if (equals(value, defaultValue) && out instanceof ExtendedJsonEncoder) {

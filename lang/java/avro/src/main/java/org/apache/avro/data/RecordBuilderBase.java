@@ -132,20 +132,23 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
    * @throws IOException
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected Object defaultValue(Field  field) throws IOException {
+  public static Object defaultValue(Field  field) throws IOException {
     Object defaultValue = field.defaultVal();
     if (defaultValue == null) {
           throw new AvroRuntimeException("Field " + field + " not set and has no default value");
     }
+    return javaDefaultValue(defaultValue, field.schema());
+  }
+
+  public static Object javaDefaultValue(Object defaultValue, Schema schema1) {
     if (Schema.NULL_VALUE.equals(defaultValue)) {
-        return null;
+      return null;
     }
-    Schema schema1 = field.schema();
     LogicalType logicalType = schema1.getLogicalType();
     if (logicalType != null) {
       return logicalType.deserialize(defaultValue);
     } else {
-      return data.deepCopy(field.schema(), defaultValue);
+      return GenericData.get().deepCopy(schema1, defaultValue);
     }
   }
 
