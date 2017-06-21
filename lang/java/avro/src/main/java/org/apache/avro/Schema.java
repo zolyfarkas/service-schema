@@ -1225,7 +1225,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   private static final ThreadLocal<Boolean> VALIDATE_DEFAULTS
     = new ThreadLocal<Boolean>() {
     @Override protected Boolean initialValue() {
-      return false;
+      return Boolean.valueOf(System.getProperty("avro.validateDefault", "true"));
     }
   };
 
