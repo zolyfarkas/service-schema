@@ -137,7 +137,7 @@ public abstract class JsonProperties {
    * @deprecated use {@link #getObjectProp(String)}
    */
   @Deprecated
-  public synchronized JsonNode getJsonProp(String name) {
+  public  JsonNode getJsonProp(String name) {
     return props.get(name);
   }
 
@@ -145,7 +145,7 @@ public abstract class JsonProperties {
    * Returns the value of the named property in this schema.
    * Returns <tt>null</tt> if there is no property with that name.
    */
-  public synchronized Object getObjectProp(String name) {
+  public Object getObjectProp(String name) {
     return JacksonUtils.toObject(props.get(name));
   }
 
@@ -173,7 +173,7 @@ public abstract class JsonProperties {
    * @deprecated use {@link #addProp(String, Object)}
    */
   @Deprecated
-  public synchronized void addProp(String name, JsonNode value) {
+  public void addProp(String name, JsonNode value) {
     if (reserved.contains(name))
       throw new AvroRuntimeException("Can't set reserved property: " + name);
 
