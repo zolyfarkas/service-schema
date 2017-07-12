@@ -17,6 +17,9 @@
  */
 package org.apache.avro.util;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class ClassUtils {
 
   private ClassUtils() {
@@ -46,20 +49,9 @@ public class ClassUtils {
    * @param className    The name of the class to load
    * @return The class or null if no class loader could load the class.
    */
-  public static Class<?> forName(Class<?> contextClass, String className)
+  public static Class<?> forName(@Nonnull Class<?> contextClass, String className)
     throws ClassNotFoundException {
-    Class<?> c = null;
-    if (contextClass.getClassLoader() != null) {
-      c = forName(className, contextClass.getClassLoader());
-    }
-    if (c == null
-        && Thread.currentThread().getContextClassLoader() != null) {
-      c = forName(className, Thread.currentThread().getContextClassLoader());
-    }
-    if (c == null) {
-      throw new ClassNotFoundException("Failed to load class" + className);
-    }
-    return c;
+    return forName(contextClass.getClassLoader(), className);
   }
 
   /**
@@ -72,19 +64,21 @@ public class ClassUtils {
    * @param className    The name of the class to load
    * @return The class or null if no class loader could load the class.
    */
-  public static Class<?> forName(ClassLoader classLoader, String className)
+  public static Class<?> forName(@Nullable ClassLoader classLoader, String className)
     throws ClassNotFoundException {
     Class<?> c = null;
     if (classLoader != null) {
       c = forName(className, classLoader);
+      if (c != null) {
+        return c;
+      }
     }
-    if (c == null && Thread.currentThread().getContextClassLoader() != null) {
-      c = forName(className, Thread.currentThread().getContextClassLoader());
-    }
-    if (c == null) {
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    if (contextClassLoader != null) {
+      return Class.forName(className, true, contextClassLoader);
+    } else {
       throw new ClassNotFoundException("Failed to load class" + className);
     }
-    return c;
   }
 
   /**
@@ -95,15 +89,12 @@ public class ClassUtils {
    * @param classLoader
    * @return
    */
-  private static Class<?> forName(String className, ClassLoader classLoader) {
-    Class<?> c = null;
-    if (classLoader != null && className != null) {
+  @Nullable
+  private static Class<?> forName(@Nonnull String className, @Nonnull ClassLoader classLoader) {
       try {
-        c = Class.forName(className, true, classLoader);
+        return Class.forName(className, true, classLoader);
       } catch (ClassNotFoundException e) {
-        //Ignore and return null
+        return null;
       }
-    }
-    return c;
   }
 }
