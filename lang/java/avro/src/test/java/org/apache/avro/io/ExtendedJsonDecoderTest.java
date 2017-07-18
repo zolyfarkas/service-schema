@@ -1,0 +1,47 @@
+/*
+ * Copyright 2017 The Apache Software Foundation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.avro.io;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Map;
+import org.junit.Assert;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.generic.GenericRecord;
+import org.junit.Test;
+
+public class ExtendedJsonDecoderTest {
+
+
+  @Test
+  public void testSomeMethod() throws IOException {
+    String data = Resources.toString(Resources.getResource("testData.json"), Charsets.UTF_8);
+    String writerSchemaStr = Resources.toString(Resources.getResource("testDataWriterSchema.json"), Charsets.UTF_8);
+    String readerSchemaStr = Resources.toString(Resources.getResource("testDataReaderSchema.json"), Charsets.UTF_8);
+    Schema writerSchema = new Schema.Parser().parse(writerSchemaStr);
+    Schema readerSchema = new Schema.Parser().parse(readerSchemaStr);
+    ByteArrayInputStream bis = new ByteArrayInputStream(data.getBytes(Charsets.UTF_8));
+    ExtendedJsonDecoder decoder = new ExtendedJsonDecoder(writerSchema, bis);
+    GenericDatumReader reader = new GenericDatumReader(writerSchema, readerSchema);
+    GenericRecord testData = (GenericRecord) reader.read(null, decoder);
+    Assert.assertEquals(Long.valueOf(1L), ((Map<String, Long>) testData.get("someMap")).get("A"));
+    Assert.assertEquals("caca", testData.get("someField").toString());
+  }
+
+}

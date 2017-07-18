@@ -650,5 +650,10 @@ public abstract class Symbol {
   public static final Symbol DEFAULT_END_ACTION = new ImplicitAction(true);
   public static final Symbol MAP_KEY_MARKER =
     new Symbol.Terminal("map-key-marker");
+
+  @Override
+  public String toString() {
+    return "Symbol{" + "kind=" + kind + '}';
+  }
 }
 

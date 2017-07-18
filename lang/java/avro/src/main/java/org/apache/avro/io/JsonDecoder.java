@@ -536,6 +536,12 @@ public class JsonDecoder extends ParsingDecoder
     public JsonElement(JsonToken t) {
       this(t, null);
     }
+
+    @Override
+    public String toString() {
+      return "JsonElement{" + "token=" + token + ", value=" + value + '}';
+    }
+
   }
 
   static List<JsonElement> getValueAsTree(JsonParser in) throws IOException {
@@ -598,7 +604,7 @@ public class JsonDecoder extends ParsingDecoder
       @Override
       public JsonParser skipChildren() throws IOException {
         JsonToken tkn = elements.get(pos).token;
-        int level = (tkn == JsonToken.START_ARRAY || tkn == JsonToken.END_ARRAY) ? 1 : 0;
+        int level = (tkn == JsonToken.START_ARRAY || tkn == JsonToken.START_OBJECT) ? 1 : 0;
         while (level > 0) {
           switch(elements.get(++pos).token) {
           case START_ARRAY:

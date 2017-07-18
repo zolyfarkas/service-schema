@@ -53,7 +53,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
     }
 
     /**
-     * Overwrite this function to optime json decoding of union {null, type}.
+     * Overwrite this function to support decoding of: union {null, anyType}
      *
      * @return
      * @throws IOException
