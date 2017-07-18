@@ -1229,6 +1229,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
   };
 
+  public static void setValidateDefaultsThreadLocal(final boolean validateDefaults) {
+    VALIDATE_DEFAULTS.set(validateDefaults);
+  }
+
+  public static boolean getValidateDefaultsThrealLocal() {
+    return VALIDATE_DEFAULTS.get();
+  }
+
   private static JsonNode validateDefault(String fieldName, Schema schema,
                                           JsonNode defaultValue) {
     if (VALIDATE_DEFAULTS.get() && (defaultValue != null)
