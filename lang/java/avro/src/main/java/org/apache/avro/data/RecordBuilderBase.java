@@ -156,6 +156,13 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
     LogicalType logicalType = schema1.getLogicalType();
     if (logicalType != null) {
       return logicalType.deserialize(defaultValue);
+    } else if (schema1.getType() == Type.UNION) {
+      logicalType = schema1.getTypes().get(0).getLogicalType();
+      if (logicalType != null) {
+        return logicalType.deserialize(defaultValue);
+      } else {
+        return GenericData.get().deepCopy(schema1, defaultValue);
+      }
     } else {
       return GenericData.get().deepCopy(schema1, defaultValue);
     }
