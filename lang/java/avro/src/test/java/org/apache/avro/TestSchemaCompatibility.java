@@ -38,6 +38,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.util.Utf8;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,12 +83,24 @@ public class TestSchemaCompatibility {
       Schema.createUnion(list(INT_SCHEMA));
   private static final Schema LONG_UNION_SCHEMA =
       Schema.createUnion(list(LONG_SCHEMA));
+  private static final Schema FLOAT_UNION_SCHEMA = 
+      Schema.createUnion(list(FLOAT_SCHEMA));
+  private static final Schema DOUBLE_UNION_SCHEMA = 
+      Schema.createUnion(list(DOUBLE_SCHEMA));
   private static final Schema STRING_UNION_SCHEMA =
       Schema.createUnion(list(STRING_SCHEMA));
+  private static final Schema BYTES_UNION_SCHEMA = 
+      Schema.createUnion(list(BYTES_SCHEMA));
   private static final Schema INT_STRING_UNION_SCHEMA =
       Schema.createUnion(list(INT_SCHEMA, STRING_SCHEMA));
   private static final Schema STRING_INT_UNION_SCHEMA =
       Schema.createUnion(list(STRING_SCHEMA, INT_SCHEMA));
+  private static final Schema INT_FLOAT_UNION_SCHEMA = 
+      Schema.createUnion(list(INT_SCHEMA, FLOAT_SCHEMA));
+  private static final Schema INT_LONG_UNION_SCHEMA = 
+      Schema.createUnion(list(INT_SCHEMA, LONG_SCHEMA));
+  private static final Schema INT_LONG_FLOAT_DOUBLE_UNION_SCHEMA = 
+      Schema.createUnion(list(INT_SCHEMA, LONG_SCHEMA, FLOAT_SCHEMA, DOUBLE_SCHEMA));
 
   // Non recursive records:
   private static final Schema EMPTY_RECORD1 =
@@ -359,12 +372,33 @@ public class TestSchemaCompatibility {
 
       // Tests involving unions:
       new ReaderWriter(EMPTY_UNION_SCHEMA, EMPTY_UNION_SCHEMA),
+      new ReaderWriter(FLOAT_UNION_SCHEMA, EMPTY_UNION_SCHEMA),
+      // int unions are actually not readable by float unions, see below test case
+      //new ReaderWriter(FLOAT_UNION_SCHEMA, INT_UNION_SCHEMA),
+      // long unions are actually not readable by float unions, see below test case
+      //new ReaderWriter(FLOAT_UNION_SCHEMA, LONG_UNION_SCHEMA),
       new ReaderWriter(INT_UNION_SCHEMA, INT_UNION_SCHEMA),
       new ReaderWriter(INT_STRING_UNION_SCHEMA, STRING_INT_UNION_SCHEMA),
       new ReaderWriter(INT_UNION_SCHEMA, EMPTY_UNION_SCHEMA),
+      new ReaderWriter(LONG_UNION_SCHEMA, EMPTY_UNION_SCHEMA),
       new ReaderWriter(LONG_UNION_SCHEMA, INT_UNION_SCHEMA),
+      new ReaderWriter(DOUBLE_UNION_SCHEMA, INT_UNION_SCHEMA),
+      new ReaderWriter(DOUBLE_UNION_SCHEMA, LONG_UNION_SCHEMA),
+      new ReaderWriter(DOUBLE_UNION_SCHEMA, FLOAT_UNION_SCHEMA),
+      new ReaderWriter(DOUBLE_UNION_SCHEMA, INT_FLOAT_UNION_SCHEMA),
+      new ReaderWriter(STRING_UNION_SCHEMA, EMPTY_UNION_SCHEMA),
+      new ReaderWriter(STRING_UNION_SCHEMA, BYTES_UNION_SCHEMA),
+      new ReaderWriter(BYTES_UNION_SCHEMA, EMPTY_UNION_SCHEMA),
+      new ReaderWriter(BYTES_UNION_SCHEMA, STRING_UNION_SCHEMA),
+
+      // Readers capable of reading all branches of a union are compatible
+      new ReaderWriter(FLOAT_SCHEMA, INT_FLOAT_UNION_SCHEMA),
+      new ReaderWriter(LONG_SCHEMA, INT_LONG_UNION_SCHEMA),
+      new ReaderWriter(DOUBLE_SCHEMA, INT_FLOAT_UNION_SCHEMA),
+      new ReaderWriter(DOUBLE_SCHEMA, INT_LONG_FLOAT_DOUBLE_UNION_SCHEMA),
 
       // Special case of singleton unions:
+      new ReaderWriter(FLOAT_SCHEMA, FLOAT_UNION_SCHEMA),
       new ReaderWriter(INT_UNION_SCHEMA, INT_SCHEMA),
       new ReaderWriter(INT_SCHEMA, INT_UNION_SCHEMA),
 
@@ -435,7 +469,10 @@ public class TestSchemaCompatibility {
       // Tests involving unions:
       new ReaderWriter(INT_UNION_SCHEMA, INT_STRING_UNION_SCHEMA),
       new ReaderWriter(STRING_UNION_SCHEMA, INT_STRING_UNION_SCHEMA),
-
+      new ReaderWriter(FLOAT_SCHEMA, INT_LONG_FLOAT_DOUBLE_UNION_SCHEMA),
+      new ReaderWriter(LONG_SCHEMA, INT_FLOAT_UNION_SCHEMA),
+      new ReaderWriter(INT_SCHEMA, INT_FLOAT_UNION_SCHEMA),
+      
       new ReaderWriter(EMPTY_RECORD2, EMPTY_RECORD1),
       new ReaderWriter(A_INT_RECORD1, EMPTY_RECORD1),
       new ReaderWriter(A_INT_B_DINT_RECORD1, EMPTY_RECORD1),
@@ -480,6 +517,29 @@ public class TestSchemaCompatibility {
     }
   }
 
+  @Ignore("should float unions be compatible with other number unions, or not?")
+  @Test
+  public void testFloatUnionReaderAndIntLongUnionWriterIncompatibility() {
+    SchemaPairCompatibility result =
+        checkReaderWriterCompatibility(FLOAT_UNION_SCHEMA, INT_UNION_SCHEMA);
+    assertEquals(String.format(
+        "Expecting reader %s to be incompatible with writer %s, but tested compatible.",
+        FLOAT_UNION_SCHEMA, INT_UNION_SCHEMA),
+        SchemaCompatibilityType.INCOMPATIBLE, result.getType());
+    
+    result = checkReaderWriterCompatibility(FLOAT_UNION_SCHEMA, LONG_UNION_SCHEMA);
+    assertEquals(String.format(
+        "Expecting reader %s to be incompatible with writer %s, but tested compatible.",
+        FLOAT_UNION_SCHEMA, LONG_UNION_SCHEMA),
+        SchemaCompatibilityType.INCOMPATIBLE, result.getType());
+
+    result = checkReaderWriterCompatibility(FLOAT_UNION_SCHEMA, INT_LONG_UNION_SCHEMA);
+    assertEquals(String.format(
+        "Expecting reader %s to be incompatible with writer %s, but tested compatible.",
+        FLOAT_UNION_SCHEMA, INT_LONG_UNION_SCHEMA),
+        SchemaCompatibilityType.INCOMPATIBLE, result.getType());
+  }
+  
   // -----------------------------------------------------------------------------------------------
 
   /**
