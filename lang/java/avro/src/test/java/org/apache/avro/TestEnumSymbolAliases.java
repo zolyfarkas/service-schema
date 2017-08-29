@@ -35,7 +35,7 @@ import org.junit.Test;
 /**
  * @author Zoltan Farkas
  */
-public class TestEnumSymbolAliasses {
+public class TestEnumSymbolAliases {
 
   @Test
   public void testCompatibility() throws IOException {
@@ -49,7 +49,7 @@ public class TestEnumSymbolAliasses {
             .record("myrecord").namespace("org.example").aliases("oldrecord").fields()
             .name("f0").aliases("crap").type().enumeration("MyEnum")
             .prop("fallbackSymbol", "UNKNOWN")
-            .prop("symbolAliasses", JacksonUtils.toJsonNode(ImmutableMap.of("X", Arrays.asList("B"))))
+            .prop("symbolAliases", JacksonUtils.toJsonNode(ImmutableMap.of("X", Arrays.asList("B"))))
             .symbols("UNKNOWN", "A", "X", "C", "D").enumDefault("UNKNOWN")
             .endRecord();
 
@@ -108,7 +108,7 @@ public class TestEnumSymbolAliasses {
     Schema schema2 = SchemaBuilder
             .record("myrecord").namespace("org.example").aliases("oldrecord").fields()
             .name("f0").aliases("crap").type().enumeration("MyEnum")
-            .prop("symbolAliasses", JacksonUtils.toJsonNode(ImmutableMap.of("X", Arrays.asList("B"))))
+            .prop("symbolAliases", JacksonUtils.toJsonNode(ImmutableMap.of("X", Arrays.asList("B"))))
             .symbols("A", "X", "C", "D").noDefault()
             .endRecord();
 
@@ -160,7 +160,7 @@ public class TestEnumSymbolAliasses {
         SchemaBuilder
             .record("myrecord").namespace("org.example").aliases("oldrecord").fields()
             .name("f0").aliases("f0alias").type().enumeration("MyEnum")
-            .prop("symbolAliasses", JacksonUtils.toJsonNode(ImmutableMap.of("X", Arrays.asList("B"))))
+            .prop("symbolAliases", JacksonUtils.toJsonNode(ImmutableMap.of("X", Arrays.asList("B"))))
             .symbols("UNKNOWN", "A", "B", "C").noDefault()
             .endRecord();
   }

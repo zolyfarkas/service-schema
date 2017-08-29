@@ -428,9 +428,9 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       int j = readerSchema.getEnumSymbolOrAliasOrdinal(ws);
       if (j == -1) {
         // try writer aliasses
-        Map<String, List<String>> symbolAliasses = writerSchema.getSymbolAliasses();
-        if (symbolAliasses != null) {
-          List<String> aliases = symbolAliasses.get(ws);
+        Map<String, List<String>> symbolAliases = writerSchema.getSymbolAliases();
+        if (symbolAliases != null) {
+          List<String> aliases = symbolAliases.get(ws);
           if (aliases != null) {
             for (String alias : aliases) {
               j = readerSchema.getEnumSymbolOrAliasOrdinal(alias);

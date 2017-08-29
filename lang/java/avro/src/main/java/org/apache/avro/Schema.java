@@ -818,8 +818,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
     public List<String> getEnumSymbols() { return symbols; }
 
-    public Map<String, List<String>> getSymbolAliasses() {
-      return (Map<String, List<String>>) this.getObjectProp("symbolAliasses");
+    public Map<String, List<String>> getSymbolAliases() {
+      return (Map<String, List<String>>) this.getObjectProp("symbolAliases");
     }
 
     public String getFallbackSymbol() {
@@ -832,8 +832,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
         case "fallbackSymbol":
           validateFalbackSymbol(value);
           break;
-        case "symbolAliasses":
-          validateSymbolAliasses(value);
+        case "symbolAliases":
+          validateSymbolAliases(value);
           break;
       }
       super.addProp(name, value);
@@ -845,7 +845,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
-    private void validateSymbolAliasses(JsonNode value) throws AvroTypeException {
+    private void validateSymbolAliases(JsonNode value) throws AvroTypeException {
       Map<String, List<String>> sAliasses = (Map<String, List<String>>) JacksonUtils.toObject(value);
       for (String symbol : sAliasses.keySet()) {
         if (!symbols.contains(symbol)) {
@@ -860,9 +860,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (val != null) {
         validateFalbackSymbol(val);
       }
-      JsonNode sa = xtraProps.get("symbolAliasses");
+      JsonNode sa = xtraProps.get("symbolAliases");
       if (sa != null) {
-        validateSymbolAliasses(sa);
+        validateSymbolAliases(sa);
       }
 
       super.addJsonProps(xtraProps);
@@ -879,7 +879,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (ordinal != null) {
         return ordinal;
       }
-      Map<String, List<String>> aliasses = getSymbolAliasses();
+      Map<String, List<String>> aliasses = getSymbolAliases();
       if (aliasses != null) {
         for (Map.Entry<String, List<String>> entry : aliasses.entrySet()) {
           if (entry.getValue().contains(soa)) {
