@@ -155,9 +155,7 @@ public class TestReadingWritingDataInEvolvedSchemas {
    * are wrapped in unions, they are no longer compatible.
    */
   @Test
-  public void intUnionIsNotConvertedToFloatUnion() throws Exception {
-    expectedException.expect(AvroTypeException.class);
-    expectedException.expectMessage("Found int, expecting union");
+  public void intUnionIsConvertedToFloatUnion() throws Exception {
     Schema writer = UNION_INT_RECORD;
     Record record = defaultRecordWithSchema(writer, FIELD_A, 42);
     byte[] encoded = encodeGenericBlob(record);
@@ -178,9 +176,7 @@ public class TestReadingWritingDataInEvolvedSchemas {
    * float are wrapped in unions, they are no longer compatible.
    */
   @Test
-  public void longUnionIsNotConvertedToFloatUnion() throws Exception {
-    expectedException.expect(AvroTypeException.class);
-    expectedException.expectMessage("Found long, expecting union");
+  public void longUnionIsConvertedToFloatUnion() throws Exception {
     Schema writer = UNION_LONG_RECORD;
     Record record = defaultRecordWithSchema(writer, FIELD_A, 42L);
     byte[] encoded = encodeGenericBlob(record);
@@ -202,7 +198,7 @@ public class TestReadingWritingDataInEvolvedSchemas {
     Record record = defaultRecordWithSchema(writer, FIELD_A, 42L);
     byte[] encoded = encodeGenericBlob(record);
     Record decoded = decodeGenericBlob(UNION_FLOAT_DOUBLE_RECORD, writer, encoded);
-    assertEquals(42.0, decoded.get(FIELD_A));
+    assertEquals(42.0f, decoded.get(FIELD_A));
   }
 
   @Test

@@ -519,11 +519,16 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
         switch (vt) {
         case INT:
           switch (b.getType()) {
-          case LONG: case DOUBLE:
+          case LONG: case DOUBLE: case FLOAT:
             return j;
           }
           break;
         case LONG:
+          switch (b.getType()) {
+            case DOUBLE: case FLOAT:
+            return j;
+          }
+          break;
         case FLOAT:
           switch (b.getType()) {
           case DOUBLE:
