@@ -17,9 +17,19 @@
  */
 package org.apache.avro.generic;
 
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.avro.Schema;
+
 /** An enum symbol. */
 public interface GenericEnumSymbol<T extends GenericEnumSymbol>
     extends GenericContainer, Comparable<T> {
+
+  default Set<String> getAliasses() {
+      Schema.EnumSchema schema = (Schema.EnumSchema) getSchema();
+      return new HashSet<>(schema.getSymbolAliases().get(toString()));
+  }
+
   /** Return the symbol. */
   String toString();
 }
