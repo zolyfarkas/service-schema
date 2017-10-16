@@ -312,9 +312,9 @@ public class SchemaCompatibility {
               SchemaCompatibilityType result = SchemaCompatibilityType.COMPATIBLE;
               for (String rs : symbols) {
                 if (((EnumSchema) reader).getEnumSymbolOrAliasOrdinal(rs) == -1) {
-                  Map<String, List<String>> rsaliasses = ((EnumSchema) writer).getSymbolAliases();
+                  Map<String, Set<String>> rsaliasses = ((EnumSchema) writer).getSymbolAliases();
                   if (rsaliasses != null) {
-                    List<String> ral = rsaliasses.get(rs);
+                    Set<String> ral = rsaliasses.get(rs);
                     if (ral != null) {
                       boolean foundAlias = false;
                       for (String ras : ral) {

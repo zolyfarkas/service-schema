@@ -284,7 +284,7 @@ public class TestReadingWritingDataInEvolvedSchemas {
   @Test
   public void enumRecordCanBeReadWithExtendedEnumSchema() throws Exception {
     Schema writer = ENUM_AB_RECORD;
-    Record record = defaultRecordWithSchema(writer, FIELD_A, new EnumSymbol(writer, "A"));
+    Record record = defaultRecordWithSchema(writer, FIELD_A, new EnumSymbol(writer.getField(FIELD_A).schema(), "A"));
     byte[] encoded = encodeGenericBlob(record);
     Record decoded = decodeGenericBlob(ENUM_ABC_RECORD, writer, encoded);
     assertEquals("A", decoded.get(FIELD_A).toString());
@@ -293,7 +293,7 @@ public class TestReadingWritingDataInEvolvedSchemas {
   @Test
   public void enumRecordWithExtendedSchemaCanBeReadWithOriginalEnumSchemaIfOnlyOldValues() throws Exception {
     Schema writer = ENUM_ABC_RECORD;
-    Record record = defaultRecordWithSchema(writer, FIELD_A, new EnumSymbol(writer, "A"));
+    Record record = defaultRecordWithSchema(writer, FIELD_A, new EnumSymbol(writer.getField(FIELD_A).schema(), "A"));
     byte[] encoded = encodeGenericBlob(record);
     Record decoded = decodeGenericBlob(ENUM_AB_RECORD, writer, encoded);
     assertEquals("A", decoded.get(FIELD_A).toString());
@@ -304,7 +304,7 @@ public class TestReadingWritingDataInEvolvedSchemas {
     expectedException.expect(AvroTypeException.class);
     expectedException.expectMessage("No match for C");
     Schema writer = ENUM_ABC_RECORD;
-    Record record = defaultRecordWithSchema(writer, FIELD_A, new EnumSymbol(writer, "C"));
+    Record record = defaultRecordWithSchema(writer, FIELD_A, new EnumSymbol(writer.getField(FIELD_A).schema(), "C"));
     byte[] encoded = encodeGenericBlob(record);
     decodeGenericBlob(ENUM_AB_RECORD, writer, encoded);
   }

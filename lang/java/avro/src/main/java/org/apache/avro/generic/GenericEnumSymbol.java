@@ -17,7 +17,6 @@
  */
 package org.apache.avro.generic;
 
-import java.util.HashSet;
 import java.util.Set;
 import org.apache.avro.Schema;
 
@@ -27,7 +26,7 @@ public interface GenericEnumSymbol<T extends GenericEnumSymbol>
 
   default Set<String> getAliasses() {
       Schema.EnumSchema schema = (Schema.EnumSchema) getSchema();
-      return new HashSet<>(schema.getSymbolAliases().get(toString()));
+      return schema.getSymbolAliases().get(toString());
   }
 
   /** Return the symbol. */

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -428,9 +429,9 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       int j = readerSchema.getEnumSymbolOrAliasOrdinal(ws);
       if (j == -1) {
         // try writer aliasses
-        Map<String, List<String>> symbolAliases = writerSchema.getSymbolAliases();
+        Map<String, Set<String>> symbolAliases = writerSchema.getSymbolAliases();
         if (symbolAliases != null) {
-          List<String> aliases = symbolAliases.get(ws);
+          Set<String> aliases = symbolAliases.get(ws);
           if (aliases != null) {
             for (String alias : aliases) {
               j = readerSchema.getEnumSymbolOrAliasOrdinal(alias);

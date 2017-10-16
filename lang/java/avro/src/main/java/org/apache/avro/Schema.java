@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -806,6 +807,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
   public static class EnumSchema extends NamedSchema {
     private final List<String> symbols;
     private final Map<String,Integer> ordinals;
+    private volatile Map<String, Set<String>> aliases;
+
     public EnumSchema(Name name, String doc,
         LockableArrayList<String> symbols) {
       super(Type.ENUM, name, doc);
@@ -816,14 +819,54 @@ public abstract class Schema extends JsonProperties implements Serializable {
         if (ordinals.put(validateName(symbol), i++) != null)
           throw new SchemaParseException("Duplicate enum symbol: "+symbol);
     }
+
+
     public List<String> getEnumSymbols() { return symbols; }
 
-    public Map<String, List<String>> getSymbolAliases() {
-      return (Map<String, List<String>>) this.getObjectProp("symbolAliases");
+    public  Map<String, Set<String>> getSymbolAliases() {
+      if (aliases != null) {
+        return aliases;
+      } else {
+        Map<String, List<String>> sa = (Map<String, List<String>>) this.getObjectProp("symbolAliases");
+        if (sa == null) {
+          aliases = Collections.EMPTY_MAP;
+          return Collections.EMPTY_MAP;
+        } else {
+          Map<String, Set<String>> result = new HashMap<>(sa.size());
+          for (Map.Entry<String, List<String>> entry : sa.entrySet()) {
+            result.put(entry.getKey(), new HashSet<>(entry.getValue()));
+          }
+          Map<String, String> strSymbols = (Map<String, String>) this.getObjectProp("stringSymbols");
+          if (strSymbols != null) {
+            for (Map.Entry<String, String> entry : strSymbols.entrySet()) {
+              String key = entry.getKey();
+              Set<String> ex = result.get(key);
+              if (ex != null) {
+                ex.add(entry.getValue());
+              } else {
+                result.put(key, new HashSet<>(Arrays.asList(entry.getValue())));
+              }
+            }
+          }
+          aliases = result;
+          return result;
+        }
+      }
     }
 
     public String getFallbackSymbol() {
       return (String) this.getObjectProp("fallbackSymbol");
+    }
+
+
+    public String getStringSymbol(final String symbol) {
+      Map<String, String> strSymbols = (Map<String, String>) this.getObjectProp("stringSymbols");
+      if (strSymbols == null) {
+        return symbol;
+      } else {
+        String result = strSymbols.get(symbol);
+        return (result == null) ? symbol : result;
+      }
     }
 
     @Override
@@ -834,6 +877,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
           break;
         case "symbolAliases":
           validateSymbolAliases(value);
+          aliases = null;
+          break;
+        case "stringSymbols":
+          validateStringSymbols(value);
+          aliases = null;
           break;
       }
       super.addProp(name, value);
@@ -853,6 +901,17 @@ public abstract class Schema extends JsonProperties implements Serializable {
         }
       }
     }
+
+    private void validateStringSymbols(JsonNode value) throws AvroTypeException {
+      Map<String, String> sAliasses = (Map<String, String>) JacksonUtils.toObject(value);
+      for (String symbol : sAliasses.keySet()) {
+        if (!symbols.contains(symbol)) {
+          throw new AvroTypeException("Enum symbo " + symbol + " does not exist in " + symbols);
+        }
+      }
+    }
+
+
 
     @Override
     public void addJsonProps(Map<String, JsonNode> xtraProps) {
@@ -879,9 +938,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (ordinal != null) {
         return ordinal;
       }
-      Map<String, List<String>> aliasses = getSymbolAliases();
+      Map<String, Set<String>> aliasses = getSymbolAliases();
       if (aliasses != null) {
-        for (Map.Entry<String, List<String>> entry : aliasses.entrySet()) {
+        for (Map.Entry<String, Set<String>> entry : aliasses.entrySet()) {
           if (entry.getValue().contains(soa)) {
             return ordinals.get(entry.getKey());
           }
