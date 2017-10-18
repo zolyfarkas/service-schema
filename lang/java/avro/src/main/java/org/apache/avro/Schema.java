@@ -847,12 +847,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
       Map<String, String> strSymbols = (Map<String, String>) JacksonUtils.toObject(node);
       if (strSymbols != null) {
         for (Map.Entry<String, String> entry : strSymbols.entrySet()) {
-          String key = entry.getKey();
+          final String key = entry.getKey();
+          final String val = entry.getValue();
           Integer ordinal = ordinals.get(key);
           if (ordinal == null) {
             throw new AvroTypeException("enum value referenced in stringSymbol not defined: " + key);
           } else {
-            ordinals.put(entry.getValue(), ordinal);
+            symbols.replaceAll((symb) -> key.equals(symb) ? val : symb);
+            ordinals.put(val, ordinal);
           }
         }
       }
