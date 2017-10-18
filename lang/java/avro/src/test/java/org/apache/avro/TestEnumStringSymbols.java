@@ -64,6 +64,20 @@ public class TestEnumStringSymbols {
     Assert.assertEquals("A+", read.get("f0").toString());
 
 
+    ByteArrayOutputStream bao2 = new ByteArrayOutputStream();
+    GenericDatumWriter<GenericRecord> writer2 =
+      new GenericDatumWriter<GenericRecord>(schema1);
+    Encoder encoder2 = EncoderFactory.get().jsonEncoder(schema1, bao2);
+    writer2.write(rec, encoder2);
+    encoder2.flush();
+    System.out.println("Record: " + bao2);
+    GenericDatumReader<GenericRecord> reader2 =
+      new GenericDatumReader<GenericRecord>(schema1, schema1);
+    Decoder decoder2 = DecoderFactory.get().jsonDecoder(schema1, new ByteArrayInputStream(bao2.toByteArray()));
+    GenericRecord read2 = reader2.read(null, decoder2);
+    System.out.println(read2);
+    Assert.assertEquals("A+", read2.get("f0").toString());
+
   }
 
 }

@@ -805,6 +805,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   public static class EnumSchema extends NamedSchema {
     private final List<String> symbols;
+    private final List<String> stringSymbols;
     private final Map<String,Integer> ordinals;
     private volatile Map<String, Set<String>> aliases;
 
@@ -812,6 +813,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         LockableArrayList<String> symbols) {
       super(Type.ENUM, name, doc);
       this.symbols = symbols.lock();
+      this.stringSymbols = new ArrayList<>(symbols);
       this.ordinals = new HashMap<String,Integer>(symbols.size());
       int i = 0;
       for (String symbol : symbols)
@@ -821,6 +823,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
 
     public List<String> getEnumSymbols() { return symbols; }
+
+
+    public List<String> getEnumStringSymbols() { return stringSymbols; }
 
     public  Map<String, Set<String>> getSymbolAliases() {
       return aliases;
@@ -853,7 +858,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
           if (ordinal == null) {
             throw new AvroTypeException("enum value referenced in stringSymbol not defined: " + key);
           } else {
-            symbols.replaceAll((symb) -> key.equals(symb) ? val : symb);
+            stringSymbols.replaceAll((symb) -> key.equals(symb) ? val : symb);
             ordinals.put(val, ordinal);
           }
         }

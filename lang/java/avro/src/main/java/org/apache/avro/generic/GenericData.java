@@ -382,7 +382,7 @@ public class GenericData {
       return true;
     case ENUM:
       if (!isEnum(datum)) return false;
-      return schema.getEnumSymbols().contains(datum.toString());
+      return ((EnumSchema) schema).getEnumSymbolOrAliasOrdinal(datum.toString()) >= 0;
     case ARRAY:
       if (!(isArray(datum))) return false;
       for (Object element : getArrayAsCollection(datum))
