@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -554,7 +553,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (lastDot < 0) {                          // unqualified name
         this.name = validateName(name);
       } else {                                    // qualified name
-        space = name.substring(0, lastDot);       // get space from name
+        space = name.substring(0, lastDot);       // ordinal space from name
         this.name = validateName(name.substring(lastDot+1, name.length()));
       }
       if ("".equals(space))
@@ -824,32 +823,37 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public List<String> getEnumSymbols() { return symbols; }
 
     public  Map<String, Set<String>> getSymbolAliases() {
-      if (aliases != null) {
-        return aliases;
+      return aliases;
+    }
+
+    private void setAliases(JsonNode node) {
+      Map<String, List<String>> sa = (Map<String, List<String>>) JacksonUtils.toObject(node);
+      if (sa == null) {
+        aliases = Collections.EMPTY_MAP;
       } else {
-        Map<String, List<String>> sa = (Map<String, List<String>>) this.getObjectProp("symbolAliases");
-        if (sa == null) {
-          aliases = Collections.EMPTY_MAP;
-          return Collections.EMPTY_MAP;
-        } else {
-          Map<String, Set<String>> result = new HashMap<>(sa.size());
-          for (Map.Entry<String, List<String>> entry : sa.entrySet()) {
-            result.put(entry.getKey(), new HashSet<>(entry.getValue()));
+        Map<String, Set<String>> result = new HashMap<>(sa.size());
+        for (Map.Entry<String, List<String>> entry : sa.entrySet()) {
+          String symbol = entry.getKey();
+          if (!symbols.contains(symbol)) {
+            throw new AvroTypeException("Enum value referenced in symbolAliases not defined: " + symbol);
           }
-          Map<String, String> strSymbols = (Map<String, String>) this.getObjectProp("stringSymbols");
-          if (strSymbols != null) {
-            for (Map.Entry<String, String> entry : strSymbols.entrySet()) {
-              String key = entry.getKey();
-              Set<String> ex = result.get(key);
-              if (ex != null) {
-                ex.add(entry.getValue());
-              } else {
-                result.put(key, new HashSet<>(Arrays.asList(entry.getValue())));
-              }
-            }
+          result.put(symbol, new HashSet<>(entry.getValue()));
+        }
+        aliases = result;
+      }
+    }
+
+    private void setStringSymbols(JsonNode node) {
+      Map<String, String> strSymbols = (Map<String, String>) JacksonUtils.toObject(node);
+      if (strSymbols != null) {
+        for (Map.Entry<String, String> entry : strSymbols.entrySet()) {
+          String key = entry.getKey();
+          Integer ordinal = ordinals.get(key);
+          if (ordinal == null) {
+            throw new AvroTypeException("enum value referenced in stringSymbol not defined: " + key);
+          } else {
+            ordinals.put(entry.getValue(), ordinal);
           }
-          aliases = result;
-          return result;
         }
       }
     }
@@ -876,12 +880,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
           validateFalbackSymbol(value);
           break;
         case "symbolAliases":
-          validateSymbolAliases(value);
-          aliases = null;
+          setAliases(value);
           break;
         case "stringSymbols":
-          validateStringSymbols(value);
-          aliases = null;
+          setStringSymbols(value);
           break;
       }
       super.addProp(name, value);
@@ -893,38 +895,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
-    private void validateSymbolAliases(JsonNode value) throws AvroTypeException {
-      Map<String, List<String>> sAliasses = (Map<String, List<String>>) JacksonUtils.toObject(value);
-      for (String symbol : sAliasses.keySet()) {
-        if (!symbols.contains(symbol)) {
-          throw new AvroTypeException("Enum symbo " + symbol + " does not exist in " + symbols);
-        }
-      }
-    }
-
-    private void validateStringSymbols(JsonNode value) throws AvroTypeException {
-      Map<String, String> sAliasses = (Map<String, String>) JacksonUtils.toObject(value);
-      for (String symbol : sAliasses.keySet()) {
-        if (!symbols.contains(symbol)) {
-          throw new AvroTypeException("Enum symbo " + symbol + " does not exist in " + symbols);
-        }
-      }
-    }
-
-
 
     @Override
     public void addJsonProps(Map<String, JsonNode> xtraProps) {
-      JsonNode val = xtraProps.get("fallbackSymbol");
-      if (val != null) {
-        validateFalbackSymbol(val);
+      for (Map.Entry<String, JsonNode> entry : xtraProps.entrySet()) {
+        addProp(entry.getKey(), entry.getValue());
       }
-      JsonNode sa = xtraProps.get("symbolAliases");
-      if (sa != null) {
-        validateSymbolAliases(sa);
-      }
-
-      super.addJsonProps(xtraProps);
     }
 
     public boolean hasEnumSymbol(String symbol) {
@@ -1529,7 +1505,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       Set<String> logicalTypeReserved = null;
       if (logicalType != null) {
           result.setLogicalType(logicalType);
-          // get the reserved properties for this logical type
+          // ordinal the reserved properties for this logical type
           logicalTypeReserved = logicalType.reserved();
       }
       Iterator<String> i = schema.getFieldNames();
