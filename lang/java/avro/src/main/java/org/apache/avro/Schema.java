@@ -858,7 +858,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
           if (ordinal == null) {
             throw new AvroTypeException("enum value referenced in stringSymbol not defined: " + key);
           } else {
-            stringSymbols.replaceAll((symb) -> key.equals(symb) ? val : symb);
+            for (int i = 0, l = stringSymbols.size(); i < l; i++) {
+              if (stringSymbols.get(i).equals(key)) {
+                stringSymbols.set(i, val);
+              }
+            }
             ordinals.put(val, ordinal);
           }
         }

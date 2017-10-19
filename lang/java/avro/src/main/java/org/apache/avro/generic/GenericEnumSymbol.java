@@ -17,17 +17,16 @@
  */
 package org.apache.avro.generic;
 
-import java.util.Set;
-import org.apache.avro.Schema;
 
 /** An enum symbol. */
 public interface GenericEnumSymbol<T extends GenericEnumSymbol>
     extends GenericContainer, Comparable<T> {
 
-  default Set<String> getAliasses() {
-      Schema.EnumSchema schema = (Schema.EnumSchema) getSchema();
-      return schema.getSymbolAliases().get(toString());
-  }
+// reverted since will have to keep jdk 1.7 compat for a while.
+//  default Set<String> getAliasses() {
+//      Schema.EnumSchema schema = (Schema.EnumSchema) getSchema();
+//      return schema.getSymbolAliases().get(toString());
+//  }
 
   /** Return the symbol. */
   String toString();
