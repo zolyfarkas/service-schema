@@ -36,9 +36,13 @@ public final class Decimal extends AbstractLogicalType {
 
     private final MathContext mc;
     private final int scale;
+    private final int precision;
 
-    public Decimal(int precision, int scale, Schema.Type type) {
-      super(type, RESERVED, "decimal", ImmutableMap.of("precision", (Object) precision, "scale", scale));
+    public Decimal(Integer precision, Integer scale, Schema.Type type) {
+      super(type, RESERVED, "decimal", ImmutableMap.of("precision",
+              precision == null ? (Object) Integer.valueOf(36) : precision, "scale",
+              scale == null ?  ( precision == null ? Integer.valueOf(12) : precision / 2) : scale));
+      this.precision = precision;
       if (precision <= 0) {
         throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: " +
             precision + " (must be positive)");
@@ -141,19 +145,17 @@ public final class Decimal extends AbstractLogicalType {
     @Override
     public Object serialize(Object object) {
       BigDecimal decimal = (BigDecimal) object;
+      if (decimal.scale() > scale) {
+        decimal.setScale(scale, RoundingMode.HALF_DOWN).toPlainString();
+      }
+      if (decimal.precision() > precision) {
+        throw new UnsupportedOperationException("Decimal " + decimal + " exceeds precision " + precision);
+      }
       switch (type) {
         case STRING:
-          if (decimal.scale() > scale) {
-            return decimal.setScale(scale, RoundingMode.HALF_DOWN).toPlainString();
-          } else {
-            return decimal.toPlainString();
-          }
+          return decimal.toPlainString();
         case BYTES:
-          if (decimal.scale() > scale) {
-            decimal = decimal.setScale(scale, RoundingMode.HALF_DOWN);
-          }
-          ByteBuffer buf = toBytes(decimal);
-          return buf;
+          return toBytes(decimal);
         default:
           throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
       }
