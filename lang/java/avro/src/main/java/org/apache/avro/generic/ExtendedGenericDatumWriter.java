@@ -9,6 +9,7 @@ import org.apache.avro.io.parsing.Symbol;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.apache.avro.data.RecordBuilderBase;
 
 /**
@@ -42,10 +43,28 @@ public class ExtendedGenericDatumWriter<D> extends GenericDatumWriter<D> {
      }
      if ((a instanceof Enum || a instanceof GenericEnumSymbol) && b != null) {
        return a.toString().equals(b.toString());
+     } else if (a instanceof CharSequence && b instanceof CharSequence) {
+       return equals((CharSequence) a, (CharSequence) b);
      } else {
        return false;
      }
+
    }
+
+   public static boolean equals(@Nonnull final CharSequence s, @Nonnull final CharSequence t) {
+    final int sl = s.length();
+    final int tl = t.length();
+    if (sl != tl) {
+      return false;
+    } else {
+      for (int i = 0; i < sl; i++) {
+        if (s.charAt(i) != t.charAt(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
 
 
    private static final ThreadLocal<List<Symbol>> HOLDINGS = new ThreadLocal<List<Symbol>>() {
