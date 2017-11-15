@@ -60,6 +60,7 @@ import org.codehaus.jackson.node.NullNode;
 
 import com.thoughtworks.paranamer.CachingParanamer;
 import com.thoughtworks.paranamer.Paranamer;
+import org.apache.avro.generic.GenericEnumSymbol;
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
 public class ReflectData extends SpecificData {
@@ -173,6 +174,7 @@ public class ReflectData extends SpecificData {
     if (datum instanceof Collection) return false;
     if (datum instanceof Map) return false;
     if (datum instanceof GenericFixed) return false;
+    if (datum instanceof GenericEnumSymbol) return false;
     return getSchema(datum.getClass()).getType() == Schema.Type.RECORD;
   }
 
