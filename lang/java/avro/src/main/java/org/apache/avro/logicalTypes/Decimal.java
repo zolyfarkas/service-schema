@@ -33,6 +33,17 @@ import org.codehaus.jackson.JsonNode;
   /** Decimal represents arbitrary-precision fixed-scale decimal numbers  */
 public final class Decimal extends AbstractLogicalType {
 
+    private static final RoundingMode defaultDeserRounding;
+
+    static {
+      String sdr = System.getProperty("avro.decimal.defaultDeserRounding", "HALF_DOWN");
+      if (sdr == null || sdr.isEmpty() || sdr.equals("NONE")) {
+        defaultDeserRounding = null;
+      } else {
+        defaultDeserRounding = RoundingMode.valueOf(sdr);
+      }
+    }
+
     private static final Set<String> RESERVED = AbstractLogicalType.reservedSet("precision", "scale",
             "serRounding", "deserRounding");
 
@@ -43,7 +54,8 @@ public final class Decimal extends AbstractLogicalType {
     private final RoundingMode deserRm;
 
     public Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
-      super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm));
+      super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm,
+              deserRm == null ? defaultDeserRounding : deserRm));
       this.precision = precision;
       this.serRm = serRm;
       this.deserRm = deserRm;
