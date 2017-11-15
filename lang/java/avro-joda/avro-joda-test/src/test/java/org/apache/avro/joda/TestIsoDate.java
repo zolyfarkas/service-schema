@@ -54,7 +54,7 @@ public class TestIsoDate {
     @Test
     public void testSerialization() throws IOException {
         TestRecord record = TestRecord.newBuilder()
-                .setDecimalVal(new BigDecimal("3.123456789"))
+                .setDecimalVal(new BigDecimal("3.12345678"))
                 .setDecimalVal2(new BigDecimal("3.14"))
                 .setDecimalVal3(new BigDecimal("3.14"))
                 .setIntVal(0)
@@ -65,7 +65,7 @@ public class TestIsoDate {
                 .build();
         byte [] result = AvroUtils.writeAvroBin(record);
         TestRecord record2 = AvroUtils.readAvroBin(result, TestRecord.class, null);
-        record.setDecimalVal(new BigDecimal("3.12345679"));
+        record.setDecimalVal(new BigDecimal("3.12345678"));
         Assert.assertEquals(record, record2);
         result = AvroUtils.writeAvroJson(record);
         System.out.println(new String(result, Charset.forName("UTF-8")));
