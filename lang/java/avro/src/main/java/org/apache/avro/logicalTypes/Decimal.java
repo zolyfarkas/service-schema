@@ -33,14 +33,14 @@ import org.codehaus.jackson.JsonNode;
   /** Decimal represents arbitrary-precision fixed-scale decimal numbers  */
 public final class Decimal extends AbstractLogicalType {
 
-    private static final RoundingMode defaultDeserRounding;
+    private static final RoundingMode DEFAULT_DESER_ROUNDING;
 
     static {
-      String sdr = System.getProperty("avro.decimal.defaultDeserRounding", "HALF_DOWN");
-      if (sdr == null || sdr.isEmpty() || sdr.equals("NONE")) {
-        defaultDeserRounding = null;
+      String sdr = System.getProperty("avro.decimal.defaultDeserRounding", "none");
+      if (sdr == null || sdr.isEmpty() || "none".equalsIgnoreCase(sdr)) {
+        DEFAULT_DESER_ROUNDING = null;
       } else {
-        defaultDeserRounding = RoundingMode.valueOf(sdr);
+        DEFAULT_DESER_ROUNDING = RoundingMode.valueOf(sdr);
       }
     }
 
@@ -54,15 +54,15 @@ public final class Decimal extends AbstractLogicalType {
     private final RoundingMode deserRm;
 
     public Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
-      super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm,
-              deserRm == null ? defaultDeserRounding : deserRm));
-      this.precision = precision;
+      super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm));
+      this.precision = precision == null ? 36 : precision;
       this.serRm = serRm;
-      this.deserRm = deserRm;
+      this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
       if (precision <= 0) {
         throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: " +
             precision + " (must be positive)");
       }
+      scale = scale == null ?  (precision == null ? 12 : precision / 2) : scale;
       if (scale < 0) {
         throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: " +
             scale + " (must be positive)");
@@ -81,9 +81,13 @@ public final class Decimal extends AbstractLogicalType {
 
     private static Map<String, Object> toAttributes(Integer precision, Integer scale,
             RoundingMode serRm, RoundingMode deserRm) {
-       Map<String, Object> attr = new HashMap<String, Object>(5);
-       attr.put("precision", precision == null ? Integer.valueOf(36) : precision);
-       attr.put("scale", scale == null ?  (precision == null ? Integer.valueOf(12) : precision / 2) : scale);
+       Map<String, Object> attr = new HashMap<String, Object>(4);
+       if (precision != null) {
+         attr.put("precision", precision);
+       }
+       if (scale != null) {
+         attr.put("scale", scale);
+       }
        if (serRm != null) {
          attr.put("serRounding", serRm.toString());
        }

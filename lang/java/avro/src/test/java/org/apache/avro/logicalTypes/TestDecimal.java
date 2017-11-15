@@ -18,6 +18,7 @@ package org.apache.avro.logicalTypes;
 import com.google.common.collect.ImmutableMap;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.LogicalType;
@@ -58,6 +59,24 @@ public class TestDecimal {
             .create(Schema.Type.STRING,
                     (Map) ImmutableMap.of("precision", 32, "scale", 10, "deserRounding", RoundingMode.HALF_DOWN.DOWN));
     BigDecimal nr2 = (BigDecimal) type2.deserialize("0.1234567891000124");
+    Assert.assertTrue(new BigDecimal("0.1234567891000124").subtract(nr2).abs().compareTo(new BigDecimal(0.0000000001))
+            < 0);
+
+
+     LogicalType typex = new DecimalFactory()
+            .create(Schema.Type.BYTES,
+                    (Map) ImmutableMap.of("precision", 32, "scale", 20,
+                            "serRounding", RoundingMode.HALF_DOWN.DOWN,
+                            "deserRounding", RoundingMode.HALF_DOWN.DOWN));
+
+
+    LogicalType type1 = new DecimalFactory()
+            .create(Schema.Type.BYTES,
+                    (Map) ImmutableMap.of("precision", 32, "scale", 10,
+                            "serRounding", RoundingMode.HALF_DOWN.DOWN,
+                            "deserRounding", RoundingMode.HALF_DOWN.DOWN));
+    ByteBuffer buf = (ByteBuffer) typex.serialize(new BigDecimal("0.1234567891000124"));
+    nr2 = (BigDecimal) type1.deserialize(buf);
     Assert.assertTrue(new BigDecimal("0.1234567891000124").subtract(nr2).abs().compareTo(new BigDecimal(0.0000000001))
             < 0);
   }

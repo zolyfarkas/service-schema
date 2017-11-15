@@ -40,7 +40,12 @@ public class DecimalFactory implements LogicalTypeFactory {
         if (n instanceof RoundingMode) {
           return (RoundingMode) n;
         } else {
-          return RoundingMode.valueOf(n.toString());
+          String str = n.toString();
+          if ("none".equalsIgnoreCase(str)) {
+            return null;
+          } else {
+            return RoundingMode.valueOf(str);
+          }
         }
       }
     }
