@@ -117,7 +117,11 @@ public class TestDecimal {
     } catch (RuntimeException ex) {
       throw new IllegalArgumentException("Cannot deserialize " + nr, ex);
     }
-    Assert.assertTrue("Comparing " + nr + " with " + nr2, nr.subtract(nr2).abs().compareTo(epsilon) <= 0);
+    if (BigDecimal.ZERO.equals(epsilon)) {
+      Assert.assertEquals(nr, nr2);
+    } else {
+      Assert.assertTrue("Comparing " + nr + " with " + nr2, nr.subtract(nr2).abs().compareTo(epsilon) <= 0);
+    }
   }
 
 }
