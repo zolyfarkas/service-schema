@@ -15,6 +15,7 @@
  */
 package org.apache.avro.logicalTypes;
 
+import java.math.RoundingMode;
 import java.util.Map;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypeFactory;
@@ -31,9 +32,24 @@ public class DecimalFactory implements LogicalTypeFactory {
     return "decimal";
   }
 
+    private static RoundingMode getRoundingMode(Map<String, Object> map, String fieldName) {
+      Object n =  map.get(fieldName);
+      if (n == null) {
+        return null;
+      } else {
+        if (n instanceof RoundingMode) {
+          return (RoundingMode) n;
+        } else {
+          return RoundingMode.valueOf(n.toString());
+        }
+      }
+    }
+
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new Decimal((Integer) attributes.get("precision"), (Integer) attributes.get("scale"), schemaType);
+    return new Decimal((Integer) attributes.get("precision"),
+            (Integer) attributes.get("scale"), schemaType, getRoundingMode(attributes, "serRounding"),
+    getRoundingMode(attributes, "deserRounding"));
   }
 
 }

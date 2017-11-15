@@ -1,6 +1,5 @@
 package org.apache.avro;
 
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,7 +32,7 @@ public class TestLogicalType {
 
   @Test
   public void testDecimalWithNonByteArrayTypes() {
-    final LogicalType decimal = new Decimal(5, 2, Schema.Type.STRING);
+    final LogicalType decimal = new Decimal(5, 2, Schema.Type.STRING, null, null);
     // test simple types
     Schema[] nonBytes = new Schema[] {
         Schema.createRecord("Record", null, null, false),
@@ -72,7 +71,7 @@ public class TestLogicalType {
   public void testDecimalBytesHasNoPrecisionLimit() {
     Schema schema = Schema.create(Schema.Type.BYTES);
     // precision is not limited for bytes
-    schema.setLogicalType(new Decimal(Integer.MAX_VALUE, 0, Schema.Type.STRING));
+    schema.setLogicalType(new Decimal(Integer.MAX_VALUE, 0, Schema.Type.STRING, null, null));
     Assert.assertEquals("Precision should be an IntNode(Integer.MAX_VALUE)",
         Integer.MAX_VALUE,
         schema.getLogicalType().getProperty("precision"));
@@ -83,7 +82,7 @@ public class TestLogicalType {
   @Test
   public void testBytesDecimalToFromJson() {
     Schema schema = Schema.create(Schema.Type.BYTES);
-    schema.setLogicalType(new Decimal(9, 2, Schema.Type.STRING));
+    schema.setLogicalType(new Decimal(9, 2, Schema.Type.STRING, null, null));
     Schema parsed = new Schema.Parser().parse(schema.toString(true));
     Assert.assertEquals("Constructed and parsed schemas should match",
         schema, parsed);
@@ -115,13 +114,13 @@ public class TestLogicalType {
         }
     };
 
-    Decimal decimal90 = new Decimal(9, 0, Schema.Type.STRING);
-    Decimal decimal80 = new Decimal(8, 0, Schema.Type.STRING);
-    Decimal decimal92 = new Decimal(9, 2, Schema.Type.STRING);
+    Decimal decimal90 = new Decimal(9, 0, Schema.Type.STRING, null, null);
+    Decimal decimal80 = new Decimal(8, 0, Schema.Type.STRING, null, null);
+    Decimal decimal92 = new Decimal(9, 2, Schema.Type.STRING, null, null);
 
-    assertEqualsTrue("Same decimal", new Decimal(9, 0, Schema.Type.STRING), decimal90);
-    assertEqualsTrue("Same decimal", new Decimal(8, 0, Schema.Type.STRING), decimal80);
-    assertEqualsTrue("Same decimal", new Decimal(9, 2, Schema.Type.STRING), decimal92);
+    assertEqualsTrue("Same decimal", new Decimal(9, 0, Schema.Type.STRING, null, null), decimal90);
+    assertEqualsTrue("Same decimal", new Decimal(8, 0, Schema.Type.STRING, null, null), decimal80);
+    assertEqualsTrue("Same decimal", new Decimal(9, 2, Schema.Type.STRING, null, null), decimal92);
     assertEqualsFalse("Different logical type", unknown, decimal90);
     assertEqualsFalse("Different precision", decimal90, decimal80);
     assertEqualsFalse("Different scale", decimal90, decimal92);

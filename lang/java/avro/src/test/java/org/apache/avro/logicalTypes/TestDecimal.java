@@ -17,11 +17,12 @@ package org.apache.avro.logicalTypes;
 
 import com.google.common.collect.ImmutableMap;
 import java.math.BigDecimal;
-import java.nio.ByteBuffer;
+import java.math.RoundingMode;
 import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 /**
@@ -32,20 +33,70 @@ public class TestDecimal {
 
   @Test
   public void testDecimal() {
+    LogicalType type2 = new DecimalFactory()
+            .create(Schema.Type.STRING, (Map) ImmutableMap.of("precision", 32, "scale", 10));
+    runTests(type2);
+    runTestFailure(type2);
+
     LogicalType type = new DecimalFactory()
-            .create(Schema.Type.BYTES, (Map) ImmutableMap.of("precision", 10, "scale", 3));
-    serializeDeserialize(type,  new BigDecimal("3.1"));
-    serializeDeserialize(type,  new BigDecimal("-3.1"));
-    serializeDeserialize(type,  new BigDecimal("100000"));
-    serializeDeserialize(type,  new BigDecimal("-100000"));
-    serializeDeserialize(type,  new BigDecimal("0"));
+            .create(Schema.Type.BYTES, (Map) ImmutableMap.of("precision", 32, "scale", 10));
+    runTests(type);
+    runTestFailure(type2);
   }
 
-  private void serializeDeserialize(LogicalType type, BigDecimal nr) {
-    ByteBuffer buf = (ByteBuffer) type.serialize(nr);
-    BigDecimal nr2 = (BigDecimal) type.deserialize(buf);
-    System.out.println("NR " + nr2);
-    Assert.assertEquals(nr, nr2);
+  @Test
+  public void testDecimalRoundingModeSerialization() {
+    LogicalType type2 = new DecimalFactory()
+            .create(Schema.Type.STRING,
+                    (Map) ImmutableMap.of("precision", 32, "scale", 10, "serRounding", RoundingMode.HALF_DOWN.DOWN));
+    serializeDeserialize(type2, new BigDecimal("0.12345678910"), new BigDecimal(0.0000000001));
+  }
+
+  @Test
+  public void testDecimalRoundingModeDeSerialization() {
+    LogicalType type2 = new DecimalFactory()
+            .create(Schema.Type.STRING,
+                    (Map) ImmutableMap.of("precision", 32, "scale", 10, "deserRounding", RoundingMode.HALF_DOWN.DOWN));
+    BigDecimal nr2 = (BigDecimal) type2.deserialize("0.1234567891000124");
+    Assert.assertTrue(new BigDecimal("0.1234567891000124").subtract(nr2).abs().compareTo(new BigDecimal(0.0000000001))
+            < 0);
+  }
+
+
+  public void runTests(LogicalType type2) {
+    serializeDeserialize(type2, new BigDecimal("3.1"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("-3.1"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("100000"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("-100000"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("0"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("0.123456789"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("0.1234567890"), BigDecimal.ZERO);
+  }
+
+  public void runTestFailure(LogicalType type2) {
+    try {
+      serializeDeserialize(type2, new BigDecimal("0.12345678910"), BigDecimal.ZERO);
+      Assert.fail();
+    } catch (IllegalArgumentException ex) {
+      Assert.assertThat(ex.getMessage(), Matchers.containsString("Cannot serialize"));
+      System.out.println("Expected " + ex);
+    }
+  }
+
+  private void serializeDeserialize(LogicalType type, BigDecimal nr, BigDecimal epsilon) {
+    Object buf;
+    try {
+      buf = type.serialize(nr);
+    } catch (RuntimeException ex) {
+      throw new IllegalArgumentException("Cannot serialize " + nr, ex);
+    }
+    BigDecimal nr2;
+    try {
+      nr2 = (BigDecimal) type.deserialize(buf);
+    } catch (RuntimeException ex) {
+      throw new IllegalArgumentException("Cannot deserialize " + nr, ex);
+    }
+    Assert.assertTrue("Comparing " + nr + " with " + nr2, nr.subtract(nr2).abs().compareTo(epsilon) <= 0);
   }
 
 }
