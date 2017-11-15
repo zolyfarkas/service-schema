@@ -179,7 +179,7 @@ public final class Decimal extends AbstractLogicalType {
           ByteBuffer buf = (ByteBuffer) object;
           buf.rewind();
           int lscale = readInt(buf);
-          if (lscale > scale && deserRm != null) {
+          if (lscale > scale && deserRm == null) {
               throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale);
           }
           byte[] unscaled = new byte[buf.remaining()];
