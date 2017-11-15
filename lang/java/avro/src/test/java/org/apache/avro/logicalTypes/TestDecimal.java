@@ -90,6 +90,8 @@ public class TestDecimal {
     serializeDeserialize(type2, new BigDecimal("0"), BigDecimal.ZERO);
     serializeDeserialize(type2, new BigDecimal("0.123456789"), BigDecimal.ZERO);
     serializeDeserialize(type2, new BigDecimal("0.1234567890"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("-0.123456789"), BigDecimal.ZERO);
+    serializeDeserialize(type2, new BigDecimal("-0.1234567890"), BigDecimal.ZERO);
   }
 
   public void runTestFailure(LogicalType type2) {
