@@ -30,198 +30,205 @@ import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryData;
 import org.codehaus.jackson.JsonNode;
 
-  /** Decimal represents arbitrary-precision fixed-scale decimal numbers  */
+/**
+ * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ */
 public final class Decimal extends AbstractLogicalType {
 
-    private static final RoundingMode DEFAULT_DESER_ROUNDING;
+  private static final RoundingMode DEFAULT_DESER_ROUNDING = getRoundingMode("avro.decimal.defaultDeserRounding");
+  private static final RoundingMode DEFAULT_SER_ROUNDING = getRoundingMode("avro.decimal.defaultSerRounding");
 
-    static {
-      String sdr = System.getProperty("avro.decimal.defaultDeserRounding", "none");
-      if (sdr == null || sdr.isEmpty() || "none".equalsIgnoreCase(sdr)) {
-        DEFAULT_DESER_ROUNDING = null;
-      } else {
-        DEFAULT_DESER_ROUNDING = RoundingMode.valueOf(sdr);
-      }
+  private static RoundingMode getRoundingMode(final String property) {
+    String sdr = System.getProperty(property, "none");
+    if (sdr == null || sdr.isEmpty() || "none".equalsIgnoreCase(sdr)) {
+      return null;
+    } else {
+      return RoundingMode.valueOf(sdr);
     }
+  }
 
-    private static final Set<String> RESERVED = AbstractLogicalType.reservedSet("precision", "scale",
-            "serRounding", "deserRounding");
+  private static final Set<String> RESERVED = AbstractLogicalType.reservedSet("precision", "scale",
+          "serRounding", "deserRounding");
 
-    private final MathContext mc;
-    private final int scale;
-    private final int precision;
-    private final RoundingMode serRm;
-    private final RoundingMode deserRm;
+  private final MathContext mc;
+  private final int scale;
+  private final int precision;
+  private final RoundingMode serRm;
+  private final RoundingMode deserRm;
 
-    public Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
-      super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm));
-      this.precision = precision == null ? 36 : precision;
-      this.serRm = serRm;
-      this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
-      if (precision <= 0) {
-        throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: " +
-            precision + " (must be positive)");
-      }
-      scale = scale == null ?  (precision == null ? 12 : precision / 2) : scale;
-      if (scale < 0) {
-        throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: " +
-            scale + " (must be positive)");
-      } else if (scale > precision) {
-        throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: " +
-            scale + " (greater than precision: " + precision + ")");
-      }
-      mc = new MathContext(precision, RoundingMode.HALF_EVEN);
-      this.scale = scale;
+  public Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
+    super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm));
+    this.precision = precision == null ? 36 : precision;
+    this.serRm = serRm == null ? DEFAULT_SER_ROUNDING : serRm;
+    this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
+    if (precision <= 0) {
+      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: "
+              + precision + " (must be positive)");
     }
-
-    public Decimal(JsonNode node, Schema.Type type) {
-        this(getInteger(node, "precision"), getInteger(node, "scale"), type,
-                getRoundingMode(node, "serRounding"), getRoundingMode(node, "deserRounding"));
+    scale = scale == null ? (precision == null ? 12 : precision / 2) : scale;
+    if (scale < 0) {
+      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
+              + scale + " (must be positive)");
+    } else if (scale > precision) {
+      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
+              + scale + " (greater than precision: " + precision + ")");
     }
+    mc = new MathContext(precision, RoundingMode.HALF_EVEN);
+    this.scale = scale;
+  }
 
-    private static Map<String, Object> toAttributes(Integer precision, Integer scale,
-            RoundingMode serRm, RoundingMode deserRm) {
-       Map<String, Object> attr = new HashMap<String, Object>(4);
-       if (precision != null) {
-         attr.put("precision", precision);
-       }
-       if (scale != null) {
-         attr.put("scale", scale);
-       }
-       if (serRm != null) {
-         attr.put("serRounding", serRm.toString());
-       }
-       if (deserRm != null) {
-         attr.put("deserRounding", deserRm.toString());
-       }
-       return attr;
+  public Decimal(JsonNode node, Schema.Type type) {
+    this(getInteger(node, "precision"), getInteger(node, "scale"), type,
+            getRoundingMode(node, "serRounding"), getRoundingMode(node, "deserRounding"));
+  }
+
+  private static Map<String, Object> toAttributes(Integer precision, Integer scale,
+          RoundingMode serRm, RoundingMode deserRm) {
+    Map<String, Object> attr = new HashMap<String, Object>(4);
+    if (precision != null) {
+      attr.put("precision", precision);
     }
-
-    private static Integer getInteger(JsonNode node, String fieldName) {
-      JsonNode n = node.get(fieldName);
-      if (n == null) {
-        return null;
-      } else {
-        return n.asInt();
-      }
+    if (scale != null) {
+      attr.put("scale", scale);
     }
-
-    private static RoundingMode getRoundingMode(JsonNode node, String fieldName) {
-      JsonNode n = node.get(fieldName);
-      if (n == null) {
-        return null;
-      } else {
-        return RoundingMode.valueOf(n.getTextValue());
-      }
+    if (serRm != null) {
+      attr.put("serRounding", serRm.toString());
     }
-
-
-    @Override
-    public void validate(Schema schema) {
-      Schema.Type type1 = schema.getType();
-      // validate the type
-      if (type1 != Schema.Type.BYTES &&
-          type1 != Schema.Type.STRING) {
-        throw new IllegalArgumentException(this.logicalTypeName + " must be backed by fixed or bytes, not" + type1);
-      }
-      int precision = mc.getPrecision();
-      if (precision > maxPrecision(schema)) {
-        throw new IllegalArgumentException("Invalid precision " + precision);
-      }
-   }
-
-    public static boolean is(final Schema schema) {
-      Schema.Type type1 = schema.getType();
-      // validate the type
-      if (type1 != Schema.Type.BYTES && type1 != Schema.Type.STRING) {
-        return false;
-      }
-      LogicalType logicalType = schema.getLogicalType();
-      if (logicalType == null) {
-        return false;
-      }
-      return logicalType.getClass() == Decimal.class;
+    if (deserRm != null) {
+      attr.put("deserRounding", deserRm.toString());
     }
+    return attr;
+  }
 
-
-    @Override
-    public Set<String> reserved() {
-      return RESERVED;
+  private static Integer getInteger(JsonNode node, String fieldName) {
+    JsonNode n = node.get(fieldName);
+    if (n == null) {
+      return null;
+    } else {
+      return n.asInt();
     }
+  }
 
-    private long maxPrecision(Schema schema) {
-      if (schema.getType() == Schema.Type.BYTES
-              || schema.getType() == Schema.Type.STRING) {
-        // not bounded
-        return Integer.MAX_VALUE;
-      } else {
-        // not valid for any other type
-        return 0;
-      }
+  private static RoundingMode getRoundingMode(JsonNode node, String fieldName) {
+    JsonNode n = node.get(fieldName);
+    if (n == null) {
+      return null;
+    } else {
+      return RoundingMode.valueOf(n.getTextValue());
     }
+  }
 
-    @Override
-    public Class<?> getLogicalJavaType() {
-        return BigDecimal.class;
+  @Override
+  public void validate(Schema schema) {
+    Schema.Type type1 = schema.getType();
+    // validate the type
+    if (type1 != Schema.Type.BYTES
+            && type1 != Schema.Type.STRING) {
+      throw new IllegalArgumentException(this.logicalTypeName + " must be backed by fixed or bytes, not" + type1);
     }
+    int precision = mc.getPrecision();
+    if (precision > maxPrecision(schema)) {
+      throw new IllegalArgumentException("Invalid precision " + precision);
+    }
+  }
 
-    @Override
-    public Object deserialize(Object object) {
-      switch (type) {
-        case STRING:
-          BigDecimal result = new BigDecimal(object.toString(), mc);
-          if (result.scale() > scale) {
-            if (deserRm != null) {
-              result = result.setScale(scale, deserRm);
-            } else {
-              throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale);
-            }
+  public static boolean is(final Schema schema) {
+    Schema.Type type1 = schema.getType();
+    // validate the type
+    if (type1 != Schema.Type.BYTES && type1 != Schema.Type.STRING) {
+      return false;
+    }
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType == null) {
+      return false;
+    }
+    return logicalType.getClass() == Decimal.class;
+  }
+
+  @Override
+  public Set<String> reserved() {
+    return RESERVED;
+  }
+
+  private long maxPrecision(Schema schema) {
+    if (schema.getType() == Schema.Type.BYTES
+            || schema.getType() == Schema.Type.STRING) {
+      // not bounded
+      return Integer.MAX_VALUE;
+    } else {
+      // not valid for any other type
+      return 0;
+    }
+  }
+
+  @Override
+  public Class<?> getLogicalJavaType() {
+    return BigDecimal.class;
+  }
+
+  @Override
+  public Object deserialize(Object object) {
+    switch (type) {
+      case STRING:
+        BigDecimal result = new BigDecimal(object.toString(), mc);
+        if (result.scale() > scale) {
+          if (deserRm != null) {
+            result = result.setScale(scale, deserRm);
+          } else {
+            throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale
+                    + " if you desire rounding, you can annotate type with @deserRounding(\"HALF_UP\") or "
+                    + "set the system property avro.decimal.defaultDeserRounding=HALF_UP ");
           }
-          return result;
-        case BYTES:
-          //ByteBuffer buf = ByteBuffer.wrap((byte []) object);
-          ByteBuffer buf = (ByteBuffer) object;
-          buf.rewind();
-          int lscale = readInt(buf);
-          if (lscale > scale && deserRm == null) {
-              throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale);
-          }
-          byte[] unscaled = new byte[buf.remaining()];
-          buf.get(unscaled);
-          BigInteger unscaledBi = new BigInteger(unscaled);
-          BigDecimal r = new BigDecimal(unscaledBi, lscale);
-          if (lscale > scale && deserRm != null) {
-            r = r.setScale(scale, deserRm);
-          }
-          return r;
-        default:
-          throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
-      }
-
-    }
-
-    @Override
-    public Object serialize(Object object) {
-      BigDecimal decimal = (BigDecimal) object;
-      if (decimal.scale() > scale) {
-        if (serRm != null) {
-          decimal = decimal.setScale(scale, serRm);
-        } else {
-          throw new UnsupportedOperationException("Decimal " + decimal + " exceeds scale " + scale);
         }
-      }
-      if (decimal.precision() > precision) {
-        throw new UnsupportedOperationException("Decimal " + decimal + " exceeds precision " + precision);
-      }
-      switch (type) {
-        case STRING:
-          return decimal.toPlainString();
-        case BYTES:
-          return toBytes(decimal);
-        default:
-          throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+        return result;
+      case BYTES:
+        //ByteBuffer buf = ByteBuffer.wrap((byte []) object);
+        ByteBuffer buf = (ByteBuffer) object;
+        buf.rewind();
+        int lscale = readInt(buf);
+        if (lscale > scale && deserRm == null) {
+          throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale
+                  + " if you desire rounding, you can annotate type with @deserRounding(\"HALF_UP\") or "
+                  + "set the system property avro.decimal.defaultDeserRounding=HALF_UP ");
+        }
+        byte[] unscaled = new byte[buf.remaining()];
+        buf.get(unscaled);
+        BigInteger unscaledBi = new BigInteger(unscaled);
+        BigDecimal r = new BigDecimal(unscaledBi, lscale);
+        if (lscale > scale && deserRm != null) {
+          r = r.setScale(scale, deserRm);
+        }
+        return r;
+      default:
+        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+    }
+
+  }
+
+  @Override
+  public Object serialize(Object object) {
+    BigDecimal decimal = (BigDecimal) object;
+    if (decimal.scale() > scale) {
+      if (serRm != null) {
+        decimal = decimal.setScale(scale, serRm);
+      } else {
+        throw new UnsupportedOperationException("Decimal " + decimal + " exceeds scale " + scale
+                + " if you desire rounding, you can annotate type with @serRounding(\"HALF_UP\") or "
+                + "set the system property avro.decimal.defaultSerRounding=HALF_UP ");
       }
     }
+    if (decimal.precision() > precision) {
+      throw new UnsupportedOperationException("Decimal " + decimal + " exceeds precision " + precision);
+    }
+    switch (type) {
+      case STRING:
+        return decimal.toPlainString();
+      case BYTES:
+        return toBytes(decimal);
+      default:
+        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+    }
+  }
 
   public static ByteBuffer toBytes(BigDecimal decimal) {
     byte[] unscaledValue = decimal.unscaledValue().toByteArray();
@@ -257,10 +264,9 @@ public final class Decimal extends AbstractLogicalType {
       buf.put((byte) (val >>> 7));
       return;
     }
-    byte [] tmp = new byte[5];
+    byte[] tmp = new byte[5];
     int len = BinaryData.encodeInt(n, tmp, 0);
     buf.put(tmp, 0, len);
   }
-
 
 }
