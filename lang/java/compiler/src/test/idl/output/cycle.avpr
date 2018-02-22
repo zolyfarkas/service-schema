@@ -35,7 +35,8 @@
           } ]
         }
       }
-    } ]
+    } ],
+    "MarkerProperty" : ""
   }, {
     "type" : "record",
     "name" : "SelfRef",

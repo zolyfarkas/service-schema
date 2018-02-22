@@ -1273,10 +1273,10 @@ Schema RecordDeclaration():
 void SchemaProperty(Map<String, JsonNode> properties):
 {
   String key;
-  JsonNode val;
+  JsonNode val = TextNode.valueOf("");
 }
 {
-  "@" key = PropertyName() "(" val = Json() ")"
+  "@" key = PropertyName()  ( "(" val = Json() ")" )?
   {
     if (properties.containsKey(key))
       throw error("Property '" + key + "' already specified", token);

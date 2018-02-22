@@ -62,8 +62,10 @@ public class TestCycle {
       final String name = schema.getName();
       schemas.put(name, schema);
     }
+    Schema snSchema = schemas.get("SampleNode");
+    Assert.assertEquals("", snSchema.getProp("MarkerProperty"));
 
-    GenericRecordBuilder rb2 = new GenericRecordBuilder(schemas.get("SampleNode"));
+    GenericRecordBuilder rb2 = new GenericRecordBuilder(snSchema);
     rb2.set("count", 10);
     rb2.set("subNodes", Collections.EMPTY_LIST);
     GenericData.Record node = rb2.build();
