@@ -22,7 +22,7 @@
     "fields" : [ {
       "name" : "name",
       "type" : "string",
-      "default" : "foo",
+      "default" : "FOO",
       "order" : "ignore"
     }, {
       "name" : "kind",
@@ -46,6 +46,12 @@
       "name" : "average",
       "type" : "float",
       "default" : "-Infinity"
+    } , {
+       "name": "l",
+       "type": {"type": "long", "foo.bar": "bar.foo"}
+     } , {
+       "name": "nested_properties",
+       "type": [ "null" , {"type":"string", "foo.foo.bar": 42, "foo.foo.foo": "3foo"} ]
     } ],
     "my-property" : {
       "key" : 3
@@ -73,7 +79,9 @@
         "type" : "TestRecord",
         "default" : {
           "name" : "bar",
-          "kind" : "BAR"
+          "kind" : "BAR",
+          "l":0,
+          "nested_properties":null
         }
       } ],
       "response" : "TestRecord"
