@@ -125,7 +125,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     return ${this.mangle($field.name(), $schema.isError())};
   }
 
-#if ($this.createSetters)
+#if ($schema.getProp("Mutable") || (!$schema.getProp("Immutable") && $this.createSetters))
   /**
    * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())   * $field.doc()
