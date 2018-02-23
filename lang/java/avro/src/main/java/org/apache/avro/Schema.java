@@ -446,24 +446,30 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Deprecated
     public Field(String name, Schema schema, String doc,
         JsonNode defaultValue) {
-      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), Order.ASCENDING);
+      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), true, Order.ASCENDING);
     }
 
     @Deprecated
     public Field(String name, Schema schema, String doc,
         JsonNode defaultValue, Order order) {
-      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), order);
+      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), true, order);
+    }
+
+    @Deprecated
+    public Field(String name, Schema schema, String doc,
+        JsonNode defaultValue, boolean validateDefault, Order order) {
+      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), validateDefault, order);
     }
 
     /** @deprecated use {@link #Field(String, Schema, String, Object, Order)} */
     @Deprecated
     public Field(String name, Schema schema, String doc,
-        JsonNode defaultValue, Object defaultVal, Order order) {
+        JsonNode defaultValue, Object defaultVal, boolean validateDefault, Order order) {
       super(FIELD_RESERVED);
       this.name = validateName(name);
       this.schema = schema;
       this.doc = doc;
-      this.defaultValue = validateDefault(name, schema, defaultValue);
+      this.defaultValue = validateDefault ? validateDefault(name, schema, defaultValue) : defaultValue;
       this.defaultVal = defaultVal;
       this.order = order;
     }
@@ -483,7 +489,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
      */
     public Field(String name, Schema schema, String doc,
         Object defaultValue, Order order) {
-      this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), defaultValue, order);
+      this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), defaultValue, true, order);
     }
     public String name() { return name; };
     /** The position of this field within the record. */

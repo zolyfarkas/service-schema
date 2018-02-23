@@ -993,16 +993,13 @@ TOKEN :
 Protocol CompilationUnit():
 {
   Protocol p;
-  boolean validateSchema = org.apache.avro.Schema.getValidateDefaultsThrealLocal();
 }
 {
-  {org.apache.avro.Schema.setValidateDefaultsThreadLocal(false);}
   p = ProtocolDeclaration()
   ( < "\u001a" > )?
   ( <STUFF_TO_IGNORE: ~[]> )?
   <EOF>
-  { org.apache.avro.Schema.setValidateDefaultsThreadLocal(validateSchema);
-    return SchemaResolver.resolve(p); }
+  { return SchemaResolver.resolve(p); }
 }
 
 /*
@@ -1322,7 +1319,7 @@ void VariableDeclarator(Schema type, List<Field> fields):
     for (String key : props.keySet())
       if ("order".equals(key))
         order = Field.Order.valueOf(getTextProp(key,props,token).toUpperCase());
-    Field field = new Field(name, type, getDoc(), defaultValue, order);
+    Field field = new Field(name, type, getDoc(), defaultValue, !SchemaResolver.isUnresolvedSchema(type), order);
     for (String key : props.keySet())
       if ("order".equals(key)) {                  // already handled: ignore
       } else if ("aliases".equals(key)) {         // aliases
