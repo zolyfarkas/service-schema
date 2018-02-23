@@ -121,6 +121,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #if ($field.doc())   * $field.doc()
 #end
    */
+  ${this.nullableAnnotation($field.schema())}
   public ${this.javaUnbox($field.schema())} ${this.generateGetMethod($schema, $field)}() {
     return ${this.mangle($field.name(), $schema.isError())};
   }
@@ -132,7 +133,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
    * @param value the value to set.
    */
-  public void ${this.generateSetMethod($schema, $field)}(${this.javaUnbox($field.schema())} value) {
+  public void ${this.generateSetMethod($schema, $field)}(${this.nullableAnnotation($field.schema())} ${this.javaUnbox($field.schema())} value) {
     this.${this.mangle($field.name(), $schema.isError())} = value;
   }
 #end
@@ -245,7 +246,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
       * @param value the value to set.
       */
-    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(${this.javaUnbox($field.schema())} value) {
+    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(${this.nullableAnnotation($field.schema())} ${this.javaUnbox($field.schema())} value) {
       validate(fields()[$field.pos()], value);
 #if (${this.hasBuilder($field.schema())})
       this.${this.mangle($field.name(), $schema.isError())}Builder = null;

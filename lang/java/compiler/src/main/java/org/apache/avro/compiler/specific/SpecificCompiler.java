@@ -649,6 +649,21 @@ public class SpecificCompiler {
     }
   }
 
+  private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList("int",
+  "long", "float", "double", "boolean"
+  ));
+
+  public String nullableAnnotation(Schema schema) {
+    if (schema.getType() == Schema.Type.UNION
+            && schema.getTypes().contains(Schema.create(Schema.Type.NULL))) {
+      return "@javax.annotation.Nullable";
+    } else if (!PRIMITIVES.contains(javaUnbox(schema))) {
+      return "@javax.annotation.Nonnull";
+    } else {
+      return "";
+    }
+  }
+
   /** Utility for template use.  Returns the java annotations for a schema. */
   public String[] javaAnnotations(JsonProperties props) {
     JsonNode value = props.getJsonProp("javaAnnotation");
