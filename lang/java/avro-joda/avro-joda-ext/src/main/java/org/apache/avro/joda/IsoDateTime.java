@@ -51,11 +51,14 @@ public class IsoDateTime extends AbstractLogicalType {
 
   public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime().withOffsetParsed();
 
+  public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser().withOffsetParsed();
+
+
   @Override
   public Object deserialize(Object object) {
     switch (type) {
       case STRING:
-        return FMT.parseDateTime(object.toString());
+        return PARSER_FMT.parseDateTime(object.toString());
       case LONG:
         return new DateTime((Long) object);
       default:
