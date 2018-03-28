@@ -17,17 +17,21 @@
  */
 package org.apache.avro.generic;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
@@ -925,6 +929,17 @@ public class GenericData {
 
   private static final Schema STRINGS = Schema.create(Type.STRING);
 
+  private static final Set<String> IMMUTABLES = new HashSet<>();
+
+  static {
+    IMMUTABLES.add(String.class.getName());
+    IMMUTABLES.add(BigDecimal.class.getName());
+    IMMUTABLES.add(BigInteger.class.getName());
+    IMMUTABLES.add("org.joda.time.LocalDate");
+    IMMUTABLES.add("org.joda.time.DateTime");
+    IMMUTABLES.add("org.joda.time.Instant");
+  }
+
   /**
    * Makes a deep copy of a value given its schema.
    * @param schema the schema of the value to deep copy.
@@ -935,6 +950,13 @@ public class GenericData {
   public <T> T deepCopy(Schema schema, T value) {
     if (value == null) {
       return null;
+    }
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType != null) {
+      if (IMMUTABLES.contains(value.getClass().getName())) {
+        return value;
+      }
+      return (T) logicalType.deserialize(logicalType.serialize(value));
     }
     switch (schema.getType()) {
       case ARRAY:
