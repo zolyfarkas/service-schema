@@ -17,6 +17,7 @@
  */
 package org.apache.avro;
 
+import com.google.common.collect.Maps;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -814,17 +815,20 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private final List<String> stringSymbols;
     private final Map<String,Integer> ordinals;
     private volatile Map<String, Set<String>> aliases;
+    private volatile int fallbackOrdinal;
 
     public EnumSchema(Name name, String doc,
         LockableArrayList<String> symbols) {
       super(Type.ENUM, name, doc);
       this.symbols = symbols.lock();
       this.stringSymbols = new ArrayList<>(symbols);
-      this.ordinals = new HashMap<String,Integer>(symbols.size());
+      this.ordinals = Maps.newHashMapWithExpectedSize(symbols.size());
       int i = 0;
       for (String symbol : symbols)
         if (ordinals.put(validateName(symbol), i++) != null)
           throw new SchemaParseException("Duplicate enum symbol: "+symbol);
+
+      fallbackOrdinal = -1;
     }
 
 
@@ -864,19 +868,27 @@ public abstract class Schema extends JsonProperties implements Serializable {
           if (ordinal == null) {
             throw new AvroTypeException("enum value referenced in stringSymbol not defined: " + key);
           } else {
-            for (int i = 0, l = stringSymbols.size(); i < l; i++) {
-              if (stringSymbols.get(i).equals(key)) {
-                stringSymbols.set(i, val);
-              }
+            stringSymbols.set(ordinal, val);
+            Integer ex = ordinals.put(val, ordinal);
+            if (ex != null && ex.intValue() != ordinal.intValue()) {
+              throw new AvroTypeException("Same string " + val + " pointing to " + ex + " and " + ordinal);
             }
-            ordinals.put(val, ordinal);
           }
         }
       }
     }
 
+
+    private void setFalbackSymbol(JsonNode value) throws AvroTypeException {
+      String textValue = value.getTextValue();
+      if (!symbols.contains(textValue)) {
+        throw new AvroTypeException("Enum fallbackSymbol " + value + " must be one of " + symbols);
+      }
+      this.fallbackOrdinal = ordinals.get(textValue);
+    }
+
     public String getFallbackSymbol() {
-      return (String) this.getObjectProp("fallbackSymbol");
+      return fallbackOrdinal < 0 ? null : symbols.get(fallbackOrdinal);
     }
 
 
@@ -894,7 +906,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public void addProp(String name, JsonNode value) {
       switch (name) {
         case "fallbackSymbol":
-          validateFalbackSymbol(value);
+          setFalbackSymbol(value);
           break;
         case "symbolAliases":
           setAliases(value);
@@ -904,12 +916,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
           break;
       }
       super.addProp(name, value);
-    }
-
-    public void validateFalbackSymbol(JsonNode value) throws AvroTypeException {
-      if (!symbols.contains(value.getTextValue())) {
-        throw new AvroTypeException("Enum fallbackSymbol " + value + " must be one of " + symbols);
-      }
     }
 
 

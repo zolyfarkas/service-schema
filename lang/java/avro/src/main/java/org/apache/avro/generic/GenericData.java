@@ -320,8 +320,8 @@ public class GenericData {
   /** Default implementation of {@link GenericEnumSymbol}. */
   public static class EnumSymbol
       implements GenericEnumSymbol<EnumSymbol>  {
-    private EnumSchema schema;
-    private String symbol;
+    private final EnumSchema schema;
+    private final String symbol;
 
     public EnumSymbol(Schema schema, String symbol) {
       this.schema = (EnumSchema) schema;
@@ -980,7 +980,7 @@ public class GenericData {
       case DOUBLE:
         return value; // immutable
       case ENUM:
-        return (T)createEnum(value.toString(), schema);
+        return value; // immutable
       case FIXED:
         return (T)createFixed(null, ((GenericFixed) value).bytes(), schema);
       case FLOAT:
