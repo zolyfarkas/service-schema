@@ -135,6 +135,12 @@ public class SpecificData extends GenericData {
   }
 
   @Override
+  public Class<?> getEnumClass(Schema schema) {
+    Class c = getClass(schema);
+    return c == null ? EnumSymbol.class : c;
+  }
+
+  @Override
   protected Schema getEnumSchema(Object datum) {
     return (datum instanceof Enum)
       ? getSchema(datum.getClass())

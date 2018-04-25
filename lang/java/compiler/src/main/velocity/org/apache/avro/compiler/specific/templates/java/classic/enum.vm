@@ -36,5 +36,10 @@ public enum ${this.mangle($schema.getName())} implements org.apache.avro.generic
   public java.lang.String toString() {
     return ((org.apache.avro.Schema.EnumSchema) SCHEMA$).getStringSymbol(super.toString());
   }
+  
+  @Override
+  public java.lang.String getSymbol() {
+    return super.toString();
+  }
 
 }

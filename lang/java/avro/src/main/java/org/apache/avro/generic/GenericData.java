@@ -357,6 +357,11 @@ public class GenericData {
     public int compareTo(EnumSymbol that) {
       return GenericData.get().compare(this, that, schema);
     }
+
+    @Override
+    public String getSymbol() {
+      return symbol;
+    }
   }
 
   /** Returns a {@link DatumReader} for this kind of data. */
@@ -980,7 +985,12 @@ public class GenericData {
       case DOUBLE:
         return value; // immutable
       case ENUM:
-        return value; // immutable
+        Class<?> targetClass = getEnumClass(schema);
+        if  (targetClass == EnumSymbol.class) {
+          return value;
+        } else {
+          return (T) createEnum(((GenericEnumSymbol) value).getSymbol(), schema);
+        }
       case FIXED:
         return (T)createFixed(null, ((GenericFixed) value).bytes(), schema);
       case FLOAT:
@@ -1060,6 +1070,10 @@ public class GenericData {
    * representations.  By default, returns a GenericEnumSymbol. */
   public Object createEnum(String symbol, Schema schema) {
     return new EnumSymbol(schema, symbol);
+  }
+
+  public Class<?> getEnumClass(Schema schema) {
+    return EnumSymbol.class;
   }
 
   /**

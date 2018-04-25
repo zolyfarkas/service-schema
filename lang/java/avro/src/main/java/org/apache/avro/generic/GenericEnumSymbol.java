@@ -28,6 +28,8 @@ public interface GenericEnumSymbol<T extends GenericEnumSymbol>
 //      return schema.getSymbolAliases().get(toString());
 //  }
 
+  String getSymbol();
+
   /** Return the symbol. */
   String toString();
 }
