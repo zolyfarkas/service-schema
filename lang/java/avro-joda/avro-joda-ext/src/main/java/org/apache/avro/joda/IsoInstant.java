@@ -20,14 +20,20 @@ import java.util.Set;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.Instant;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class IsoInstant extends AbstractLogicalType {
 
 
+  public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime().withZoneUTC();
+
+  public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser().withOffsetParsed();
+
   public IsoInstant(Schema.Type type) {
     super(type, Collections.EMPTY_SET, "isoinstant", Collections.EMPTY_MAP);
     // validate the type
-    if (type != Schema.Type.LONG) {
+    if (type != Schema.Type.LONG && type != Schema.Type.STRING) {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or string");
     }
@@ -35,8 +41,9 @@ public class IsoInstant extends AbstractLogicalType {
 
   @Override
   public void validate(Schema schema) {
+    Schema.Type st = schema.getType();
     // validate the type
-    if (schema.getType() != Schema.Type.LONG) {
+    if (st != Schema.Type.LONG && st != Schema.Type.STRING) {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or string");
     }
@@ -55,12 +62,26 @@ public class IsoInstant extends AbstractLogicalType {
 
   @Override
   public Object deserialize(Object object) {
-    return new Instant((Long) object);
+    switch (type) {
+      case LONG:
+        return new Instant((Long) object);
+      case STRING:
+        return new Instant(PARSER_FMT.parseMillis((String) object));
+      default:
+        throw new IllegalStateException("Unsupported type: " + type);
+    }
   }
 
   @Override
   public Object serialize(Object object) {
-    return ((Instant) object).getMillis();
+    switch (type) {
+      case LONG:
+        return ((Instant) object).getMillis();
+      case STRING:
+        return FMT.print((Instant) object);
+      default:
+        throw new IllegalStateException("Unsupported type: " + type);
+    }
   }
 
 }
