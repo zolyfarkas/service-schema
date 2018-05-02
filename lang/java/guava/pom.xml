@@ -23,7 +23,7 @@
   <parent>
     <artifactId>avro-parent</artifactId>
     <groupId>org.apache.avro</groupId>
-    <version>1.8.0.43p</version>
+    <version>1.8.0.44p-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
