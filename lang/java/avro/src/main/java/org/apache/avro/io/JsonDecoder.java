@@ -218,10 +218,13 @@ public class JsonDecoder extends ParsingDecoder
   @Override
   public double readDouble() throws IOException {
     advance(Symbol.DOUBLE);
-    if (in.getCurrentToken().isNumeric()) {
+    JsonToken currentToken = in.getCurrentToken();
+    if (currentToken.isNumeric()) {
       double result = in.getDoubleValue();
       in.nextToken();
       return result;
+    } else if (currentToken == JsonToken.VALUE_STRING) {
+      return Double.parseDouble(in.getText());
     } else {
       throw error("double");
     }
