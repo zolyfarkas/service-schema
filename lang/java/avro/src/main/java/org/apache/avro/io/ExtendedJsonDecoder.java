@@ -23,6 +23,7 @@ import org.codehaus.jackson.JsonToken;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -170,6 +171,18 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    AvroTypeException error(String type) {
+      try {
+        return new AvroTypeException("Expected " + type +
+                ". Got " + in.getCurrentToken() + " token value = " + in.getText() + " at "+ in.getCurrentLocation());
+      } catch (IOException ex) {
+        UncheckedIOException ioEx = new UncheckedIOException(ex);
+        ioEx.addSuppressed(super.error(type));
+        throw ioEx;
+      }
     }
 
     private static final JsonElement NULL_JSON_ELEMENT = new JsonElement(null);
