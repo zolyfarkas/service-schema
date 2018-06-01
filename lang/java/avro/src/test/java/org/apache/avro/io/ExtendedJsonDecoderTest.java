@@ -52,20 +52,24 @@ public class ExtendedJsonDecoderTest {
   public void testDoubleHandling() throws IOException {
     Schema recordSchema = SchemaBuilder.record("TestRecord").fields()
             .name("doubleVal").type(Schema.create(Schema.Type.DOUBLE)).noDefault()
+            .name("defDoubleVal").type(Schema.create(Schema.Type.DOUBLE)).withDefault(Double.NaN)
             .endRecord();
 
     GenericData.Record record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.NaN);
+    record.put("defDoubleVal", Double.NaN);
     Assert.assertTrue(Double.isNaN(serDeser(record)));
 
     record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.POSITIVE_INFINITY);
+    record.put("defDoubleVal", Double.NaN);
     double serDeser = serDeser(record);
     Assert.assertTrue(Double.isInfinite(serDeser));
     Assert.assertTrue(serDeser > 0);
 
     record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.NEGATIVE_INFINITY);
+    record.put("defDoubleVal", Double.NaN);    
     serDeser = serDeser(record);
     Assert.assertTrue(Double.isInfinite(serDeser));
     Assert.assertTrue(serDeser < 0);
@@ -78,7 +82,7 @@ public class ExtendedJsonDecoderTest {
     GenericDatumWriter writer = new GenericDatumWriter(schema);
     writer.write(record, encoder);
     encoder.flush();
-
+    System.out.println(bos.toString());
     ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
     ExtendedJsonDecoder decoder = new ExtendedJsonDecoder(schema, bis);
     GenericDatumReader reader = new GenericDatumReader(schema, schema);

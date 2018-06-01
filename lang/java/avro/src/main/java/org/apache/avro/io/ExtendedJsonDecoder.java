@@ -43,9 +43,17 @@ import org.apache.avro.logicalTypes.Decimal;
 public final class ExtendedJsonDecoder extends JsonDecoder {
 
 
+    private final boolean lenient;
+
     public ExtendedJsonDecoder(final Schema schema, final InputStream in)
             throws IOException {
+        this(schema, in, true);
+    }
+
+    public ExtendedJsonDecoder(final Schema schema, final InputStream in, boolean lenient)
+            throws IOException {
         super(schema, in);
+        this.lenient = lenient;
     }
 
     public ExtendedJsonDecoder(final Schema schema, final String in)
@@ -162,7 +170,18 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
                         currentReorderBuffer = reorderBuffers.pop();
                     }
                 } else {
+                  if (lenient && top == Symbol.RECORD_END) {
+                    while (in.nextToken() != JsonToken.END_OBJECT) {
+                      // just skip tokens
+                    }
+                    in.nextToken();
+                    if (currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
+                      throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
+                    }
+                    currentReorderBuffer = reorderBuffers.pop();
+                  } else {
                     throw error(top == Symbol.RECORD_END ? "record-end" : "union-end");
+                  }
                 }
             } else {
                 throw new AvroTypeException("Unknown action symbol " + top);
