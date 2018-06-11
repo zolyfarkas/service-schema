@@ -16,6 +16,7 @@
 package org.apache.avro.io;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,6 +29,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
 import org.junit.Test;
 
 public class ExtendedJsonDecoderTest {
@@ -52,30 +54,36 @@ public class ExtendedJsonDecoderTest {
   public void testDoubleHandling() throws IOException {
     Schema recordSchema = SchemaBuilder.record("TestRecord").fields()
             .name("doubleVal").type(Schema.create(Schema.Type.DOUBLE)).noDefault()
+            .name("mapVal").type(Schema.createMap(Schema.create(Schema.Type.DOUBLE))).noDefault()
             .name("defDoubleVal").type(Schema.create(Schema.Type.DOUBLE)).withDefault(Double.NaN)
             .endRecord();
 
     GenericData.Record record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.NaN);
     record.put("defDoubleVal", Double.NaN);
-    Assert.assertTrue(Double.isNaN(serDeser(record)));
+    record.put("mapVal", ImmutableMap.of("a", 0.1, "b", Double.NaN, "c", Double.POSITIVE_INFINITY));
+    Assert.assertTrue(Double.isNaN((double) serDeser(record).get("doubleVal")));
+    Assert.assertTrue(Double.isNaN((double) ((Map<String, Double>) serDeser(record).get("mapVal")).get(new Utf8("b"))));
+
 
     record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.POSITIVE_INFINITY);
     record.put("defDoubleVal", Double.NaN);
-    double serDeser = serDeser(record);
+    record.put("mapVal", ImmutableMap.of("a", 0.1, "b", Double.NaN, "c", Double.POSITIVE_INFINITY));
+    double serDeser = (double) serDeser(record).get("doubleVal");
     Assert.assertTrue(Double.isInfinite(serDeser));
     Assert.assertTrue(serDeser > 0);
 
     record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.NEGATIVE_INFINITY);
-    record.put("defDoubleVal", Double.NaN);    
-    serDeser = serDeser(record);
+    record.put("defDoubleVal", Double.NaN);
+    record.put("mapVal", ImmutableMap.of("a", 0.1, "b", Double.NaN, "c", Double.POSITIVE_INFINITY));
+    serDeser = (double) serDeser(record).get("doubleVal");
     Assert.assertTrue(Double.isInfinite(serDeser));
     Assert.assertTrue(serDeser < 0);
   }
 
-  public double  serDeser(GenericData.Record record) throws IOException {
+  public GenericRecord  serDeser(GenericData.Record record) throws IOException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     Schema schema = record.getSchema();
     ExtendedJsonEncoder encoder = new ExtendedJsonEncoder(schema, bos);
@@ -87,7 +95,7 @@ public class ExtendedJsonDecoderTest {
     ExtendedJsonDecoder decoder = new ExtendedJsonDecoder(schema, bis);
     GenericDatumReader reader = new GenericDatumReader(schema, schema);
     GenericRecord testData = (GenericRecord) reader.read(null, decoder);
-    return (double) testData.get("doubleVal");
+    return testData;
   }
 
 

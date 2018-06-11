@@ -224,7 +224,9 @@ public class JsonDecoder extends ParsingDecoder
       in.nextToken();
       return result;
     } else if (currentToken == JsonToken.VALUE_STRING) {
-      return Double.parseDouble(in.getText());
+      double result = Double.parseDouble(in.getText());
+      in.nextToken();
+      return result;
     } else {
       throw error("double");
     }
