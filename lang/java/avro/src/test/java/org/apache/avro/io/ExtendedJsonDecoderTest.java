@@ -61,7 +61,8 @@ public class ExtendedJsonDecoderTest {
     GenericData.Record record = new GenericData.Record(recordSchema);
     record.put("doubleVal", Double.NaN);
     record.put("defDoubleVal", Double.NaN);
-    record.put("mapVal", ImmutableMap.of("a", 0.1, "b", Double.NaN, "c", Double.POSITIVE_INFINITY));
+    record.put("mapVal", ImmutableMap.of("a", 0.1, "b", Double.NaN,
+            "c", Double.POSITIVE_INFINITY, "d", 0));
     Assert.assertTrue(Double.isNaN((double) serDeser(record).get("doubleVal")));
     Assert.assertTrue(Double.isNaN((double) ((Map<String, Double>) serDeser(record).get("mapVal")).get(new Utf8("b"))));
 
