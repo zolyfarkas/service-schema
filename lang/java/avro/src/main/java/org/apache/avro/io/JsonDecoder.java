@@ -55,7 +55,7 @@ import org.codehaus.jackson.ObjectCodec;
 public class JsonDecoder extends ParsingDecoder
   implements Parser.ActionHandler {
   protected JsonParser in;
-  private static JsonFactory jsonFactory = new JsonFactory();
+  private static final JsonFactory jsonFactory = new JsonFactory();
   Stack<ReorderBuffer> reorderBuffers = new Stack<ReorderBuffer>();
   ReorderBuffer currentReorderBuffer;
 
