@@ -204,7 +204,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
       }
     }
 
-    private static final JsonElement NULL_JSON_ELEMENT = new JsonElement(null);
+    private static final JsonElement NULL_JSON_ELEMENT = new JsonElementToken(null);
 
     private boolean injectDefaultValueIfAvailable(final JsonParser in, Symbol.FieldAdjustAction action)
             throws IOException, IllegalAccessException {
@@ -215,9 +215,9 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
               JsonToken nextToken;
               while ((nextToken = traverse.nextToken()) != null) {
                 if (nextToken.isScalarValue()) {
-                  result.add(new JsonElement(nextToken, traverse.getText()));
+                  result.add(new JsonElementValue(nextToken, traverse.getText()));
                 } else {
-                  result.add(new JsonElement(nextToken));
+                  result.add(new JsonElementToken(nextToken));
                 }
               }
             result.add(NULL_JSON_ELEMENT);

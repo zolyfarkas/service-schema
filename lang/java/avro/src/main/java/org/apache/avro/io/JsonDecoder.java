@@ -529,21 +529,56 @@ public class JsonDecoder extends ParsingDecoder
     return null;
   }
 
-  static class JsonElement {
+  static interface JsonElement {
+
+    JsonToken getToken();
+
+    String getValue();
+
+  }
+
+  static class JsonElementValue implements JsonElement {
     public final JsonToken token;
     public final String value;
-    public JsonElement(JsonToken t, String value) {
-      this.token = t;
+
+    public JsonElementValue(JsonToken token, String value) {
+      this.token = token;
       this.value = value;
     }
 
-    public JsonElement(JsonToken t) {
-      this(t, null);
+    public JsonToken getToken() {
+      return token;
+    }
+
+    public String getValue() {
+      return value;
     }
 
     @Override
     public String toString() {
       return "JsonElement{" + "token=" + token + ", value=" + value + '}';
+    }
+
+  }
+
+  static class JsonElementToken implements JsonElement {
+    public final JsonToken token;
+
+    public JsonElementToken(JsonToken token) {
+      this.token = token;
+    }
+
+    public JsonToken getToken() {
+      return token;
+    }
+
+    public String getValue() {
+      return null;
+    }
+
+    @Override
+    public String toString() {
+      return "JsonElement{" + "token=" + token + '}';
     }
 
   }
@@ -557,12 +592,12 @@ public class JsonDecoder extends ParsingDecoder
       case START_OBJECT:
       case START_ARRAY:
         level++;
-        result.add(new JsonElement(t));
+        result.add(new JsonElementToken(t));
         break;
       case END_OBJECT:
       case END_ARRAY:
         level--;
-        result.add(new JsonElement(t));
+        result.add(new JsonElementToken(t));
         break;
       case FIELD_NAME:
       case VALUE_STRING:
@@ -571,12 +606,12 @@ public class JsonDecoder extends ParsingDecoder
       case VALUE_TRUE:
       case VALUE_FALSE:
       case VALUE_NULL:
-        result.add(new JsonElement(t, in.getText()));
+        result.add(new JsonElementValue(t, in.getText()));
         break;
       }
       in.nextToken();
     } while (level != 0);
-    result.add(new JsonElement(null));
+    result.add(new JsonElementToken(null));
     return result;
   }
 
@@ -602,15 +637,15 @@ public class JsonDecoder extends ParsingDecoder
       @Override
       public JsonToken nextToken() throws IOException {
         pos++;
-        return elements.get(pos).token;
+        return elements.get(pos).getToken();
       }
 
       @Override
       public JsonParser skipChildren() throws IOException {
-        JsonToken tkn = elements.get(pos).token;
+        JsonToken tkn = elements.get(pos).getToken();
         int level = (tkn == JsonToken.START_ARRAY || tkn == JsonToken.START_OBJECT) ? 1 : 0;
         while (level > 0) {
-          switch(elements.get(++pos).token) {
+          switch(elements.get(++pos).getToken()) {
           case START_ARRAY:
           case START_OBJECT:
             level++;
@@ -651,7 +686,7 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public String getText() throws IOException {
-        return elements.get(pos).value;
+        return elements.get(pos).getValue();
       }
 
       @Override
@@ -717,7 +752,7 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public JsonToken getCurrentToken() {
-        return elements.get(pos).token;
+        return elements.get(pos).getToken();
       }
     };
   }
