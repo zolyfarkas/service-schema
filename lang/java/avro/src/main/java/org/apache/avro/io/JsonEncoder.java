@@ -28,7 +28,6 @@ import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
 import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.MinimalPrettyPrinter;
@@ -86,7 +85,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     if (null == out)
       throw new NullPointerException("OutputStream cannot be null");
     JsonGenerator g
-      = new JsonFactory().createJsonGenerator(out, JsonEncoding.UTF8);
+      = JsonDecoder.JSON_FACTORY.createJsonGenerator(out, JsonEncoding.UTF8);
     if (pretty) {
       DefaultPrettyPrinter pp = new DefaultPrettyPrinter() {
         //@Override

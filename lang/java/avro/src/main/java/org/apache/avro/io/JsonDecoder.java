@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -55,8 +54,8 @@ import org.codehaus.jackson.ObjectCodec;
 public class JsonDecoder extends ParsingDecoder
   implements Parser.ActionHandler {
   protected JsonParser in;
-  private static final JsonFactory jsonFactory = new JsonFactory();
-  Stack<ReorderBuffer> reorderBuffers = new Stack<ReorderBuffer>();
+  static final JsonFactory JSON_FACTORY = new JsonFactory();
+  SimpleStack<ReorderBuffer> reorderBuffers = new SimpleStack<ReorderBuffer>(4);
   ReorderBuffer currentReorderBuffer;
 
   static class ReorderBuffer {
@@ -123,7 +122,7 @@ public class JsonDecoder extends ParsingDecoder
       throw new NullPointerException("InputStream to read from cannot be null!");
     }
     parser.reset();
-    this.in = jsonFactory.createJsonParser(in);
+    this.in = JSON_FACTORY.createJsonParser(in);
     this.in.nextToken();
     return this;
   }
@@ -145,7 +144,7 @@ public class JsonDecoder extends ParsingDecoder
       throw new NullPointerException("String to read from cannot be null!");
     }
     parser.reset();
-    this.in = new JsonFactory().createJsonParser(in);
+    this.in = JSON_FACTORY.createJsonParser(in);
     this.in.nextToken();
     return this;
   }
@@ -475,9 +474,8 @@ public class JsonDecoder extends ParsingDecoder
         Symbol.FieldAdjustAction fa = (Symbol.FieldAdjustAction) top;
         String name = fa.fname;
       if (currentReorderBuffer != null) {
-        List<JsonElement> node = currentReorderBuffer.savedFields.get(name);
+        List<JsonElement> node = currentReorderBuffer.savedFields.remove(name);
         if (node != null) {
-          currentReorderBuffer.savedFields.remove(name);
           currentReorderBuffer.origParser = in;
           in = makeParser(node);
           return null;
@@ -726,7 +724,14 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public BigInteger getBigIntegerValue() throws IOException {
-        return new BigInteger(getText());
+        String text = getText();
+        if ("0".equals(text)) {
+          return BigInteger.ZERO;
+        } else if ("1".equals(text)) {
+          return BigInteger.ONE;
+        } else {
+          return new BigInteger(text);
+        }
       }
 
       @Override
@@ -741,7 +746,14 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public BigDecimal getDecimalValue() throws IOException {
-        return new BigDecimal(getText());
+        String text = getText();
+        if ("0".equals(text)) {
+          return BigDecimal.ZERO;
+        } else if ("1".equals(text)) {
+          return BigDecimal.ONE;
+        } else {
+          return new BigDecimal(text);
+        }
       }
 
       @Override

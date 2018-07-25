@@ -116,9 +116,8 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
                 Symbol.FieldAdjustAction fa = (Symbol.FieldAdjustAction) top;
                 String name = fa.fname;
                 if (currentReorderBuffer != null) {
-                    List<JsonDecoder.JsonElement> node = currentReorderBuffer.savedFields.get(name);
+                    List<JsonDecoder.JsonElement> node = currentReorderBuffer.savedFields.remove(name);
                     if (node != null) {
-                        currentReorderBuffer.savedFields.remove(name);
                         currentReorderBuffer.origParser = in;
                         this.in = makeParser(node);
                         return null;
