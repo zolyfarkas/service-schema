@@ -713,8 +713,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
         throw new AvroRuntimeException("Fields are already set");
       }
       int i = 0;
-      fieldMap = new HashMap<String, Field>();
-      LockableArrayList ff = new LockableArrayList();
+      int size = fields.size();
+      fieldMap = Maps.newHashMapWithExpectedSize(size);
+      LockableArrayList ff = new LockableArrayList(size);
       for (Field f : fields) {
         if (f.position != -1)
           throw new AvroRuntimeException("Field already used: " + f);
