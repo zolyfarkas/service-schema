@@ -40,6 +40,19 @@ public class TestSchemaResolver {
     Assert.assertEquals(5, protocol.getTypes().size());
   }
 
+  @Test
+  public void testResolving2() throws ParseException, MalformedURLException, IOException {
+    File file = new File(".");
+    String currentWorkPath = file.getAbsolutePath();
+    String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"
+        + File.separator + "idl" + File.separator + "cycle/complex.avdl";
+    Idl compiler = new Idl(new File(testIdl));
+    Protocol protocol = compiler.CompilationUnit();
+    System.out.println(protocol);
+    Assert.assertEquals(94, protocol.getTypes().size());
+  }
+
+
   @Test(expected = IllegalArgumentException.class)
   public void testIsUnresolvedSchemaError1() {
     // No "org.apache.avro.compiler.idl.unresolved.name" property

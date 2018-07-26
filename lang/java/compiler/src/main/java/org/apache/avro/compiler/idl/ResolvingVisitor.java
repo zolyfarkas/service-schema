@@ -34,6 +34,9 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
 
   @Override
   public SchemaVisitorAction visitTerminal(final Schema terminal) {
+    if (replace.containsKey(terminal)) {
+      return SchemaVisitorAction.CONTINUE;
+    }
     Schema.Type type = terminal.getType();
     Schema newSchema;
     switch (type) {
@@ -86,6 +89,9 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
   public SchemaVisitorAction visitNonTerminal(final Schema nt) {
     Schema.Type type = nt.getType();
     if  (type == Schema.Type.RECORD) {
+        if (replace.containsKey(nt)) {
+          return SchemaVisitorAction.SKIP_SUBTREE;
+        }
         if (SchemaResolver.isUnresolvedSchema(nt)) {
           // unresolved schema will get a replacement that we already encountered,
           // or we will attempt to resolve.
@@ -96,8 +102,12 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
           }
           Schema replacement = replace.get(resSchema);
           if (replacement == null) {
+            try {
             replace.put(nt, Schemas.visit(resSchema, new ResolvingVisitor(resSchema,
-                    new IdentityHashMap<Schema, Schema>(), symbolTable)));
+                    replace, symbolTable)));
+            } catch (StackOverflowError err) {
+              throw new IllegalStateException("Stack overflow while resolving " + resSchema.getName());
+            }
           } else {
             replace.put(nt, replacement);
           }
@@ -122,7 +132,11 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
             List<Schema.Field> fields = nt.getFields();
             List<Schema.Field> newFields = new ArrayList<Schema.Field>(fields.size());
             for (Schema.Field field : fields) {
-             Schema.Field newField = new Schema.Field(field.name(), replace.get(field.schema()),
+              Schema get = replace.get(field.schema());
+              if (get == null) {
+                throw new RuntimeException("No replacement for " + field.schema());
+              }
+             Schema.Field newField = new Schema.Field(field.name(), get,
                      field.doc(), field.defaultVal(), field.order());
              copyAllProperties(field, newField);
              newFields.add(newField);
@@ -131,6 +145,9 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
          }
          return SchemaVisitorAction.CONTINUE;
        case UNION:
+          if (replace.containsKey(nt)) {
+            return SchemaVisitorAction.CONTINUE;
+          }
           List<Schema> types = nt.getTypes();
           List<Schema> newTypes = new ArrayList<Schema>(types.size());
           for (Schema sch : types) {
@@ -139,9 +156,15 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
           newSchema = Schema.createUnion(newTypes);
           break;
        case ARRAY:
+        if (replace.containsKey(nt)) {
+            return SchemaVisitorAction.CONTINUE;
+         }
          newSchema = Schema.createArray(replace.get(nt.getElementType()));
          break;
        case MAP:
+         if (replace.containsKey(nt)) {
+            return SchemaVisitorAction.CONTINUE;
+          }
          newSchema = Schema.createMap(replace.get(nt.getValueType()));
          break;
        default:
@@ -149,6 +172,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
      }
      copyAllProperties(nt, newSchema);
      replace.put(nt, newSchema);
+
      return SchemaVisitorAction.CONTINUE;
   }
 
