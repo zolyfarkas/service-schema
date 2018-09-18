@@ -18,6 +18,7 @@
 package org.apache.avro.io.parsing;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
@@ -76,14 +77,15 @@ public class JsonGrammarGenerator extends ValidatingGrammarGenerator {
       LitS wsc = new LitS(sc);
       Symbol rresult = seen.get(wsc);
       if (rresult == null) {
-        Symbol[] production = new Symbol[sc.getFields().size() * 3 + 2];
+        List<Field> fields = sc.getFields();
+        Symbol[] production = new Symbol[fields.size() * 3 + 2];
         rresult = Symbol.seq(production);
         seen.put(wsc, rresult);
 
         int i = production.length;
         int n = 0;
         production[--i] = Symbol.RECORD_START;
-        for (Field f : sc.getFields()) {
+        for (Field f : fields) {
           production[--i] = Symbol.fieldAdjustAction(n, f.name(), f.defaultValue());
           production[--i] = generate(f.schema(), seen);
           production[--i] = Symbol.FIELD_END;
@@ -94,7 +96,7 @@ public class JsonGrammarGenerator extends ValidatingGrammarGenerator {
       return rresult;
     }
     default:
-      throw new RuntimeException("Unexpected schema type");
+      throw new RuntimeException("Unexpected schema type: " + sc);
     }
   }
 }

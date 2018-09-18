@@ -17,6 +17,7 @@
  */
 package org.apache.avro.specific;
 
+import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.generic.GenericDatumReader;
@@ -60,11 +61,10 @@ public class SpecificDatumReader<T> extends GenericDatumReader<T> {
   public SpecificData getSpecificData() { return (SpecificData)getData(); }
 
   @Override
-  public void setSchema(Schema actual) {
+  public void setSchema(@Nullable Schema actual) {
     // if expected is unset and actual is a specific record,
     // then default expected to schema of currently loaded class
-    if (getExpected() == null && actual != null
-        && actual.getType() == Schema.Type.RECORD) {
+    if (actual != null && getExpected() == null && actual.getType() == Schema.Type.RECORD) {
       SpecificData data = getSpecificData();
       Class c = data.getClass(actual);
       if (c != null && SpecificRecord.class.isAssignableFrom(c))

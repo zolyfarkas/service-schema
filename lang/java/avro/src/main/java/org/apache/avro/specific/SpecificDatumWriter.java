@@ -30,7 +30,7 @@ public class SpecificDatumWriter<T> extends GenericDatumWriter<T> {
   }
 
   public SpecificDatumWriter(Class<T> c) {
-    super(SpecificData.get().getSchema(c), SpecificData.get());
+    super(SpecificData.get().getSchema(c));
   }
 
   public SpecificDatumWriter(Schema schema) {

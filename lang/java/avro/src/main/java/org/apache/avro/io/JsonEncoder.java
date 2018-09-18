@@ -138,7 +138,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
    * @deprecated internal method
    */
   @Deprecated
-  public JsonEncoder configure(JsonGenerator generator) throws IOException {
+  private JsonEncoder configure(JsonGenerator generator) throws IOException {
     if (null == generator)
       throw new NullPointerException("JsonGenerator cannot be null");
     if (null != parser) {

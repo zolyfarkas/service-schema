@@ -17,6 +17,7 @@
  */
 package org.apache.avro;
 
+import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -193,18 +194,20 @@ public abstract class JsonProperties {
 
   /** Return the defined properties that have string values. */
   @Deprecated public Map<String,String> getProps() {
-    Map<String,String> result = new LinkedHashMap<String,String>();
-    for (Map.Entry<String,JsonNode> e : props.entrySet())
+    Map<String,String> result = Maps.newLinkedHashMapWithExpectedSize(props.size());
+    for (Map.Entry<String,JsonNode> e : props.entrySet()) {
       if (e.getValue().isTextual())
         result.put(e.getKey(), e.getValue().getTextValue());
+    }
     return result;
   }
 
   /** Convert a map of string-valued properties to Json properties. */
   Map<String,JsonNode> jsonProps(Map<String,String> stringProps) {
-    Map<String,JsonNode> result = new LinkedHashMap<String,JsonNode>();
-    for (Map.Entry<String,String> e : stringProps.entrySet())
+    Map<String,JsonNode> result = Maps.newLinkedHashMapWithExpectedSize(stringProps.size());
+    for (Map.Entry<String,String> e : stringProps.entrySet()) {
       result.put(e.getKey(), TextNode.valueOf(e.getValue()));
+    }
     return result;
   }
 
@@ -223,15 +226,17 @@ public abstract class JsonProperties {
 
   /** Return the defined properties as an unmodifieable Map. */
   public Map<String,Object> getObjectProps() {
-    Map<String,Object> result = new LinkedHashMap<String,Object>();
-    for (Map.Entry<String,JsonNode> e : props.entrySet())
+    Map<String,Object> result = Maps.newLinkedHashMapWithExpectedSize(props.size());
+    for (Map.Entry<String,JsonNode> e : props.entrySet()) {
       result.put(e.getKey(), JacksonUtils.toObject(e.getValue()));
+    }
     return result;
   }
 
   void writeProps(JsonGenerator gen) throws IOException {
-    for (Map.Entry<String,JsonNode> e : props.entrySet())
+    for (Map.Entry<String,JsonNode> e : props.entrySet()) {
       gen.writeObjectField(e.getKey(), e.getValue());
+    }
   }
 
 }

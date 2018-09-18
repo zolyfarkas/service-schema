@@ -339,12 +339,12 @@ class FieldAccessUnsafe extends FieldAccess {
     }
 
     @Override
-    protected Object get(Object object) throws IllegalAccessException {
+    protected Object get(Object object) {
       return UNSAFE.getObject(object, offset);
     }
 
     @Override
-    protected void set(Object object, Object value) throws IllegalAccessException, IOException {
+    protected void set(Object object, Object value) {
       UNSAFE.putObject(object, offset, value);
     }
 

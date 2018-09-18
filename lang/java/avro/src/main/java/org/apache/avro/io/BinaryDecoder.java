@@ -233,7 +233,7 @@ public class BinaryDecoder extends Decoder {
     ensureBounds(4);
     int len = 1;
     int n = (buf[pos] & 0xff) | ((buf[pos + len++] & 0xff) << 8)
-        | ((buf[pos + len++] & 0xff) << 16) | ((buf[pos + len++] & 0xff) << 24);
+        | ((buf[pos + len++] & 0xff) << 16) | ((buf[pos + len] & 0xff) << 24);
     if ((pos + 4) > limit) {
       throw new EOFException();
     }
@@ -248,7 +248,7 @@ public class BinaryDecoder extends Decoder {
     int n1 = (buf[pos] & 0xff) | ((buf[pos + len++] & 0xff) << 8)
         | ((buf[pos + len++] & 0xff) << 16) | ((buf[pos + len++] & 0xff) << 24);
     int n2 = (buf[pos + len++] & 0xff) | ((buf[pos + len++] & 0xff) << 8)
-        | ((buf[pos + len++] & 0xff) << 16) | ((buf[pos + len++] & 0xff) << 24);
+        | ((buf[pos + len++] & 0xff) << 16) | ((buf[pos + len] & 0xff) << 24);
     if ((pos + 8) > limit) {
       throw new EOFException();
     }
@@ -479,7 +479,7 @@ public class BinaryDecoder extends Decoder {
       // move remaining to front
       source.compactAndFill(buf, pos, minPos, remaining);
       if (pos >= limit)
-        throw new EOFException();
+        throw new EOFException("At " + pos);
     }
   }
 

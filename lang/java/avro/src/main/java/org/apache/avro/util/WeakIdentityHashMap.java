@@ -18,12 +18,12 @@
  */
 package org.apache.avro.util;
 
+import com.google.common.collect.Sets;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,7 +66,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
 
   public Set<Map.Entry<K, V>> entrySet() {
     reap();
-    Set<Map.Entry<K, V>> ret = new HashSet<Map.Entry<K, V>>();
+    Set<Map.Entry<K, V>> ret = Sets.newHashSetWithExpectedSize(backingStore.size());
     for (Map.Entry<IdentityWeakReference, V> ref : backingStore.entrySet()) {
       final K key = ref.getKey().get();
       final V value = ref.getValue();
@@ -88,7 +88,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
 
   public Set<K> keySet() {
     reap();
-    Set<K> ret = new HashSet<K>();
+    Set<K> ret = Sets.newHashSetWithExpectedSize(backingStore.size());
     for (IdentityWeakReference ref : backingStore.keySet()) {
       ret.add(ref.get());
     }
@@ -172,4 +172,10 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
       return false;
     }
   }
+
+  @Override
+  public String toString() {
+    return "WeakIdentityHashMap{" + "backingStore=" + backingStore + '}';
+  }
+
 }

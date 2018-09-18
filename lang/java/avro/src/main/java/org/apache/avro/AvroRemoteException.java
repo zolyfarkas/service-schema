@@ -27,8 +27,7 @@ public class AvroRemoteException extends IOException {
   protected AvroRemoteException() {}
 
   public AvroRemoteException(Throwable value) {
-    this(value.toString());
-    initCause(value);
+    this(value, value);
   }
 
   public AvroRemoteException(Object value) {

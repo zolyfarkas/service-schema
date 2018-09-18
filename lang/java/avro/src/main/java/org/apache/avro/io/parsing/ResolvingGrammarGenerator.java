@@ -566,7 +566,10 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
        this.expected = expected;
      }
      public boolean equals(Object o) {
-       if (! (o instanceof LitS2)) return false;
+       if (o == null) {
+         return false;
+       }
+       if (LitS2.class != o.getClass()) return false;
        LitS2 other = (LitS2) o;
        return actual == other.actual && expected == other.expected;
      }

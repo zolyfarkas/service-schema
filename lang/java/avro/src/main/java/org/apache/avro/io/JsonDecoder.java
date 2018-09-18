@@ -26,10 +26,13 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
@@ -63,7 +66,7 @@ public class JsonDecoder extends ParsingDecoder
     public JsonParser origParser = null;
   }
 
-  static final String CHARSET = "ISO-8859-1";
+  static final Charset CHARSET = StandardCharsets.ISO_8859_1;
 
   private JsonDecoder(Symbol root, InputStream in) throws IOException {
     super(root);
@@ -117,10 +120,7 @@ public class JsonDecoder extends ParsingDecoder
    * @throws IOException
    * @return this JsonDecoder
    */
-  public JsonDecoder configure(InputStream in) throws IOException {
-    if (null == in) {
-      throw new NullPointerException("InputStream to read from cannot be null!");
-    }
+  private JsonDecoder configure(@Nonnull InputStream in) throws IOException {
     parser.reset();
     this.in = JSON_FACTORY.createJsonParser(in);
     this.in.nextToken();
@@ -139,10 +139,7 @@ public class JsonDecoder extends ParsingDecoder
    * @throws IOException
    * @return this JsonDecoder
    */
-  public JsonDecoder configure(String in) throws IOException {
-    if (null == in) {
-      throw new NullPointerException("String to read from cannot be null!");
-    }
+  public JsonDecoder configure(@Nonnull String in) throws IOException {
     parser.reset();
     this.in = JSON_FACTORY.createJsonParser(in);
     this.in.nextToken();
@@ -282,8 +279,7 @@ public class JsonDecoder extends ParsingDecoder
   }
 
   private byte[] readByteArray() throws IOException {
-    byte[] result = in.getText().getBytes(CHARSET);
-    return result;
+   return in.getText().getBytes(CHARSET);
   }
 
   @Override

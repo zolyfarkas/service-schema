@@ -433,8 +433,7 @@ public class ReflectData extends SpecificData {
       keySchema, valueSchema);
     Schema elementSchema = Schema.createRecord(name, null, null, false);
     elementSchema.setFields(Arrays.asList(keyField, valueField));
-    Schema arraySchema = Schema.createArray(elementSchema);
-    return arraySchema;
+    return Schema.createArray(elementSchema);
   }
 
   /*
@@ -452,8 +451,7 @@ public class ReflectData extends SpecificData {
       Package pkg1 = keyClass.getPackage();
       Package pkg2 = valueClass.getPackage();
 
-      if (pkg1 != null && pkg1.getName().startsWith("java") &&
-        pkg2 != null && pkg2.getName().startsWith("java")) {
+      if (pkg1 != null && pkg2 != null && pkg1.getName().startsWith("java") && pkg2.getName().startsWith("java")) {
         return NS_MAP_ARRAY_RECORD +
           keyClass.getSimpleName() + valueClass.getSimpleName();
       }
@@ -570,10 +568,11 @@ public class ReflectData extends SpecificData {
           result.addProp(CLASS_PROP, c.getName());
           return result;
         } else if (c.isEnum()) {                             // Enum
-          List<String> symbols = new ArrayList<String>();
           Enum[] constants = (Enum[])c.getEnumConstants();
-          for (int i = 0; i < constants.length; i++)
+          List<String> symbols = new ArrayList<>(constants.length);
+          for (int i = 0; i < constants.length; i++) {
             symbols.add(constants[i].name());
+          }
           schema = Schema.createEnum(name, null /* doc */, space, symbols);
           consumeAvroAliasAnnotation(c, schema);
         } else if (GenericFixed.class.isAssignableFrom(c)) { // fixed
@@ -588,8 +587,8 @@ public class ReflectData extends SpecificData {
           schema = Schema.createRecord(name, null /* doc */, space, error);
           consumeAvroAliasAnnotation(c, schema);
           names.put(c.getName(), schema);
-          for (Field field : getCachedFields(c))
-            if ((field.getModifiers()&(Modifier.TRANSIENT|Modifier.STATIC))==0
+          for (Field field : getCachedFields(c)) {
+            if ((field.getModifiers() & (Modifier.TRANSIENT|Modifier.STATIC)) == 0
                 && !field.isAnnotationPresent(AvroIgnore.class)) {
               Schema fieldSchema = createFieldSchema(field, names);
               AvroDefault defaultAnnotation
@@ -621,13 +620,15 @@ public class ReflectData extends SpecificData {
               }
               fields.add(recordField);
             }
-          if (error)                              // add Throwable message
-            fields.add(new Schema.Field("detailMessage", THROWABLE_MESSAGE,
-                                        null, null));
+        }
+          if (error)  {                            // add Throwable message
+            fields.add(new Schema.Field("detailMessage", THROWABLE_MESSAGE, null, null));
+          }
           schema.setFields(fields);
           AvroMeta meta = c.getAnnotation(AvroMeta.class);
-          if (meta != null)
+          if (meta != null) {
               schema.addProp(meta.key(), meta.value());
+          }
         }
         names.put(fullName, schema);
       }
@@ -649,15 +650,18 @@ public class ReflectData extends SpecificData {
     if (!(element instanceof Class)) return;
     Class<?> c = (Class<?>)element;
     Union union = c.getAnnotation(Union.class);
-    if (union != null)                          // element is annotated union
+    if (union != null) {                       // element is annotated union
       schema.addProp(ELEMENT_PROP, c.getName());
+    }
   }
 
   // construct a schema from a union annotation
   private Schema getAnnotatedUnion(Union union, Map<String,Schema> names) {
-    List<Schema> branches = new ArrayList<Schema>();
-    for (Class branch : union.value())
+    Class[] value = union.value();
+    List<Schema> branches = new ArrayList<Schema>(value.length);
+    for (Class branch : value) {
       branches.add(createSchema(branch, names));
+    }
     return Schema.createUnion(branches);
   }
 
@@ -671,9 +675,10 @@ public class ReflectData extends SpecificData {
         }
       }
       // add null as the first type in a new union
-      List<Schema> withNull = new ArrayList<Schema>();
+      List<Schema> types = schema.getTypes();
+      List<Schema> withNull = new ArrayList<Schema>(types.size() + 1);
       withNull.add(Schema.create(Schema.Type.NULL));
-      withNull.addAll(schema.getTypes());
+      withNull.addAll(types);
       return Schema.createUnion(withNull);
     } else {
       // create a union with null
@@ -688,8 +693,9 @@ public class ReflectData extends SpecificData {
   // Return of this class and its superclasses to serialize.
   private static Field[] getCachedFields(Class<?> recordClass) {
     Field[] fieldsList = FIELDS_CACHE.get(recordClass);
-    if (fieldsList != null)
+    if (fieldsList != null) {
       return fieldsList;
+    }
     fieldsList = getFields(recordClass, true);
     FIELDS_CACHE.put(recordClass, fieldsList);
     return fieldsList;
@@ -709,7 +715,8 @@ public class ReflectData extends SpecificData {
             throw new AvroTypeException(c+" contains two fields named: "+field);
       c = c.getSuperclass();
     } while (c != null);
-    fieldsList = fields.values().toArray(new Field[0]);
+    Collection<Field> fVals = fields.values();
+    fieldsList = fVals.toArray(new Field[fVals.size()]);
     return fieldsList;
   }
 
@@ -743,36 +750,32 @@ public class ReflectData extends SpecificData {
    * method parameter names.  See Avro's build.xml for an example. */
   @Override
   public Protocol getProtocol(Class iface) {
-    Protocol protocol =
-      new Protocol(iface.getSimpleName(),
-                   iface.getPackage()==null?"":iface.getPackage().getName());
+    Protocol protocol = new Protocol(iface.getSimpleName(),
+                   iface.getPackage() == null ? "" : iface.getPackage().getName());
     Map<String,Schema> names = new LinkedHashMap<String,Schema>();
     Map<String,Message> messages = protocol.getMessages();
-    for (Method method : iface.getMethods())
+    for (Method method : iface.getMethods()) {
       if ((method.getModifiers() & Modifier.STATIC) == 0) {
         String name = method.getName();
         if (messages.containsKey(name))
           throw new AvroTypeException("Two methods with same name: "+name);
         messages.put(name, getMessage(method, protocol, names));
       }
-
+    }
     // reverse types, since they were defined in reference order
-    List<Schema> types = new ArrayList<Schema>();
-    types.addAll(names.values());
+    List<Schema> types = new ArrayList<Schema>(names.values());
     Collections.reverse(types);
     protocol.setTypes(types);
-
     return protocol;
   }
 
   private final Paranamer paranamer = new CachingParanamer();
 
-  private Message getMessage(Method method, Protocol protocol,
-                             Map<String,Schema> names) {
-    List<Schema.Field> fields = new ArrayList<Schema.Field>();
+  private Message getMessage(Method method, Protocol protocol, Map<String,Schema> names) {
     String[] paramNames = paranamer.lookupParameterNames(method);
     Type[] paramTypes = method.getGenericParameterTypes();
     Annotation[][] annotations = method.getParameterAnnotations();
+    List<Schema.Field> fields = new ArrayList<Schema.Field>(paramTypes.length);
     for (int i = 0; i < paramTypes.length; i++) {
       Schema paramSchema = getSchema(paramTypes[i], names);
       for (int j = 0; j < annotations[i].length; j++) {
@@ -791,7 +794,6 @@ public class ReflectData extends SpecificData {
         null /* doc */, null));
     }
     Schema request = Schema.createRecord(fields);
-
     Union union = method.getAnnotation(Union.class);
     Schema response = union == null
       ? getSchema(method.getGenericReturnType(), names)
@@ -805,9 +807,11 @@ public class ReflectData extends SpecificData {
 
     List<Schema> errs = new ArrayList<Schema>();
     errs.add(Protocol.SYSTEM_ERROR);              // every method can throw
-    for (Type err : method.getGenericExceptionTypes())
-      if (err != AvroRemoteException.class)
+    for (Type err : method.getGenericExceptionTypes()) {
+      if (err != AvroRemoteException.class) {
         errs.add(getSchema(err, names));
+      }
+    }
     Schema errors = Schema.createUnion(errs);
     return protocol.createMessage(method.getName(), null /* doc */, request, response, errors);
   }
@@ -816,8 +820,7 @@ public class ReflectData extends SpecificData {
     try {
       return createSchema(type, names);
     } catch (AvroTypeException e) {               // friendly exception
-      throw new AvroTypeException("Error getting schema for "+type+": "
-                                  +e.getMessage(), e);
+      throw new AvroTypeException("Error getting schema for " + type + ": " + e.getMessage(), e);
     }
   }
 

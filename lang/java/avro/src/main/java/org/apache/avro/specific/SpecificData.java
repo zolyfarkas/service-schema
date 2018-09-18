@@ -31,6 +31,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.lang.reflect.InvocationTargetException;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Protocol;
@@ -149,7 +150,7 @@ public class SpecificData extends GenericData {
 
   private final Map<String,Class> classCache = new ConcurrentHashMap<String,Class>();
 
-  private static final Class NO_CLASS = new Object(){}.getClass();
+  private static final Class NO_CLASS = Object.class;
   private static final Schema NULL_SCHEMA = Schema.create(Schema.Type.NULL);
 
   /** Return the class that implements a schema, or null if none exists. */
@@ -284,7 +285,7 @@ public class SpecificData extends GenericData {
               (schema.toString().replace(schema.getNamespace(),
                                          c.getPackage().getName()));
         } catch (NoSuchFieldException e) {
-          throw new AvroRuntimeException("Not a Specific class: "+c);
+          throw new AvroRuntimeException("Not a Specific class: " + c, e);
         } catch (IllegalAccessException e) {
           throw new AvroRuntimeException(e);
         }
@@ -319,7 +320,7 @@ public class SpecificData extends GenericData {
                                                 iface.getPackage().getName()));
       return p;
    } catch (NoSuchFieldException e) {
-      throw new AvroRuntimeException("Not a Specific protocol: "+iface);
+      throw new AvroRuntimeException("Not a Specific protocol: " + iface, e);
     } catch (IllegalAccessException e) {
       throw new AvroRuntimeException(e);
     }
@@ -341,20 +342,22 @@ public class SpecificData extends GenericData {
    * org.apache.avro.Schema} parameter, otherwise use a no-arg constructor. */
   @SuppressWarnings("unchecked")
   public static Object newInstance(Class c, Schema s) {
-    boolean useSchema = SchemaConstructable.class.isAssignableFrom(c);
-    Object result;
-    try {
-      Constructor meth = (Constructor)CTOR_CACHE.get(c);
-      if (meth == null) {
-        meth = c.getDeclaredConstructor(useSchema ? SCHEMA_ARG : NO_ARG);
-        meth.setAccessible(true);
-        CTOR_CACHE.put(c, meth);
+    Constructor meth = (Constructor) CTOR_CACHE.computeIfAbsent(c, (clasz) -> {
+      final boolean useSchema = SchemaConstructable.class.isAssignableFrom(c);
+      Constructor constr;
+      try {
+        constr = clasz.getDeclaredConstructor(useSchema ? SCHEMA_ARG : NO_ARG);
+      } catch (NoSuchMethodException | SecurityException ex) {
+        throw new RuntimeException(ex);
       }
-      result = meth.newInstance(useSchema ? new Object[]{s} : (Object[])null);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      constr.setAccessible(true);
+      return constr;
+    });
+    try {
+      return meth.newInstance(meth.getParameterCount() > 0 ? new Object[]{s} : (Object[]) null);
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+      throw new RuntimeException(ex);
     }
-    return result;
   }
 
   @Override

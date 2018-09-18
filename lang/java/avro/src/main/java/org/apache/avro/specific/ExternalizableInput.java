@@ -33,8 +33,6 @@ class ExternalizableInput extends InputStream {
 
   @Override public void close() throws IOException { in.close(); }
 
-  @Override public boolean  markSupported() { return false; }
-
   @Override public int read() throws IOException { return in.read(); }
 
   @Override public int read(byte[] b) throws IOException { return in.read(b); }

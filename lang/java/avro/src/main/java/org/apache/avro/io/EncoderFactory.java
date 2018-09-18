@@ -19,6 +19,8 @@ package org.apache.avro.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
@@ -208,7 +210,7 @@ public class EncoderFactory {
    * @see DirectBinaryEncoder
    * @see Encoder
    */
-  public BinaryEncoder directBinaryEncoder(OutputStream out, BinaryEncoder reuse) {
+  public BinaryEncoder directBinaryEncoder(@Nonnull OutputStream out, @Nullable BinaryEncoder reuse) {
     if (null == reuse || !reuse.getClass().equals(DirectBinaryEncoder.class)) {
       return new DirectBinaryEncoder(out);
     } else {

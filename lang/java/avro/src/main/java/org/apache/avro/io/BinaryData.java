@@ -84,14 +84,15 @@ public class BinaryData {
     switch (schema.getType()) {
     case RECORD: {
       for (Field field : schema.getFields()) {
-        if (field.order() == Field.Order.IGNORE) {
+        Field.Order order = field.order();
+        if (order == Field.Order.IGNORE) {
           GenericDatumReader.skip(field.schema(), d1);
           GenericDatumReader.skip(field.schema(), d2);
           continue;
         }
         int c = compare(d, field.schema());
         if (c != 0)
-          return (field.order() != Field.Order.DESCENDING) ? c : -c;
+          return (order != Field.Order.DESCENDING) ? c : -c;
       }
       return 0;
     }

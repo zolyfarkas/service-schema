@@ -20,6 +20,7 @@ package org.apache.avro.ipc;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,6 +35,7 @@ import org.apache.avro.UnresolvedUnionException;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.Protocol.Message;
+import static org.apache.avro.Protocol.SYSTEM_ERROR;
 import org.apache.avro.util.ByteBufferInputStream;
 import org.apache.avro.util.ByteBufferOutputStream;
 import org.apache.avro.util.Utf8;
@@ -50,6 +52,14 @@ import org.apache.avro.specific.SpecificDatumWriter;
 /** Base class for the server side of a protocol interaction. */
 public abstract class Responder {
   private static final Logger LOG = LoggerFactory.getLogger(Responder.class);
+
+  public static final Schema SYSTEM_ERRORS;
+  static {
+    List<Schema> errors = new ArrayList<Schema>(1);
+    errors.add(SYSTEM_ERROR);
+    SYSTEM_ERRORS = Schema.createUnion(errors);
+  }
+
 
   private static final Schema META =
     Schema.createMap(Schema.create(Schema.Type.BYTES));
@@ -176,7 +186,7 @@ public abstract class Responder {
       bbo = new ByteBufferOutputStream();
       out = EncoderFactory.get().binaryEncoder(bbo, null);
       out.writeBoolean(true);
-      writeError(Protocol.SYSTEM_ERRORS, new Utf8(e.toString()), out);
+      writeError(SYSTEM_ERRORS, new Utf8(e.toString()), out);
       if (null == handshake) {
         handshake = new ByteBufferOutputStream().getBufferList();
       }

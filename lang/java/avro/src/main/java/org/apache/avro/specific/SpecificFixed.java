@@ -48,8 +48,10 @@ public abstract class SpecificFixed
 
   @Override public boolean equals(Object o) {
     if (o == this) return true;
-    return o instanceof GenericFixed
-      && Arrays.equals(bytes, ((GenericFixed)o).bytes());
+    if (o == null) {
+      return false;
+    }
+    return o.getClass() == this.getClass() && Arrays.equals(bytes, ((GenericFixed)o).bytes());
   }
 
   @Override public int hashCode() { return Arrays.hashCode(bytes); }

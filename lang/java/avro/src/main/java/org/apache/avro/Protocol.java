@@ -17,11 +17,12 @@
  */
 package org.apache.avro;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -199,18 +200,16 @@ public class Protocol extends JsonProperties {
   private String doc;
 
   private Schema.Names types = new Schema.Names();
-  private Map<String,Message> messages = new LinkedHashMap<String,Message>();
+  private final Map<String,Message> messages;
   private byte[] md5;
 
   /** An error that can be thrown by any message. */
   public static final Schema SYSTEM_ERROR = Schema.create(Schema.Type.STRING);
 
   /** Union type for generating system errors. */
-  public static final Schema SYSTEM_ERRORS;
   static {
     List<Schema> errors = new ArrayList<Schema>();
     errors.add(SYSTEM_ERROR);
-    SYSTEM_ERRORS = Schema.createUnion(errors);
   }
 
   private static final Set<String> PROTOCOL_RESERVED = new HashSet<String>();
@@ -222,6 +221,7 @@ public class Protocol extends JsonProperties {
 
   private Protocol() {
     super(PROTOCOL_RESERVED);
+    this.messages = new LinkedHashMap<String,Message>();
   }
 
   public Protocol(String name, String doc, String namespace) {
@@ -229,6 +229,7 @@ public class Protocol extends JsonProperties {
     this.name = name;
     this.doc = doc;
     this.namespace = namespace;
+    this.messages = new LinkedHashMap<String,Message>();
   }
   public Protocol(String name, String namespace) {
     this(name, null, namespace);
@@ -349,7 +350,7 @@ public class Protocol extends JsonProperties {
     if (md5 == null)
       try {
         md5 = MessageDigest.getInstance("MD5")
-          .digest(this.toString().getBytes("UTF-8"));
+          .digest(this.toString().getBytes(StandardCharsets.UTF_8));
       } catch (Exception e) {
         throw new AvroRuntimeException(e);
       }
@@ -377,8 +378,7 @@ public class Protocol extends JsonProperties {
   /** Read a protocol from a Json string. */
   public static Protocol parse(String string) {
     try {
-      return parse(Schema.FACTORY.createJsonParser
-                   (new ByteArrayInputStream(string.getBytes("UTF-8"))));
+      return parse(Schema.FACTORY.createJsonParser(new StringReader(string)));
     } catch (IOException e) {
       throw new AvroRuntimeException(e);
     }

@@ -18,7 +18,6 @@
 package org.apache.avro;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2284,11 +2283,7 @@ public class SchemaBuilder {
      * The string is interpreted as a byte[], with each character code point
      * value equalling the byte value, as in the Avro spec JSON default. **/
     public final FieldAssembler<R> bytesDefault(String defaultVal) {
-      try {
         return super.usingDefault(ByteBuffer.wrap(defaultVal.getBytes(JacksonUtils.BYTES_CHARSET)));
-      } catch (UnsupportedEncodingException ex) {
-        throw new SchemaBuilderException(ex);
-      }
     }
 
     @Override
@@ -2376,12 +2371,8 @@ public class SchemaBuilder {
      * The string is interpreted as a byte[], with each character code point
      * value equalling the byte value, as in the Avro spec JSON default. **/
     public final FieldAssembler<R> fixedDefault(String defaultVal) {
-      try {
         return super.usingDefault(new Fixed(resolveFixedSchema(schema),
                 defaultVal.getBytes(JacksonUtils.BYTES_CHARSET)));
-      } catch (UnsupportedEncodingException ex) {
-        throw new SchemaBuilderException(ex);
-      }
     }
 
     @Override

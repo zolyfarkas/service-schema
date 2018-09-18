@@ -17,15 +17,17 @@
  */
 package org.apache.avro.util.internal;
 
+import com.google.common.collect.Maps;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.Schema;
@@ -43,15 +45,17 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.util.TokenBuffer;
 
-public class JacksonUtils {
-  public static final String BYTES_CHARSET = "ISO-8859-1";
+public final class JacksonUtils {
+
+  public static final Charset  BYTES_CHARSET = StandardCharsets.ISO_8859_1;
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private JacksonUtils() {
   }
 
-  public static JsonNode toJsonNode(Object datum) {
+  @Nullable
+  public static JsonNode toJsonNode(@Nullable Object datum) {
     if (datum == null) {
       return null;
     }
@@ -129,12 +133,14 @@ public class JacksonUtils {
     return data;
   }
 
+  @Nullable
   public static Object toObject(JsonNode jsonNode) {
     return toObject(jsonNode, null);
   }
 
-  public static Object toObject(JsonNode jsonNode, Schema schema) {
-    if (schema != null && schema.getType().equals(Schema.Type.UNION)) {
+  @Nullable
+  public static Object toObject(JsonNode jsonNode, final Schema schema) {
+    if (schema != null && schema.getType() == Schema.Type.UNION) {
       return toObject(jsonNode, schema.getTypes().get(0));
     }
     if (jsonNode == null) {
@@ -144,52 +150,44 @@ public class JacksonUtils {
     } else if (jsonNode.isBoolean()) {
       return jsonNode.asBoolean();
     } else if (jsonNode.isInt()) {
-      if (schema == null || schema.getType().equals(Schema.Type.INT)) {
+      if (schema == null || schema.getType() == Schema.Type.INT) {
         return jsonNode.asInt();
-      } else if (schema.getType().equals(Schema.Type.LONG)) {
+      } else if (schema.getType() == Schema.Type.LONG) {
         return jsonNode.asLong();
       }
     } else if (jsonNode.isLong()) {
       return jsonNode.asLong();
     } else if (jsonNode.isDouble()) {
-      if (schema == null || schema.getType().equals(Schema.Type.DOUBLE)) {
+      if (schema == null || schema.getType() == Schema.Type.DOUBLE) {
         return jsonNode.asDouble();
-      } else if (schema.getType().equals(Schema.Type.FLOAT)) {
+      } else if (schema.getType() == Schema.Type.FLOAT) {
         return (float) jsonNode.asDouble();
       }
     } else if (jsonNode.isTextual()) {
-      if (schema == null || schema.getType().equals(Schema.Type.STRING) ||
-          schema.getType().equals(Schema.Type.ENUM)) {
+      if (schema == null || schema.getType() == Schema.Type.STRING ||
+          schema.getType() == Schema.Type.ENUM) {
         return jsonNode.asText();
-      } else if (schema.getType().equals(Schema.Type.BYTES)) {
-        try {
-          return jsonNode.getTextValue().getBytes(BYTES_CHARSET);
-        } catch (UnsupportedEncodingException e) {
-          throw new AvroRuntimeException(e);
-        }
-      } else if (schema.getType().equals(Schema.Type.FIXED)) {
-        try {
-          return new Fixed(schema, jsonNode.getTextValue().getBytes(BYTES_CHARSET));
-        } catch (UnsupportedEncodingException e) {
-          throw new AvroRuntimeException(e);
-        }
+      } else if (schema.getType() == Schema.Type.BYTES) {
+        return jsonNode.getTextValue().getBytes(BYTES_CHARSET);
+      } else if (schema.getType() == Schema.Type.FIXED) {
+        return new Fixed(schema, jsonNode.getTextValue().getBytes(BYTES_CHARSET));
       }
     } else if (jsonNode.isArray()) {
-      List l = new ArrayList();
+      List l = new ArrayList(jsonNode.size());
       for (JsonNode node : jsonNode) {
         l.add(toObject(node, schema == null ? null : schema.getElementType()));
       }
       return l;
     } else if (jsonNode.isObject()) {
-      Map m = new LinkedHashMap();
+      Map m = Maps.newLinkedHashMapWithExpectedSize(jsonNode.size());
       for (Iterator<String> it = jsonNode.getFieldNames(); it.hasNext(); ) {
         String key = it.next();
         Schema s = null;
         if (schema == null) {
           s = null;
-        } else if (schema.getType().equals(Schema.Type.MAP)) {
+        } else if (schema.getType() == Schema.Type.MAP) {
           s = schema.getValueType();
-        } else if (schema.getType().equals(Schema.Type.RECORD)) {
+        } else if (schema.getType() == Schema.Type.RECORD) {
           s = schema.getField(key).schema();
         }
         Object value = toObject(jsonNode.get(key), s);

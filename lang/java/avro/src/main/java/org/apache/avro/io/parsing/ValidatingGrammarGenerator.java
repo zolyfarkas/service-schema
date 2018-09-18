@@ -81,7 +81,8 @@ public class ValidatingGrammarGenerator {
       LitS wsc = new LitS(sc);
       Symbol rresult = seen.get(wsc);
       if (rresult == null) {
-        Symbol[] production = new Symbol[sc.getFields().size()];
+        List<Field> fields = sc.getFields();
+        Symbol[] production = new Symbol[fields.size()];
 
         /**
          * We construct a symbol without filling the array. Please see
@@ -91,7 +92,7 @@ public class ValidatingGrammarGenerator {
         seen.put(wsc, rresult);
 
         int i = production.length;
-        for (Field f : sc.getFields()) {
+        for (Field f : fields) {
           production[--i] = generate(f.schema(), seen);
         }
       }
@@ -104,7 +105,7 @@ public class ValidatingGrammarGenerator {
       String[] labels = new String[size];
 
       int i = 0;
-      for (Schema b : sc.getTypes()) {
+      for (Schema b : subs) {
         symbols[i] = generate(b, seen);
         labels[i] = b.getFullName();
         i++;
@@ -112,7 +113,7 @@ public class ValidatingGrammarGenerator {
       return Symbol.seq(Symbol.alt(symbols, labels), Symbol.UNION);
 
     default:
-      throw new RuntimeException("Unexpected schema type");
+      throw new RuntimeException("Unexpected schema type: " + sc);
     }
   }
 
@@ -126,7 +127,10 @@ public class ValidatingGrammarGenerator {
      * the same (not merely equal).
      */
     public boolean equals(Object o) {
-      if (! (o instanceof LitS)) return false;
+      if (o == null) {
+        return false;
+      }
+      if (LitS.class != o.getClass()) return false;
       return actual == ((LitS)o).actual;
     }
 

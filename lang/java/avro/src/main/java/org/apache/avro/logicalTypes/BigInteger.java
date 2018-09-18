@@ -62,8 +62,8 @@ public final class BigInteger extends AbstractLogicalType {
     }
 
     private long maxPrecision(Schema schema) {
-      if (schema.getType() == Schema.Type.BYTES
-              || schema.getType() == Schema.Type.STRING) {
+      Schema.Type type1 = schema.getType();
+      if (type1 == Schema.Type.BYTES || type1 == Schema.Type.STRING) {
         // not bounded
         return Integer.MAX_VALUE;
       } else {
@@ -81,8 +81,7 @@ public final class BigInteger extends AbstractLogicalType {
     public Object deserialize(Object object) {
       switch (type) {
         case STRING:
-          java.math.BigInteger result = new java.math.BigInteger(object.toString());
-          return result;
+          return new java.math.BigInteger(object.toString());
         case BYTES:
           //ByteBuffer buf = ByteBuffer.wrap((byte []) object);
           ByteBuffer buf = (ByteBuffer) object;

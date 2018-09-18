@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.apache.avro.logicalTypes.BigIntegerFactory;
 import org.apache.avro.logicalTypes.DecimalFactory;
@@ -66,8 +65,6 @@ public abstract class AbstractLogicalType extends JsonProperties implements Logi
 
   private static final Map<String, LogicalTypeFactory> LOGICAL_TYPE_TO_CLASS =
           new HashMap<String, LogicalTypeFactory>();
-
-  private static final Logger LOG = Logger.getLogger(LogicalType.class.getName());
 
   static {
 

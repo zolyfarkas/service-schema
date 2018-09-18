@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 import org.apache.avro.util.internal.JacksonUtils;
 import org.codehaus.jackson.JsonFactory;
@@ -297,6 +298,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   /** If this is a record, enum, or fixed, returns its docstring,
    * if available.  Otherwise, returns null. */
+  @Nullable
   public String getDoc() {
     return null;
   }
@@ -1439,8 +1441,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
       Name name = null;
       String savedSpace = names.space();
       String doc = null;
-      if (type.equals("record") || type.equals("error")
-          || type.equals("enum") || type.equals("fixed")) {
+      if ("record".equals(type) || "error".equals(type)
+          || "enum".equals(type) || "fixed".equals(type)) {
         String space = getOptionalText(schema, "namespace");
         doc = getOptionalText(schema, "doc");
         if (space == null)
@@ -1451,15 +1453,16 @@ public abstract class Schema extends JsonProperties implements Serializable {
           names.space(name.space);
         }
       }
-      if (PRIMITIVES.containsKey(type)) {         // primitive
-        result = create(PRIMITIVES.get(type));
+      Type prType = PRIMITIVES.get(type);
+      if (prType != null) {         // primitive
+        result = create(prType);
       } else if (type.equals("record") || type.equals("error")) { // record
-        List<Field> fields = new ArrayList<Field>();
         result = new RecordSchema(name, doc, type.equals("error"));
         if (name != null) names.add(result);
         JsonNode fieldsNode = schema.get("fields");
         if (fieldsNode == null || !fieldsNode.isArray())
           throw new SchemaParseException("Record has no fields: "+schema);
+        List<Field> fields = new ArrayList<Field>(fieldsNode.size());
         for (JsonNode field : fieldsNode) {
           String fieldName = getRequiredText(field, "name", "No field name");
           String fieldDoc = getOptionalText(field, "doc");
@@ -1478,9 +1481,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
           if (orderNode != null)
             order = Field.Order.valueOf(orderNode.getTextValue().toUpperCase(Locale.ENGLISH));
           JsonNode defaultValue = field.get("default");
-          if (defaultValue != null
-              && (Type.FLOAT.equals(fieldSchema.getType())
-                  || Type.DOUBLE.equals(fieldSchema.getType()))
+          Type fieldType = fieldSchema.getType();
+          if (defaultValue != null && (Type.FLOAT.equals(fieldType) || Type.DOUBLE.equals(fieldType))
               && defaultValue.isTextual())
             defaultValue =
               new DoubleNode(Double.valueOf(defaultValue.getTextValue()));
@@ -1496,26 +1498,27 @@ public abstract class Schema extends JsonProperties implements Serializable {
           fields.add(f);
         }
         result.setFields(fields);
-      } else if (type.equals("enum")) {           // enum
+      } else if ("enum".equals(type)) {           // enum
         JsonNode symbolsNode = schema.get("symbols");
         if (symbolsNode == null || !symbolsNode.isArray())
           throw new SchemaParseException("Enum has no symbols: "+schema);
         LockableArrayList<String> symbols = new LockableArrayList<String>(symbolsNode.size());
-        for (JsonNode n : symbolsNode)
+        for (JsonNode n : symbolsNode) {
           symbols.add(n.getTextValue());
+        }
         result = new EnumSchema(name, doc, symbols);
         if (name != null) names.add(result);
-      } else if (type.equals("array")) {          // array
+      } else if ("array".equals(type)) {          // array
         JsonNode itemsNode = schema.get("items");
         if (itemsNode == null)
           throw new SchemaParseException("Array has no items type: "+schema);
         result = new ArraySchema(parse(itemsNode, names));
-      } else if (type.equals("map")) {            // map
+      } else if ("map".equals(type)) {            // map
         JsonNode valuesNode = schema.get("values");
         if (valuesNode == null)
           throw new SchemaParseException("Map has no values type: "+schema);
         result = new MapSchema(parse(valuesNode, names));
-      } else if (type.equals("fixed")) {          // fixed
+      } else if ("fixed".equals(type)) {          // fixed
         JsonNode sizeNode = schema.get("size");
         if (sizeNode == null || !sizeNode.isInt())
           throw new SchemaParseException("Invalid or no size: "+schema);
@@ -1561,8 +1564,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   private static Set<String> parseAliases(JsonNode node) {
     JsonNode aliasesNode = node.get("aliases");
-    if (aliasesNode == null)
+    if (aliasesNode == null) {
       return null;
+    }
     if (!aliasesNode.isArray())
       throw new SchemaParseException("aliases not an array: "+node);
     Set<String> aliases = new LinkedHashSet<String>();
@@ -1641,13 +1645,17 @@ public abstract class Schema extends JsonProperties implements Serializable {
     Schema result = s;
     switch (s.getType()) {
     case RECORD:
-      if (seen.containsKey(s)) return seen.get(s); // break loops
-      if (aliases.containsKey(name))
-        name = aliases.get(name);
+      Schema sSch = seen.get(s);
+      if (sSch != null) return sSch; // break loops
+      Name aname = aliases.get(name);
+      if (aname != null) {
+        name = aname;
+      }
       result = Schema.createRecord(name.full, s.getDoc(), null, s.isError());
       seen.put(s, result);
-      List<Field> newFields = new ArrayList<Field>();
-      for (Field f : s.getFields()) {
+      List<Field> fields = s.getFields();
+      List<Field> newFields = new ArrayList<Field>(fields.size());
+      for (Field f : fields) {
         Schema fSchema = applyAliases(f.schema, seen, aliases, fieldAliases);
         String fName = getFieldAlias(name, f.name, fieldAliases);
         Field newF = new Field(fName, fSchema, f.doc, f.defaultValue, f.order);
@@ -1656,11 +1664,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
       result.setFields(newFields);
       break;
+
+
     case ENUM:
-      if (aliases.containsKey(name))
-        result = Schema.createEnum(aliases.get(name).full, s.getDoc(), null,
-                                   s.getEnumSymbols());
+      Name aname3 = aliases.get(name);
+      if (aname3 != null)
+        result = Schema.createEnum(aname3.full, s.getDoc(), null, s.getEnumSymbols());
       break;
+
     case ARRAY:
       Schema e = applyAliases(s.getElementType(), seen, aliases, fieldAliases);
       if (e != s.getElementType())
@@ -1672,16 +1683,18 @@ public abstract class Schema extends JsonProperties implements Serializable {
         result = Schema.createMap(v);
       break;
     case UNION:
-      List<Schema> types = new ArrayList<Schema>();
-      for (Schema branch : s.getTypes())
+      List<Schema> types1 = s.getTypes();
+      List<Schema> types = new ArrayList<Schema>(types1.size());
+      for (Schema branch : types1)
         types.add(applyAliases(branch, seen, aliases, fieldAliases));
       result = Schema.createUnion(types);
       break;
     case FIXED:
-      if (aliases.containsKey(name))
-        result = Schema.createFixed(aliases.get(name).full, s.getDoc(), null,
-                                    s.getFixedSize());
+      Name aname2 = aliases.get(name);
+      if (aname2 != null)
+        result = Schema.createFixed(aname2.full, s.getDoc(), null, s.getFixedSize());
       break;
+
     }
     if (result != s)
       result.props.putAll(s.props);        // copy props
@@ -1715,10 +1728,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
           }
         getAliases(field.schema, seen, aliases, fieldAliases);
       }
-      if (record.aliases != null && fieldAliases.containsKey(record.name))
-        for (Name recordAlias : record.aliases)
-          fieldAliases.put(recordAlias, fieldAliases.get(record.name));
+      Map<String, String> fas = fieldAliases.get(record.name);
+      if (record.aliases != null && fas != null) {
+        for (Name recordAlias : record.aliases) {
+          fieldAliases.put(recordAlias, fas);
+        }
+      }
       break;
+
     case ARRAY:
       getAliases(schema.getElementType(), seen, aliases, fieldAliases);
       break;
