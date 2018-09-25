@@ -11,3 +11,4 @@ target
 /build
 test-output
 /dist
+/lang/java/avro-joda/avro-joda-ext/nbproject/
