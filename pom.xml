@@ -30,7 +30,7 @@
 
   <groupId>org.apache.avro</groupId>
   <artifactId>avro-toplevel</artifactId>
-  <version>1.8.0.50p-SNAPSHOT</version>
+  <version>1.8.0.50p</version>
   <packaging>pom</packaging>
 
   <name>Apache Avro Toplevel</name>
@@ -83,7 +83,7 @@
     <connection>scm:git:https://github.com/zolyfarkas/avro.git</connection>  
     <developerConnection>scm:git:https://github.com/zolyfarkas/avro.git</developerConnection>
     <url>https://github.com/zolyfarkas/avro/</url>
-    <tag>HEAD</tag>
+    <tag>avro-toplevel-1.8.0.50p</tag>
   </scm>  
 
     
