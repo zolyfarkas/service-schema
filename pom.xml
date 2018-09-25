@@ -78,18 +78,12 @@
     <module>lang/java</module>
   </modules>
 
-<!--
-  <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/avro/trunk</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/avro/trunk</developerConnection>
-    <url>http://svn.apache.org/viewvc/avro/trunk</url>
-  </scm>
-  -->
 
   <scm>
     <connection>scm:git:https://github.com/zolyfarkas/avro.git</connection>  
     <developerConnection>scm:git:https://github.com/zolyfarkas/avro.git</developerConnection>
-    <tag>TRUNK</tag>
+    <url>https://github.com/zolyfarkas/avro/</url>
+    <tag>HEAD</tag>
   </scm>  
 
     
@@ -156,7 +150,7 @@
        <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-release-plugin</artifactId>
-            <version>2.5.32</version>
+            <version>2.5.3</version>
             <configuration>
                    <autoVersionSubmodules>true</autoVersionSubmodules>
                    <checkModificationExcludes>
@@ -218,35 +212,6 @@
                         </execution>
                     </executions>
                 </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${checkstyle-plugin.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>dev-tools</artifactId>
-            <version>${project.version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <consoleOutput>true</consoleOutput>
-          <configLocation>checkstyle/checkstyle.xml</configLocation>
-          <suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
-        </configuration>
-        <!-- Runs by default in the verify phase  (mvn verify or later in the build cycle)
-             the 'check' goal will fail the build if it does not pass.  "mvn checkstyle:check"
-             will do this alone, or "mvn checkstyle:checkstyle" will report but not break  -->
-        <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <phase>test</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
