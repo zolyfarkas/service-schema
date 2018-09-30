@@ -128,7 +128,7 @@ public final class Strings {
       }
     });
     MethodHandles.Lookup lookup = MethodHandles.lookup();
-    if (charsField != null) {
+    if (charsField != null && charsField.getType() == char[].class) {
       try {
         CHARS_FIELD_GET = lookup.unreflectGetter(charsField);
       } catch (IllegalAccessException ex) {
