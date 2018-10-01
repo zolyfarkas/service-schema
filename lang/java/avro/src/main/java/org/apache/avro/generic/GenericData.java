@@ -884,7 +884,7 @@ public class GenericData {
     switch (s.getType()) {
     case RECORD:
       if (s.getLogicalType() != null) {
-        return (Objects.equals(o1, o2)) ? 0 : 1;
+        return equals ? (Objects.equals(o1, o2) ? 0 : 1) : ((Comparable)o1).compareTo(o2);
       }
       for (Field f : s.getFields()) {
         if (f.order() == Field.Order.IGNORE)
