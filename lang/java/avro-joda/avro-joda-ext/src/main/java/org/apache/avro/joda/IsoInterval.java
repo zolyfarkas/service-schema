@@ -16,7 +16,6 @@
 package org.apache.avro.joda;
 
 import java.util.Collections;
-import java.util.Set;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.Interval;
@@ -40,12 +39,6 @@ public class IsoInterval extends AbstractLogicalType<Interval> {
               "Logical type " + this + " must be backed by long or string");
     }
   }
-
-  @Override
-  public Set<String> reserved() {
-    return Collections.EMPTY_SET;
-  }
-
 
   @Override
   public Interval deserialize(Object object) {

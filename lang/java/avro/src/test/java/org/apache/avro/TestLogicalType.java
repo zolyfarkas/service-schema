@@ -95,10 +95,6 @@ public class TestLogicalType {
       @Override
       public void validate(Schema schema) {}
 
-      @Override
-      public Set<String> reserved() { return new HashSet<String>(); }
-
-
         @Override
         public Object deserialize(Object object) {
             throw new UnsupportedOperationException("Not supported yet.");

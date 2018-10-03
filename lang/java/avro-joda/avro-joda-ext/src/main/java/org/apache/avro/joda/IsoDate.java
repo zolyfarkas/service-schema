@@ -19,7 +19,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.Collections;
-import java.util.Set;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.DateTime;
@@ -43,11 +42,6 @@ public class IsoDate extends AbstractLogicalType<LocalDate> {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or int or string");
     }
-  }
-
-  @Override
-  public Set<String> reserved() {
-    return Collections.EMPTY_SET;
   }
 
   public static final DateTimeFormatter FMT = ISODateTimeFormat.date();

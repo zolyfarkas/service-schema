@@ -16,7 +16,6 @@
 package org.apache.avro.joda;
 
 import java.util.Collections;
-import java.util.Set;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.DateTime;
@@ -37,11 +36,6 @@ public class IsoDateTime extends AbstractLogicalType<DateTime> {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or string");
     }
-  }
-
-  @Override
-  public Set<String> reserved() {
-    return Collections.EMPTY_SET;
   }
 
 

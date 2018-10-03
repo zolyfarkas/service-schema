@@ -63,11 +63,6 @@ public final class BigInteger extends AbstractLogicalType<java.math.BigInteger> 
     }
   }
 
-  @Override
-  public Set<String> reserved() {
-    return RESERVED;
-  }
-
   private long maxPrecision(Schema schema) {
     Schema.Type type1 = schema.getType();
     if (type1 == Schema.Type.BYTES || type1 == Schema.Type.STRING) {

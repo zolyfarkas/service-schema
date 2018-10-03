@@ -115,12 +115,16 @@ public abstract class JsonProperties {
   /** A value representing a JSON <code>null</code>. */
   public static final Null NULL_VALUE = new Null();
 
-  Map<String,JsonNode> props = new LinkedHashMap<String,JsonNode>(1);
+  Map<String,JsonNode> props = new LinkedHashMap<String,JsonNode>(2);
 
-  private Set<String> reserved;
+  private final  Set<String> reserved;
 
   JsonProperties(Set<String> reserved) {
     this.reserved = reserved;
+  }
+
+  public Set<String> reserved() {
+    return reserved;
   }
 
   /**

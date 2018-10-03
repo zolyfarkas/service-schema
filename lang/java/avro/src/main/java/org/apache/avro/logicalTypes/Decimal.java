@@ -145,11 +145,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
     return logicalType.getClass() == Decimal.class;
   }
 
-  @Override
-  public Set<String> reserved() {
-    return RESERVED;
-  }
-
   private long maxPrecision(Schema schema) {
     if (schema.getType() == Schema.Type.BYTES
             || schema.getType() == Schema.Type.STRING) {
