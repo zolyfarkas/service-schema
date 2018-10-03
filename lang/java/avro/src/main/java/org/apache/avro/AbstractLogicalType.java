@@ -15,10 +15,10 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.TextNode;
 
-public abstract class AbstractLogicalType extends JsonProperties implements LogicalType {
+public abstract class AbstractLogicalType<T> extends JsonProperties implements LogicalType<T> {
 
   protected AbstractLogicalType(Schema.Type type, Set<String> reserved, String logicalTypeName,
-          Map<String, Object> properties) {
+          Map<String, Object> properties, Class<T> javaClasZ) {
     super(reserved);
     this.properties = new HashMap<String, Object>(properties);
     for (Map.Entry<String, Object> prop : properties.entrySet()) {
@@ -28,6 +28,7 @@ public abstract class AbstractLogicalType extends JsonProperties implements Logi
     props.put("logicalType", TextNode.valueOf(logicalTypeName));
     this.logicalTypeName = logicalTypeName;
     this.type = type;
+    this.javaClasZ = javaClasZ;
   }
 
   protected final String logicalTypeName;
@@ -35,6 +36,8 @@ public abstract class AbstractLogicalType extends JsonProperties implements Logi
   protected final Map<String, Object> properties;
 
   protected final Schema.Type type;
+
+  protected final Class<T> javaClasZ;
 
   @Override
   public boolean equals(Object obj) {
@@ -47,8 +50,13 @@ public abstract class AbstractLogicalType extends JsonProperties implements Logi
   }
 
   @Override
+  public final Class<T> getLogicalJavaType() {
+    return javaClasZ;
+  }
+
+  @Override
   public int hashCode() {
-    return props.hashCode();
+    return logicalTypeName.hashCode() + 7 * props.hashCode();
   }
 
   public String getLogicalTypeName() {

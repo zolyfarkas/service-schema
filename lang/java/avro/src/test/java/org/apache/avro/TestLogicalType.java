@@ -91,17 +91,13 @@ public class TestLogicalType {
   @Test
   public void testLogicalTypeEquals() {
     LogicalType unknown = new AbstractLogicalType(Schema.Type.STRING,
-            new HashSet<String>(), "unknown", Collections.EMPTY_MAP) {
+            new HashSet<String>(), "unknown", Collections.EMPTY_MAP, Object.class) {
       @Override
       public void validate(Schema schema) {}
 
       @Override
       public Set<String> reserved() { return new HashSet<String>(); }
 
-        @Override
-        public Class<?> getLogicalJavaType() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
 
         @Override
         public Object deserialize(Object object) {

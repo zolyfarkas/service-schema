@@ -23,7 +23,7 @@ import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-public class IsoInstant extends AbstractLogicalType {
+public class IsoInstant extends AbstractLogicalType<Instant> {
 
 
   public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime().withZoneUTC();
@@ -31,7 +31,7 @@ public class IsoInstant extends AbstractLogicalType {
   public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser().withOffsetParsed();
 
   public IsoInstant(Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "isoinstant", Collections.EMPTY_MAP);
+    super(type, Collections.EMPTY_SET, "isoinstant", Collections.EMPTY_MAP, Instant.class);
     // validate the type
     if (type != Schema.Type.LONG && type != Schema.Type.STRING) {
       throw new IllegalArgumentException(
@@ -54,14 +54,9 @@ public class IsoInstant extends AbstractLogicalType {
     return Collections.EMPTY_SET;
   }
 
-  @Override
-  public Class<?> getLogicalJavaType() {
-    return Instant.class;
-  }
-
 
   @Override
-  public Object deserialize(Object object) {
+  public Instant deserialize(Object object) {
     switch (type) {
       case LONG:
         return new Instant((Long) object);
@@ -73,12 +68,12 @@ public class IsoInstant extends AbstractLogicalType {
   }
 
   @Override
-  public Object serialize(Object object) {
+  public Object serialize(Instant object) {
     switch (type) {
       case LONG:
-        return ((Instant) object).getMillis();
+        return object.getMillis();
       case STRING:
-        return FMT.print((Instant) object);
+        return FMT.print(object);
       default:
         throw new IllegalStateException("Unsupported type: " + type);
     }

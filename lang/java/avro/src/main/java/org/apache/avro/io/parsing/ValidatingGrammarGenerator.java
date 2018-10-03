@@ -20,6 +20,9 @@ package org.apache.avro.io.parsing;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -28,6 +31,36 @@ import org.apache.avro.Schema.Field;
  * The class that generates validating grammar.
  */
 public class ValidatingGrammarGenerator {
+
+
+  private static final  ValidatingGrammarGenerator INSTANCE = new ValidatingGrammarGenerator();
+
+  static final boolean DISABLE_SYMBOL_CACHE = Boolean.getBoolean("avro.disableSymbolCache");
+
+  private static final Function<Schema, Symbol> IMPL = DISABLE_SYMBOL_CACHE
+            ? ValidatingGrammarGenerator::generateRoot : Cache::getCachedRootSymbol;
+
+  public static Symbol generateRoot(final Schema schema) {
+    return INSTANCE.generate(schema);
+  }
+
+  public static Symbol getRootSymbol(final Schema schema) {
+    return IMPL.apply(schema);
+  }
+
+  private static class Cache {
+    private static final ConcurrentMap<Schema, Symbol> ROOT_SYMBOL_CACHE
+            = new ConcurrentHashMap<>(16);
+
+    private static Symbol getCachedRootSymbol(final Schema schema) {
+      return ROOT_SYMBOL_CACHE.computeIfAbsent(schema, ValidatingGrammarGenerator::generateRoot);
+    }
+
+  }
+
+
+  protected ValidatingGrammarGenerator() { }
+
   /**
    * Returns the non-terminal that is the start symbol
    * for the grammar for the given schema <tt>sc</tt>.

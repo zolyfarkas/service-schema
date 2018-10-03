@@ -232,7 +232,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   public LogicalType getLogicalType() { return logicalType; }
 
   /** Set the logical type annotation for this schema */
-  public void setLogicalType(LogicalType logicalType) {
+  public void setLogicalType(LogicalType<?> logicalType) {
     if (this.logicalType != null) {
       throw new IllegalArgumentException(
           "Cannot replace existing logical type");
@@ -395,17 +395,25 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   public boolean equals(Object o) {
-    if (o == this) return true;
-    if (!(o instanceof Schema)) return false;
-    Schema that = (Schema)o;
+    if (o == this) {
+      return true;
+    }
+    if (o == null) {
+      return false;
+    }
+    if (o.getClass() != this.getClass()) {
+      return false;
+    }
+    Schema that = (Schema) o;
     if (!(this.type == that.type)) return false;
     return equalCachedHash(that)
         && equalLogicalTypes(that)
         && props.equals(that.props);
   }
   public final int hashCode() {
-    if (hashCode == NO_HASHCODE)
+    if (hashCode == NO_HASHCODE) {
       hashCode = computeHash();
+    }
     return hashCode;
   }
 

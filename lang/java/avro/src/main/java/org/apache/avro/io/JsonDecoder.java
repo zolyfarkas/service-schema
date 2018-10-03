@@ -17,9 +17,6 @@
  */
 package org.apache.avro.io;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,34 +76,13 @@ public class JsonDecoder extends ParsingDecoder
   }
 
   JsonDecoder(Schema schema, InputStream in) throws IOException {
-    this(getSymbol(schema), in);
+    this(JsonGrammarGenerator.getRootSymbol(schema), in);
   }
 
   JsonDecoder(Schema schema, String in) throws IOException {
-    this(getSymbol(schema), in);
+    this(JsonGrammarGenerator.getRootSymbol(schema), in);
   }
 
-  private static final LoadingCache<Schema, Symbol> SYMBOL_CACHE;
-
-  static {
-
-    SYMBOL_CACHE = CacheBuilder.newBuilder()
-            .concurrencyLevel(16)
-            .build(new CacheLoader<Schema, Symbol>() {
-
-              @Override
-              public Symbol load(final Schema schema) throws Exception {
-                return new JsonGrammarGenerator().generate(schema);
-              }
-            });
-  }
-
-  public static Symbol getSymbol(final Schema schema) {
-    if (null == schema) {
-      throw new NullPointerException("Schema cannot be null!");
-    }
-    return SYMBOL_CACHE.getUnchecked(schema);
-  }
 
   /**
    * Reconfigures this JsonDecoder to use the InputStream provided.

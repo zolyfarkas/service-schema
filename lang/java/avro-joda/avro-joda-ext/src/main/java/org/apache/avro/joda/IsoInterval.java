@@ -21,10 +21,10 @@ import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.Interval;
 
-public class IsoInterval extends AbstractLogicalType {
+public class IsoInterval extends AbstractLogicalType<Interval> {
 
   public IsoInterval(Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "isointerval", Collections.EMPTY_MAP);
+    super(type, Collections.EMPTY_SET, "isointerval", Collections.EMPTY_MAP, Interval.class);
     // validate the type
     if (type != Schema.Type.STRING) {
       throw new IllegalArgumentException(
@@ -46,19 +46,14 @@ public class IsoInterval extends AbstractLogicalType {
     return Collections.EMPTY_SET;
   }
 
-  @Override
-  public Class<?> getLogicalJavaType() {
-    return Interval.class;
-  }
-
 
   @Override
-  public Object deserialize(Object object) {
+  public Interval deserialize(Object object) {
     return Interval.parseWithOffset(object.toString());
   }
 
   @Override
-  public Object serialize(Object object) {
+  public Object serialize(Interval object) {
     return object.toString();
   }
 

@@ -21,6 +21,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -40,7 +41,7 @@ import org.apache.avro.logicalTypes.Decimal;
  * deliberately skips fields that match the default we need to start mucking about with the stack when the
  * next field isn't there! More info to come as we remember how it works!
  */
-public final class ExtendedJsonDecoder extends JsonDecoder {
+public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDecoder {
 
 
     private final boolean lenient;
@@ -300,8 +301,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
   }
 
   private byte[] readByteArray() throws IOException {
-    byte[] result = in.getText().getBytes(CHARSET);
-    return result;
+    return in.getText().getBytes(CHARSET);
   }
 
   @Override
@@ -314,6 +314,50 @@ public final class ExtendedJsonDecoder extends JsonDecoder {
     } else {
       throw error("bytes");
     }
+  }
+
+  protected void advance() throws IOException {
+    this.parser.processTrailingImplicitActions();
+    if (this.parser.depth() == 1)
+      throw new EOFException("EOF at " + in.getCurrentLocation());
+    parser.advance();
+  }
+
+  @Override
+  public BigInteger readBigInteger() throws IOException {
+      JsonToken currentToken = in.getCurrentToken();
+      if (currentToken == null) {
+        throw new EOFException("EOF at " + in.getCurrentLocation());
+      }
+      switch (currentToken) {
+        case VALUE_STRING:
+          advance();
+          return new BigInteger(in.getText());
+        case VALUE_NUMBER_INT:
+          advance();
+          return in.getBigIntegerValue();
+        default:
+          throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");
+      }
+  }
+
+  @Override
+  public BigDecimal readBigDecimal() throws IOException {
+      JsonToken currentToken = in.getCurrentToken();
+      if (currentToken == null) {
+        throw new EOFException("EOF at " + in.getCurrentLocation());
+      }
+      switch (currentToken) {
+        case VALUE_STRING:
+          advance();
+          return new BigDecimal(in.getText());
+        case VALUE_NUMBER_INT:
+        case VALUE_NUMBER_FLOAT:
+          advance();
+          return in.getDecimalValue();
+        default:
+          throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");
+      }
   }
 
 

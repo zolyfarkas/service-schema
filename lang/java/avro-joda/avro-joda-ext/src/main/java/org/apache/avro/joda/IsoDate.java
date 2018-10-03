@@ -26,14 +26,13 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
-import org.joda.time.ReadablePartial;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-public class IsoDate extends AbstractLogicalType {
+public class IsoDate extends AbstractLogicalType<LocalDate> {
 
   IsoDate(Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "isodate", Collections.EMPTY_MAP);
+    super(type, Collections.EMPTY_SET, "isodate", Collections.EMPTY_MAP, LocalDate.class);
   }
 
   @Override
@@ -49,11 +48,6 @@ public class IsoDate extends AbstractLogicalType {
   @Override
   public Set<String> reserved() {
     return Collections.EMPTY_SET;
-  }
-
-  @Override
-  public Class<?> getLogicalJavaType() {
-    return LocalDate.class;
   }
 
   public static final DateTimeFormatter FMT = ISODateTimeFormat.date();
@@ -85,7 +79,7 @@ public class IsoDate extends AbstractLogicalType {
           });
 
   @Override
-  public Object deserialize(Object object) {
+  public LocalDate deserialize(Object object) {
     switch (type) {
       case STRING:
         return S2D_CONV_CACHE.getUnchecked(object.toString());
@@ -99,14 +93,14 @@ public class IsoDate extends AbstractLogicalType {
   }
 
   @Override
-  public Object serialize(Object object) {
+  public Object serialize(LocalDate object) {
     switch (type) {
       case STRING:
-        return D2S_CONV_CACHE.getUnchecked((LocalDate) object);
+        return D2S_CONV_CACHE.getUnchecked(object);
       case LONG:
-        return ((LocalDate) object).toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
+        return object.toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
       case INT:
-        return Days.daysBetween(EPOCH, (ReadablePartial) object).getDays();
+        return Days.daysBetween(EPOCH, object).getDays();
       default:
         throw new UnsupportedOperationException();
     }

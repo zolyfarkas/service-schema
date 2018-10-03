@@ -33,7 +33,7 @@ import org.codehaus.jackson.JsonNode;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class Decimal extends AbstractLogicalType {
+public final class Decimal extends AbstractLogicalType<BigDecimal> {
 
   private static final RoundingMode DEFAULT_DESER_ROUNDING = getRoundingMode("avro.decimal.defaultDeserRounding");
   private static final RoundingMode DEFAULT_SER_ROUNDING = getRoundingMode("avro.decimal.defaultSerRounding");
@@ -57,7 +57,7 @@ public final class Decimal extends AbstractLogicalType {
   private final RoundingMode deserRm;
 
   public Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
-    super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm));
+    super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm), BigDecimal.class);
     this.precision = precision == null ? 36 : precision;
     this.serRm = serRm == null ? DEFAULT_SER_ROUNDING : serRm;
     this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
@@ -162,12 +162,7 @@ public final class Decimal extends AbstractLogicalType {
   }
 
   @Override
-  public Class<?> getLogicalJavaType() {
-    return BigDecimal.class;
-  }
-
-  @Override
-  public Object deserialize(Object object) {
+  public BigDecimal deserialize(Object object) {
     switch (type) {
       case STRING:
         BigDecimal result = new BigDecimal(object.toString(), mc);
@@ -206,8 +201,7 @@ public final class Decimal extends AbstractLogicalType {
   }
 
   @Override
-  public Object serialize(Object object) {
-    BigDecimal decimal = (BigDecimal) object;
+  public Object serialize(BigDecimal decimal) {
     if (decimal.scale() > scale) {
       if (serRm != null) {
         decimal = decimal.setScale(scale, serRm);

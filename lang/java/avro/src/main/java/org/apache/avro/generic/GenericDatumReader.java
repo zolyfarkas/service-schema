@@ -150,6 +150,10 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   protected Object read(Object old, Schema expected,
       ResolvingDecoder in) throws IOException {
     Object result;
+    LogicalType logicalType = expected.getLogicalType();
+    if (logicalType != null && logicalType.supportsDirectDecoding(in)) {
+      return logicalType.deserializeDirect(in);
+    }
     final Type type = expected.getType();
     switch (type) {
     case RECORD:  result = readRecord(old, expected, in); break;
@@ -168,7 +172,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     case NULL:    in.readNull(); result = null; break;
     default: throw new AvroRuntimeException("Unknown type: " + expected);
     }
-    LogicalType logicalType = expected.getLogicalType();
     if (logicalType != null) {
       result = logicalType.deserialize(result);
     }

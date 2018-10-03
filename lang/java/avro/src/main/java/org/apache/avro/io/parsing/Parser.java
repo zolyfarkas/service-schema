@@ -73,7 +73,9 @@ public class Parser {
     }
   }
 
-
+  public final Symbol advance() throws IOException {
+      return stack[--pos];
+  }
 
   /**
    * Recursively replaces the symbol at the top of the stack with its

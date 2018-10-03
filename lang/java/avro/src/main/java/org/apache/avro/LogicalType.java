@@ -1,9 +1,12 @@
 package org.apache.avro;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.Encoder;
 
-public interface LogicalType  {
+public interface LogicalType<T>  {
 
   /** Validate this logical type for the given Schema */
   void validate(Schema schema);
@@ -16,11 +19,27 @@ public interface LogicalType  {
   Map<String, Object> getProperties();
 
   /** get java type */
-  Class<?> getLogicalJavaType();
+  Class<T> getLogicalJavaType();
 
-  Object deserialize(Object object);
+  T deserialize(Object object);
 
-  Object serialize(Object object);
+  Object serialize(T object);
+
+  default boolean supportsDirectEncoding(final Encoder enc) {
+    return false;
+  }
+
+  default boolean supportsDirectDecoding(final Decoder enc) {
+    return false;
+  }
+
+  default T deserializeDirect(final Decoder object) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  default void serializeDirect(final T object, final Encoder enc) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
   String getLogicalTypeName();
 

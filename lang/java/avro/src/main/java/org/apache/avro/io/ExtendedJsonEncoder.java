@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import org.apache.avro.AvroTypeException;
 
 /**
  * A derived encoder that does the skipping of fields that match the index. It also encodes unions of null and a single
@@ -64,32 +63,14 @@ public final class ExtendedJsonEncoder extends JsonEncoder implements DecimalEnc
   }
 
   @Override
-  public void writeDecimal(final BigDecimal decimal, final Schema schema) throws IOException {
-    switch (schema.getType()) {
-      case STRING:
-        parser.advance(Symbol.STRING);
-        break;
-      case BYTES:
-        parser.advance(Symbol.BYTES);
-        break;
-      default:
-        throw new AvroTypeException("Invalid schema for decimal " + schema);
-    }
+  public void writeDecimal(final BigDecimal decimal) throws IOException {
+    parser.advance();
     out.writeNumber(decimal);
   }
 
   @Override
-  public void writeBigInteger(BigInteger decimal, Schema schema) throws IOException {
-    switch (schema.getType()) {
-      case STRING:
-        parser.advance(Symbol.STRING);
-        break;
-      case BYTES:
-        parser.advance(Symbol.BYTES);
-        break;
-      default:
-        throw new AvroTypeException("Invalid schema for decimal " + schema);
-    }
+  public void writeBigInteger(BigInteger decimal) throws IOException {
+    parser.advance();
     out.writeNumber(decimal);
   }
 

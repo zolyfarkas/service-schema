@@ -18,7 +18,6 @@
 package org.apache.avro.generic;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -29,10 +28,7 @@ import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.io.DatumWriter;
-import org.apache.avro.io.DecimalEncoder;
 import org.apache.avro.io.Encoder;
-import org.apache.avro.logicalTypes.BigInteger;
-import org.apache.avro.logicalTypes.Decimal;
 
 /** {@link DatumWriter} for generic Java objects. */
 public class GenericDatumWriter<D> implements DatumWriter<D> {
@@ -68,18 +64,12 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     try {
       LogicalType lType = schema.getLogicalType();
       if (lType != null) {
-          if (DecimalEncoder.OPTIMIZED_JSON_DECIMAL_WRITE
-                  && out instanceof DecimalEncoder) {
-            Class<? extends Object> aClass = datum.getClass();
-            if (aClass == java.math.BigDecimal.class && Decimal.is(schema)) {
-              ((DecimalEncoder) out).writeDecimal((BigDecimal) datum, schema);
-              return;
-            } else if (aClass == java.math.BigInteger.class && BigInteger.is(schema)) {
-              ((DecimalEncoder) out).writeBigInteger((java.math.BigInteger) datum, schema);
-              return;
-            }
+          if (lType.supportsDirectEncoding(out)) {
+            lType.serializeDirect(datum, out);
+            return;
+          } else {
+            datum = lType.serialize(datum);
           }
-          datum = lType.serialize(datum);
       }
       switch (schema.getType()) {
       case RECORD: writeRecord(schema, datum, out); break;

@@ -17,12 +17,17 @@
  */
 package org.apache.avro.io.parsing;
 
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import static org.apache.avro.io.parsing.ValidatingGrammarGenerator.DISABLE_SYMBOL_CACHE;
 
 /**
  * The class that generates a grammar suitable to parse Avro data
@@ -30,6 +35,34 @@ import org.apache.avro.Schema.Field;
  */
 
 public class JsonGrammarGenerator extends ValidatingGrammarGenerator {
+
+  private static final  JsonGrammarGenerator INSTANCE = new JsonGrammarGenerator();
+
+  private static final Function<Schema, Symbol> IMPL = DISABLE_SYMBOL_CACHE
+            ? JsonGrammarGenerator::generateRoot : JsonGrammarGenerator.Cache::getCachedRootSymbol;
+
+
+  public static Symbol generateRoot(final Schema schema) {
+    return INSTANCE.generate(schema);
+  }
+
+  public static Symbol getRootSymbol(final Schema schema) {
+    return IMPL.apply(schema);
+  }
+
+  private static final class Cache {
+    private static final ConcurrentMap<Schema, Symbol> ROOT_SYMBOL_CACHE
+            = new ConcurrentHashMap<>(16);
+
+    private static Symbol getCachedRootSymbol(final Schema schema) {
+      return ROOT_SYMBOL_CACHE.computeIfAbsent(schema, JsonGrammarGenerator::generateRoot);
+    }
+
+  }
+
+
+  protected JsonGrammarGenerator() { }
+
   /**
    * Returns the non-terminal that is the start symbol
    * for the grammar for the grammar for the given schema <tt>sc</tt>.

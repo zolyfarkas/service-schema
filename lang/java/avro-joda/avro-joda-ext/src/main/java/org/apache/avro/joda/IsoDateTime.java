@@ -23,10 +23,10 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-public class IsoDateTime extends AbstractLogicalType {
+public class IsoDateTime extends AbstractLogicalType<DateTime> {
 
   public IsoDateTime(Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "isodatetime", Collections.EMPTY_MAP);
+    super(type, Collections.EMPTY_SET, "isodatetime", Collections.EMPTY_MAP, DateTime.class);
   }
 
   @Override
@@ -44,10 +44,6 @@ public class IsoDateTime extends AbstractLogicalType {
     return Collections.EMPTY_SET;
   }
 
-  @Override
-  public Class<?> getLogicalJavaType() {
-    return DateTime.class;
-  }
 
   public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime().withOffsetParsed();
 
@@ -55,7 +51,7 @@ public class IsoDateTime extends AbstractLogicalType {
 
 
   @Override
-  public Object deserialize(Object object) {
+  public DateTime deserialize(Object object) {
     switch (type) {
       case STRING:
         return PARSER_FMT.parseDateTime(object.toString());
@@ -67,12 +63,12 @@ public class IsoDateTime extends AbstractLogicalType {
   }
 
   @Override
-  public Object serialize(Object object) {
+  public Object serialize(DateTime object) {
     switch (type) {
       case STRING:
-        return FMT.print((DateTime) object);
+        return FMT.print(object);
       case LONG:
-        return ((DateTime) object).getMillis();
+        return object.getMillis();
       default:
         throw new UnsupportedOperationException();
     }

@@ -24,6 +24,7 @@ import java.util.BitSet;
 
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
+import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
@@ -60,8 +61,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
 
   JsonEncoder(Schema sc, JsonGenerator out) throws IOException {
     configure(out);
-    this.parser =
-      new Parser(JsonDecoder.getSymbol(sc), this);
+    this.parser = new Parser(JsonGrammarGenerator.getRootSymbol(sc), this);
   }
 
 

@@ -50,7 +50,7 @@ public class ValidatingEncoder extends ParsingEncoder
   }
 
   ValidatingEncoder(Schema schema, Encoder in) throws IOException {
-    this(new ValidatingGrammarGenerator().generate(schema), in);
+    this(ValidatingGrammarGenerator.getRootSymbol(schema), in);
   }
 
   @Override
