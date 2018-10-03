@@ -18,14 +18,15 @@ package org.apache.avro.io;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import org.apache.avro.Schema;
 
 /**
  * @author Zoltan Farkas
  */
 public interface DecimalDecoder {
 
-  BigInteger readBigInteger() throws IOException;
+  BigInteger readBigInteger(final Schema schema) throws IOException;
 
-  BigDecimal readBigDecimal() throws IOException;
+  BigDecimal readBigDecimal(final Schema schema) throws IOException;
 
 }

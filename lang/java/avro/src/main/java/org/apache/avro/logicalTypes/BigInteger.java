@@ -109,24 +109,25 @@ public final class BigInteger extends AbstractLogicalType<java.math.BigInteger> 
   }
 
   @Override
-  public void serializeDirect(final java.math.BigInteger object, final Encoder enc) throws IOException {
-    ((DecimalEncoder) enc).writeBigInteger(object);
+  public boolean tryDirectEncode(final java.math.BigInteger object, final Encoder enc, final Schema schema)
+          throws IOException {
+    if (enc instanceof DecimalEncoder) {
+      ((DecimalEncoder) enc).writeBigInteger(object, schema);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override
-  public java.math.BigInteger deserializeDirect(final Decoder dec) throws IOException {
-    return ((DecimalDecoder) dec).readBigInteger();
+  public java.math.BigInteger tryDirectDecode(final Decoder dec, final Schema schema) throws IOException {
+    if (dec instanceof DecimalDecoder) {
+      return ((DecimalDecoder) dec).readBigInteger(schema);
+    } else {
+      return null;
+    }
   }
 
-  @Override
-  public boolean supportsDirectDecoding(Decoder enc) {
-    return enc instanceof DecimalDecoder;
-  }
-
-  @Override
-  public boolean supportsDirectEncoding(Encoder enc) {
-    return enc instanceof DecimalEncoder;
-  }
 
   public static ByteBuffer toBytes(java.math.BigInteger integer) {
     byte[] unscaledValue = integer.toByteArray();

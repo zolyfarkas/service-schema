@@ -151,8 +151,11 @@ public class GenericDatumReader<D> implements DatumReader<D> {
       ResolvingDecoder in) throws IOException {
     Object result;
     LogicalType logicalType = expected.getLogicalType();
-    if (logicalType != null && logicalType.supportsDirectDecoding(in)) {
-      return logicalType.deserializeDirect(in);
+    if (logicalType != null) {
+      Object decoded = logicalType.tryDirectDecode(in, expected);
+      if (decoded != null) {
+        return decoded;
+      }
     }
     final Type type = expected.getType();
     switch (type) {

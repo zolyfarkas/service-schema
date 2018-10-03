@@ -64,8 +64,7 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     try {
       LogicalType lType = schema.getLogicalType();
       if (lType != null) {
-          if (lType.supportsDirectEncoding(out)) {
-            lType.serializeDirect(datum, out);
+          if (lType.tryDirectEncode(datum, out, schema)) {
             return;
           } else {
             datum = lType.serialize(datum);

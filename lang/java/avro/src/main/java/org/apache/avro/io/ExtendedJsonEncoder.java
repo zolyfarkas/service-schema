@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import org.apache.avro.io.parsing.JsonGrammarGenerator;
 
 /**
  * A derived encoder that does the skipping of fields that match the index. It also encodes unions of null and a single
@@ -63,14 +64,16 @@ public final class ExtendedJsonEncoder extends JsonEncoder implements DecimalEnc
   }
 
   @Override
-  public void writeDecimal(final BigDecimal decimal) throws IOException {
-    parser.advance();
+  public void writeDecimal(final BigDecimal decimal, final Schema schema) throws IOException {
+    Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+    parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
     out.writeNumber(decimal);
   }
 
   @Override
-  public void writeBigInteger(BigInteger decimal) throws IOException {
-    parser.advance();
+  public void writeBigInteger(BigInteger decimal,final Schema schema) throws IOException {
+    Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+    parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
     out.writeNumber(decimal);
   }
 

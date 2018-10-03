@@ -18,11 +18,12 @@ package org.apache.avro.io;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import org.apache.avro.Schema;
 
 public interface DecimalEncoder {
 
-  void writeDecimal(final BigDecimal decimal) throws IOException;
+  void writeDecimal(final BigDecimal decimal, final Schema schema) throws IOException;
 
-  void writeBigInteger(final BigInteger decimal) throws IOException;
+  void writeBigInteger(final BigInteger decimal, final Schema schema) throws IOException;
 
 }

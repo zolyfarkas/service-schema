@@ -32,6 +32,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
+import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.logicalTypes.Decimal;
 
 /**
@@ -316,25 +317,21 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
     }
   }
 
-  protected void advance() throws IOException {
-    this.parser.processTrailingImplicitActions();
-    if (this.parser.depth() == 1)
-      throw new EOFException("EOF at " + in.getCurrentLocation());
-    parser.advance();
-  }
 
   @Override
-  public BigInteger readBigInteger() throws IOException {
+  public BigInteger readBigInteger(final Schema schema) throws IOException {
       JsonToken currentToken = in.getCurrentToken();
       if (currentToken == null) {
         throw new EOFException("EOF at " + in.getCurrentLocation());
       }
       switch (currentToken) {
         case VALUE_STRING:
-          advance();
+          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+          advance(rootSymbol.production[rootSymbol.production.length - 1]);
           return new BigInteger(in.getText());
         case VALUE_NUMBER_INT:
-          advance();
+          rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+          advance(rootSymbol.production[rootSymbol.production.length - 1]);
           return in.getBigIntegerValue();
         default:
           throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");
@@ -342,18 +339,20 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
   }
 
   @Override
-  public BigDecimal readBigDecimal() throws IOException {
+  public BigDecimal readBigDecimal(final Schema schema) throws IOException {
       JsonToken currentToken = in.getCurrentToken();
       if (currentToken == null) {
         throw new EOFException("EOF at " + in.getCurrentLocation());
       }
       switch (currentToken) {
         case VALUE_STRING:
-          advance();
+          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+          advance(rootSymbol.production[rootSymbol.production.length - 1]);
           return new BigDecimal(in.getText());
         case VALUE_NUMBER_INT:
         case VALUE_NUMBER_FLOAT:
-          advance();
+          rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+          advance(rootSymbol.production[rootSymbol.production.length - 1]);
           return in.getDecimalValue();
         default:
           throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");

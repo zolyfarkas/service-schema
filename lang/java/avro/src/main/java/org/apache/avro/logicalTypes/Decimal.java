@@ -15,6 +15,7 @@
  */
 package org.apache.avro.logicalTypes;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -28,6 +29,10 @@ import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryData;
+import org.apache.avro.io.DecimalDecoder;
+import org.apache.avro.io.DecimalEncoder;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.Encoder;
 import org.codehaus.jackson.JsonNode;
 
 /**
@@ -216,6 +221,25 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
         return toBytes(decimal);
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+    }
+  }
+
+  @Override
+  public BigDecimal tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
+    if (dec instanceof DecimalDecoder) {
+      return ((DecimalDecoder) dec).readBigDecimal(schema);
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public boolean tryDirectEncode(BigDecimal object, Encoder enc, final Schema schema) throws IOException {
+    if (enc instanceof DecimalEncoder) {
+      ((DecimalEncoder) enc).writeDecimal(object, schema);
+      return true;
+    } else {
+      return false;
     }
   }
 
