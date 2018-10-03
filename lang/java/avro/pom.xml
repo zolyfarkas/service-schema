@@ -27,7 +27,7 @@
 
   <artifactId>avro</artifactId>
 
-  <name>Apache Avro</name>
+  <name>${artifactId} - ${version}</name>
   <url>http://avro.apache.org</url>
   <description>Avro core components</description>
   <packaging>bundle</packaging>

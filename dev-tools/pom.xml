@@ -26,7 +26,7 @@
     <version>1.8.1.0p-SNAPSHOT</version>
   </parent>
 
-  <name>Apache Avro Developer tools</name>
+  <name>avro-${artifactId} - ${version}</name>
   <url>http://avro.apache.org</url>
 
 

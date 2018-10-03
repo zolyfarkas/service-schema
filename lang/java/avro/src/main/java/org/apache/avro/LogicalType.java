@@ -8,6 +8,11 @@ import org.apache.avro.io.Encoder;
 
 public interface LogicalType<T>  {
 
+  /**
+   * @return the name of the logical type.
+   */
+  String getName();
+
   /** Validate this logical type for the given Schema */
   void validate(Schema schema);
 
@@ -41,7 +46,9 @@ public interface LogicalType<T>  {
     throw new UnsupportedOperationException();
   }
 
-  String getLogicalTypeName();
+  default String getLogicalTypeName() {
+    return getName();
+  }
 
   void addToSchema(Schema schema);
 

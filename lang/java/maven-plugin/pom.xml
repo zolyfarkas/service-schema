@@ -28,7 +28,7 @@
   <artifactId>avro-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>Apache Avro Maven Plugin</name>
+  <name>${artifactId} - ${version}</name>
   <description>Maven plugin for Avro IDL and Specific API Compilers</description>
 
   <prerequisites>

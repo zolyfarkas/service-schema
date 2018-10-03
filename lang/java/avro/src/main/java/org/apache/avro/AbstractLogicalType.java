@@ -59,7 +59,7 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
     return logicalTypeName.hashCode() + 7 * props.hashCode();
   }
 
-  public String getLogicalTypeName() {
+  public String getName() {
     return logicalTypeName;
   }
 

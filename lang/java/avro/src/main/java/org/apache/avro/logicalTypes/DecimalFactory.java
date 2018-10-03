@@ -32,29 +32,29 @@ public class DecimalFactory implements LogicalTypeFactory {
     return "decimal";
   }
 
-    private static RoundingMode getRoundingMode(Map<String, Object> map, String fieldName) {
-      Object n =  map.get(fieldName);
-      if (n == null) {
-        return null;
+  private static RoundingMode getRoundingMode(Map<String, Object> map, String fieldName) {
+    Object n = map.get(fieldName);
+    if (n == null) {
+      return null;
+    } else {
+      if (n instanceof RoundingMode) {
+        return (RoundingMode) n;
       } else {
-        if (n instanceof RoundingMode) {
-          return (RoundingMode) n;
+        String str = n.toString();
+        if ("none".equalsIgnoreCase(str)) {
+          return null;
         } else {
-          String str = n.toString();
-          if ("none".equalsIgnoreCase(str)) {
-            return null;
-          } else {
-            return RoundingMode.valueOf(str);
-          }
+          return RoundingMode.valueOf(str);
         }
       }
     }
+  }
 
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
     return new Decimal((Integer) attributes.get("precision"),
             (Integer) attributes.get("scale"), schemaType, getRoundingMode(attributes, "serRounding"),
-    getRoundingMode(attributes, "deserRounding"));
+            getRoundingMode(attributes, "deserRounding"));
   }
 
 }
