@@ -27,16 +27,25 @@ import org.apache.avro.Schema;
 public class IsoInstantFactory implements LogicalTypeFactory {
 
 
-  private static final IsoInstant INSTANCE = new IsoInstant(Schema.Type.LONG);
+  private static final IsoInstant LONG_INSTANCE = new IsoInstant(Schema.Type.LONG);
+
+  private static final IsoInstant STRING_INSTANCE = new IsoInstant(Schema.Type.STRING);
 
   @Override
   public String getLogicalTypeName() {
-    return INSTANCE.getLogicalTypeName();
+    return LONG_INSTANCE.getLogicalTypeName();
   }
 
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return INSTANCE;
+    switch (schemaType) {
+      case LONG:
+        return LONG_INSTANCE;
+      case STRING:
+        return STRING_INSTANCE;
+      default:
+        throw new UnsupportedOperationException("Unsupported backing type: " + schemaType);
+    }
   }
 
 }
