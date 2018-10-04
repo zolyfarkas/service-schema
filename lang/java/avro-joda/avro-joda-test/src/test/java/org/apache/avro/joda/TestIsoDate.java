@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import org.junit.Assert;
-import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.test.TestRecord;
 import org.apache.avro.test.TestRecord2;
@@ -46,7 +46,7 @@ public class TestIsoDate {
     public void testIsoDate() {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
         node.put("logicalType", TextNode.valueOf("isodate"));
-        LogicalType type = AbstractLogicalType.fromJsonNode(node, Schema.Type.STRING);
+        LogicalType type = LogicalTypes.fromJsonNode(node, Schema.Type.STRING);
         Assert.assertTrue("isodate logical type must be defined", type != null);
         System.out.println("Type is " + type);
     }

@@ -237,7 +237,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       throw new IllegalArgumentException(
           "Cannot replace existing logical type");
     }
-    logicalType.validate(this); // throws IllegalArgumentException if invalid
     this.logicalType = logicalType;
     for (Map.Entry<String, Object> prop : logicalType.getProperties().entrySet()) {
       this.addProp(prop.getKey(), prop.getValue());
@@ -245,7 +244,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     this.hashCode = NO_HASHCODE;
   }
 
-  protected boolean equalLogicalTypes(Schema other) {
+  protected boolean equalLogicalTypes(@Nullable Schema other) {
     if (logicalType == null) {
       return other.logicalType == null;
     }
@@ -1536,7 +1535,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         throw new SchemaParseException("Type not supported: "+type);
       }
       // parse the logical type
-      LogicalType logicalType = AbstractLogicalType.fromJsonNode(schema, result.getType());
+      LogicalType logicalType = LogicalTypes.fromJsonNode(schema, result.getType());
       Set<String> logicalTypeReserved = null;
       if (logicalType != null) {
           result.setLogicalType(logicalType);

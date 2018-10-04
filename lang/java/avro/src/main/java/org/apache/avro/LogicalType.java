@@ -11,13 +11,12 @@ import org.apache.avro.io.Encoder;
 @ParametersAreNonnullByDefault
 public interface LogicalType<T>  {
 
+  String LOGICAL_TYPE_PROP = "logicalType";
+
   /**
    * @return the name of the logical type.
    */
   String getName();
-
-  /** Validate this logical type for the given Schema */
-  void validate(Schema schema);
 
   /** Return the set of properties that a reserved for this type */
   Set<String> reserved();

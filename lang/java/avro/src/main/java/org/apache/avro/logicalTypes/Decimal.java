@@ -61,9 +61,12 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
   private final RoundingMode serRm;
   private final RoundingMode deserRm;
 
-  public Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
+  Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
     super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm), BigDecimal.class);
-    this.precision = precision == null ? 36 : precision;
+    if (type != Schema.Type.BYTES && type != Schema.Type.STRING) {
+       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
+    }
+    precision = precision == null ? 36 : precision;
     this.serRm = serRm == null ? DEFAULT_SER_ROUNDING : serRm;
     this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
     if (precision <= 0) {
@@ -80,6 +83,7 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
     }
     mc = new MathContext(precision, RoundingMode.HALF_EVEN);
     this.scale = scale;
+    this.precision = precision;
   }
 
   public Decimal(JsonNode node, Schema.Type type) {
@@ -123,20 +127,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
     }
   }
 
-  @Override
-  public void validate(Schema schema) {
-    Schema.Type type1 = schema.getType();
-    // validate the type
-    if (type1 != Schema.Type.BYTES
-            && type1 != Schema.Type.STRING) {
-      throw new IllegalArgumentException(this.logicalTypeName + " must be backed by fixed or bytes, not" + type1);
-    }
-    int precision = mc.getPrecision();
-    if (precision > maxPrecision(schema)) {
-      throw new IllegalArgumentException("Invalid precision " + precision);
-    }
-  }
-
   public static boolean is(final Schema schema) {
     Schema.Type type1 = schema.getType();
     // validate the type
@@ -148,17 +138,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
       return false;
     }
     return logicalType.getClass() == Decimal.class;
-  }
-
-  private long maxPrecision(Schema schema) {
-    if (schema.getType() == Schema.Type.BYTES
-            || schema.getType() == Schema.Type.STRING) {
-      // not bounded
-      return Integer.MAX_VALUE;
-    } else {
-      // not valid for any other type
-      return 0;
-    }
   }
 
   @Override

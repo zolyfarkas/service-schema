@@ -3,16 +3,9 @@ package org.apache.avro;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
-import javax.annotation.Nullable;
-import org.apache.avro.logicalTypes.BigIntegerFactory;
-import org.apache.avro.logicalTypes.DecimalFactory;
 import org.apache.avro.util.internal.JacksonUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.TextNode;
 
 public abstract class AbstractLogicalType<T> extends JsonProperties implements LogicalType<T> {
@@ -69,43 +62,6 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
 
   public Map<String, Object> getProperties() {
     return properties;
-  }
-
-  private static final Map<String, LogicalTypeFactory> LOGICAL_TYPE_TO_CLASS =
-          new HashMap<String, LogicalTypeFactory>();
-
-  static {
-
-    ServiceLoader<LogicalTypeFactory> factories = ServiceLoader.load(LogicalTypeFactory.class);
-    Iterator<LogicalTypeFactory> iterator = factories.iterator();
-    while (iterator.hasNext()) {
-      LogicalTypeFactory lf = iterator.next();
-      LOGICAL_TYPE_TO_CLASS.put(lf.getLogicalTypeName(), lf);
-    }
-    DecimalFactory decimalFactory = new DecimalFactory();
-    LOGICAL_TYPE_TO_CLASS.put(decimalFactory.getLogicalTypeName(), decimalFactory);
-    BigIntegerFactory biFactory = new BigIntegerFactory();
-    LOGICAL_TYPE_TO_CLASS.put(biFactory.getLogicalTypeName(), biFactory);
-    }
-
-  private static final ObjectMapper OM = new ObjectMapper();
-
-  @Nullable
-  public static LogicalType fromJsonNode(JsonNode node, Schema.Type schemaType) {
-    final JsonNode logicalTypeNode = node.get("logicalType");
-    if (logicalTypeNode == null) {
-        return null;
-    }
-    LogicalTypeFactory factory = LOGICAL_TYPE_TO_CLASS.get(logicalTypeNode.asText());
-    if (factory != null) {
-        return factory.create(schemaType, OM.convertValue(node, Map.class));
-    } else {
-      if (Boolean.getBoolean("allowUndefinedLogicalTypes"))  {
-        return null;
-      } else {
-        throw new RuntimeException("Undefined logical type " + logicalTypeNode.asText());
-      }
-    }
   }
 
   /** Helper method to build reserved property sets */

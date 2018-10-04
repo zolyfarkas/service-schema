@@ -33,7 +33,7 @@ public class BigIntegerFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new BigInteger((Integer) attributes.get("precision"), schemaType);
+    return new BigInteger(schemaType);
   }
 
 }
