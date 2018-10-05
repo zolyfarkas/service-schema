@@ -21,10 +21,14 @@ import java.util.Map;
  *
  * @author zfarkas
  */
-public interface LogicalTypeFactory {
+public interface LogicalTypeFactory extends LogicalTypes.LogicalTypeFactory {
 
     String getLogicalTypeName();
 
     LogicalType create(Schema.Type schemaType, Map<String, Object> attributes);
+
+    default LogicalType fromSchema(Schema schema) {
+      return create(schema.getType(), schema.getObjectProps());
+    }
 
 }

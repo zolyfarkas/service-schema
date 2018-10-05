@@ -26,13 +26,7 @@ public class IsoDateTime extends AbstractLogicalType<DateTime> {
 
   public IsoDateTime(Schema.Type type) {
     super(type, Collections.EMPTY_SET, "isodatetime", Collections.EMPTY_MAP, DateTime.class);
-  }
-
-  @Override
-  public void validate(Schema schema) {
-    // validate the type
-    if (schema.getType() != Schema.Type.LONG
-            && schema.getType() != Schema.Type.STRING) {
+    if (type != Schema.Type.LONG && type != Schema.Type.STRING) {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or string");
     }

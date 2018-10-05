@@ -27,9 +27,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.test.TestRecord;
 import org.apache.avro.test.TestRecord2;
 import org.apache.avro.test.TestRecord3;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.TextNode;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -44,9 +41,8 @@ public class TestIsoDate {
 
     @Test
     public void testIsoDate() {
-        ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("logicalType", TextNode.valueOf("isodate"));
-        LogicalType type = LogicalTypes.fromJsonNode(node, Schema.Type.STRING);
+        Schema schema = Schema.create(Schema.Type.INT).withProp(LogicalType.LOGICAL_TYPE_PROP, "isodate");
+        LogicalType type = LogicalTypes.fromSchema(schema);
         Assert.assertTrue("isodate logical type must be defined", type != null);
         System.out.println("Type is " + type);
     }

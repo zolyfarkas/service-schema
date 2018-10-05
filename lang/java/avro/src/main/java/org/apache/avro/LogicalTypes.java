@@ -26,71 +26,81 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.logicalTypes.BigIntegerFactory;
 import org.apache.avro.logicalTypes.DecimalFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 
 
 public class LogicalTypes {
 
-  private static final ObjectMapper OM = new ObjectMapper();
-
-  private static final Map<String, LogicalTypeFactory> REGISTERED_TYPES =
+  private static final Map<String, org.apache.avro.LogicalTypeFactory> REGISTERED_TYPES =
       new ConcurrentHashMap<>();
 
 
   static {
      register(new DecimalFactory());
      register(new BigIntegerFactory());
-     ServiceLoader<LogicalTypeFactory> factories = ServiceLoader.load(LogicalTypeFactory.class);
-     Iterator<LogicalTypeFactory> iterator = factories.iterator();
+     ServiceLoader<org.apache.avro.LogicalTypeFactory> factories
+             = ServiceLoader.load(org.apache.avro.LogicalTypeFactory.class);
+     Iterator<org.apache.avro.LogicalTypeFactory> iterator = factories.iterator();
      while (iterator.hasNext()) {
         register(iterator.next());
      }
   }
 
-  public static void register(@Nonnull LogicalTypeFactory factory) {
-    LogicalTypeFactory ex = REGISTERED_TYPES.putIfAbsent(factory.getLogicalTypeName(), factory);
+  /**
+   * factory for avro official compatibility.
+   */
+  public interface LogicalTypeFactory  {
+    LogicalType fromSchema(Schema schema);
+  }
+
+  public static void register(String logicalTypeName, LogicalTypeFactory factory) {
+    register(new org.apache.avro.LogicalTypeFactory() {
+      @Override
+      public String getLogicalTypeName() {
+        return logicalTypeName;
+      }
+
+      @Override
+      public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public LogicalType fromSchema(Schema schema) {
+        return factory.fromSchema(schema);
+      }
+
+    });
+  }
+
+  public static void register(@Nonnull org.apache.avro.LogicalTypeFactory factory) {
+    org.apache.avro.LogicalTypeFactory ex = REGISTERED_TYPES.putIfAbsent(factory.getLogicalTypeName(), factory);
     if (ex != null) {
       throw new IllegalArgumentException("Already registered " + ex + ", cannot register " + factory);
     }
   }
 
   /**
-   * @deprecated use create.
+   * for avro official compatibility.
    */
-  @Deprecated
+  @Nullable
   public static LogicalType fromSchema(Schema schema) {
-    return create(schema.getType(), schema.getObjectProps());
-  }
-
-  @Nullable
-  public static LogicalType fromJsonNode(JsonNode node, Schema.Type schemaType) {
-    final JsonNode logicalTypeNode = node.get("logicalType");
-    if (logicalTypeNode == null) {
-        return null;
-    }
-    LogicalType lt = create(schemaType, OM.convertValue(node, Map.class));
-    if (lt != null) {
-        return lt;
-    } else {
-      if (Boolean.getBoolean("allowUndefinedLogicalTypes"))  {
-        return null;
+    String typeName = (String) schema.getProp(LogicalType.LOGICAL_TYPE_PROP);
+    if (typeName != null) {
+      org.apache.avro.LogicalTypeFactory ltf = REGISTERED_TYPES.get(typeName);
+      if (ltf != null) {
+        return ltf.fromSchema(schema);
       } else {
-        throw new IllegalArgumentException("Undefined logical type " + logicalTypeNode.asText());
+        if (Boolean.getBoolean("allowUndefinedLogicalTypes"))  {
+          return null;
+        } else {
+          throw new IllegalArgumentException("Undefined logical type " + schema);
+        }
       }
-    }
-  }
-
-  @Nullable
-  public static LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    String typeName = (String) attributes.get(LogicalType.LOGICAL_TYPE_PROP);
-    LogicalTypeFactory ltf = REGISTERED_TYPES.get(typeName);
-    if (ltf != null) {
-      return ltf.create(schemaType, attributes);
     } else {
       return null;
     }
   }
+
 
 
 }

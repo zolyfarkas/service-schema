@@ -32,13 +32,8 @@ public class IsoDate extends AbstractLogicalType<LocalDate> {
 
   IsoDate(Schema.Type type) {
     super(type, Collections.EMPTY_SET, "isodate", Collections.EMPTY_MAP, LocalDate.class);
-  }
-
-  @Override
-  public void validate(Schema schema) {
-    // validate the type
-    if (schema.getType() != Schema.Type.INT && schema.getType() != Schema.Type.LONG
-            && schema.getType() != Schema.Type.STRING) {
+    if (type != Schema.Type.INT && type != Schema.Type.LONG
+            && type != Schema.Type.STRING) {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or int or string");
     }
@@ -56,7 +51,7 @@ public class IsoDate extends AbstractLogicalType<LocalDate> {
           .build(new CacheLoader<LocalDate, String>() {
 
             @Override
-            public String load(final LocalDate key) throws Exception {
+            public String load(final LocalDate key) {
               return FMT.print(key);
             }
           });
@@ -67,7 +62,7 @@ public class IsoDate extends AbstractLogicalType<LocalDate> {
           .build(new CacheLoader<String, LocalDate>() {
 
             @Override
-            public LocalDate load(final String key) throws Exception {
+            public LocalDate load(final String key) {
               return FMT.parseLocalDate(key);
             }
           });

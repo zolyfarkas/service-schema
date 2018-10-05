@@ -1,30 +1,11 @@
 package org.apache.avro;
 
-import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
-import org.codehaus.jackson.node.IntNode;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.TextNode;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TestLogicalType {
-
-  @Test
-  public void testDecimalFromJsonNode() {
-    ObjectNode node = JsonNodeFactory.instance.objectNode();
-    node.put("logicalType", TextNode.valueOf("decimal"));
-    node.put("precision", IntNode.valueOf(9));
-    node.put("scale", IntNode.valueOf(2));
-    LogicalType decimal = LogicalTypes.fromJsonNode(node, Schema.Type.STRING);
-    Assert.assertNotNull("Should be a Decimal", decimal);
-    Assert.assertEquals("Should have correct precision",
-        9, decimal.getProperty("precision"));
-    Assert.assertEquals("Should have correct scale",
-        2, decimal.getProperty("scale"));
-  }
 
   @Test
   public void testDecimalWithNonByteArrayOrStringTypes() {
@@ -34,30 +15,19 @@ public class TestLogicalType {
         Schema.createArray(Schema.create(Schema.Type.BYTES)),
         Schema.createMap(Schema.create(Schema.Type.BYTES)),
         Schema.createEnum("Enum", null, null, Arrays.asList("a", "b")),
-        Schema.createUnion(Arrays.asList(
-            Schema.create(Schema.Type.BYTES),
-            Schema.createFixed("fixed", null, null, 4))),
         Schema.create(Schema.Type.BOOLEAN), Schema.create(Schema.Type.INT),
         Schema.create(Schema.Type.LONG), Schema.create(Schema.Type.FLOAT),
         Schema.create(Schema.Type.DOUBLE), Schema.create(Schema.Type.NULL)};
     for (final Schema schema : nonBytes) {
+      schema.addProp(LogicalType.LOGICAL_TYPE_PROP, "decimal");
       try {
-       LogicalTypes.create(schema.getType(), ImmutableMap.of("logicalType", "decimal"));
+       LogicalTypes.fromSchema(schema);
        Assert.fail("should not be able to create " + schema);
       } catch (IllegalArgumentException ex) {
         // expected
       }
 
     }
-  }
-
-  @Test(expected = RuntimeException.class)
-  public void testUnknownFromJsonNode() {
-    ObjectNode node = JsonNodeFactory.instance.objectNode();
-    node.put("logicalType", TextNode.valueOf("unknown"));
-    node.put("someProperty", IntNode.valueOf(34));
-    LogicalType logicalType = LogicalTypes.fromJsonNode(node, Schema.Type.STRING);
-    Assert.assertNull("Should not return a LogicalType instance", logicalType);
   }
 
 

@@ -173,6 +173,16 @@ public abstract class Schema extends JsonProperties implements Serializable {
     hashCode = NO_HASHCODE;
   }
 
+  @Override public void addProp(String name, String value) {
+    super.addProp(name, value);
+    hashCode = NO_HASHCODE;
+  }
+
+  public Schema withProp(String name, String value) {
+    addProp(name, value);
+    return this;
+  }
+
   /** Create an anonymous record schema. */
   public static Schema createRecord(List<Field> fields) {
     Schema result = createRecord(null, null, null, false);
@@ -928,7 +938,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       super.addProp(name, value);
     }
 
-
     @Override
     public void addJsonProps(Map<String, JsonNode> xtraProps) {
       for (Map.Entry<String, JsonNode> entry : xtraProps.entrySet()) {
@@ -1534,21 +1543,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
       } else {
         throw new SchemaParseException("Type not supported: "+type);
       }
-      // parse the logical type
-      LogicalType logicalType = LogicalTypes.fromJsonNode(schema, result.getType());
-      Set<String> logicalTypeReserved = null;
-      if (logicalType != null) {
-          result.setLogicalType(logicalType);
-          // ordinal the reserved properties for this logical type
-          logicalTypeReserved = logicalType.reserved();
-      }
       Iterator<String> i = schema.getFieldNames();
       while (i.hasNext()) {                       // add properties
         String prop = i.next();
-        if (logicalTypeReserved != null && logicalTypeReserved.contains(prop))
-          continue;
         if (!SCHEMA_RESERVED.contains(prop))      // ignore reserved
           result.addProp(prop, schema.get(prop));
+      }
+      LogicalType logicalType = LogicalTypes.fromSchema(result);
+      if (logicalType != null) {
+          result.setLogicalType(logicalType);
       }
       names.space(savedSpace);                  // restore space
       if (result instanceof NamedSchema) {

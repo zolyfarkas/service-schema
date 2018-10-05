@@ -39,16 +39,6 @@ public class IsoInstant extends AbstractLogicalType<Instant> {
   }
 
   @Override
-  public void validate(Schema schema) {
-    Schema.Type st = schema.getType();
-    // validate the type
-    if (st != Schema.Type.LONG && st != Schema.Type.STRING) {
-      throw new IllegalArgumentException(
-              "Logical type " + this + " must be backed by long or string");
-    }
-  }
-
-  @Override
   public Instant deserialize(Object object) {
     switch (type) {
       case LONG:

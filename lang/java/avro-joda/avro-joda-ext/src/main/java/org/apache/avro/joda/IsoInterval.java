@@ -32,15 +32,6 @@ public class IsoInterval extends AbstractLogicalType<Interval> {
   }
 
   @Override
-  public void validate(Schema schema) {
-    // validate the type
-    if (schema.getType() != Schema.Type.STRING) {
-      throw new IllegalArgumentException(
-              "Logical type " + this + " must be backed by long or string");
-    }
-  }
-
-  @Override
   public Interval deserialize(Object object) {
     return Interval.parseWithOffset(object.toString());
   }
