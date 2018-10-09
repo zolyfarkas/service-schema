@@ -10,6 +10,15 @@ import org.codehaus.jackson.node.TextNode;
 
 public abstract class AbstractLogicalType<T> extends JsonProperties implements LogicalType<T> {
 
+  /**
+   * @deprecated use the other constructor.
+   */
+  @Deprecated
+  protected AbstractLogicalType(Schema.Type type, Set<String> reserved, String logicalTypeName,
+          Map<String, Object> properties) {
+    this(type, reserved, logicalTypeName, properties, (Class<T>) Object.class);
+  }
+
   protected AbstractLogicalType(Schema.Type type, Set<String> reserved, String logicalTypeName,
           Map<String, Object> properties, Class<T> javaClasZ) {
     super(reserved);
