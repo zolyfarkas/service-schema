@@ -833,16 +833,21 @@ public class GenericData {
   /** Compute a hash code according to a schema, consistent with {@link
    * #compare(Object,Object,Schema)}. */
   public int hashCode(Object o, Schema s) {
-    if (o == null) return 0;                      // incomplete datum
+    if (o == null) return 0; // incomplete datum
+    LogicalType logicalType = s.getLogicalType();
+    if (logicalType != null) {
+      return logicalType.computehashCode(o);
+    }
     int hashCode = 1;
     switch (s.getType()) {
     case RECORD:
-      for (Field f : s.getFields()) {
-        if (f.order() == Field.Order.IGNORE)
-          continue;
-        hashCode = hashCodeAdd(hashCode,
-                               getField(o, f.name(), f.pos()), f.schema());
-      }
+        for (Field f : s.getFields()) {
+          if (f.order() == Field.Order.IGNORE)
+            continue;
+          Schema schema = f.schema();
+          hashCode = hashCodeAdd(hashCode,
+                                 getField(o, f.name(), f.pos()), schema);
+        }
       return hashCode;
     case ARRAY:
       Collection<?> a = (Collection<?>)o;
@@ -857,7 +862,7 @@ public class GenericData {
     case NULL:
       return 0;
     case STRING:
-      return (o instanceof Utf8 ? o : new Utf8(o.toString())).hashCode();
+      return (o instanceof Utf8 || o instanceof String) ? o.hashCode() : new Utf8(o.toString()).hashCode();
     default:
       return o.hashCode();
     }
@@ -881,11 +886,11 @@ public class GenericData {
   @SuppressWarnings(value="unchecked")
   protected int compare(Object o1, Object o2, Schema s, boolean equals) {
     if (o1 == o2) return 0;
+    if (s.getLogicalType() != null) {
+      return equals ? (Objects.equals(o1, o2) ? 0 : 1) : ((Comparable) o1).compareTo(o2);
+    }
     switch (s.getType()) {
     case RECORD:
-      if (s.getLogicalType() != null) {
-        return equals ? (Objects.equals(o1, o2) ? 0 : 1) : ((Comparable)o1).compareTo(o2);
-      }
       for (Field f : s.getFields()) {
         if (f.order() == Field.Order.IGNORE)
           continue;                               // ignore this field

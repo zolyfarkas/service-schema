@@ -19,15 +19,18 @@ import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.Instant;
+import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 public class IsoInstant extends AbstractLogicalType<Instant> {
 
 
-  public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime().withZoneUTC();
+  public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime()
+          .withZoneUTC().withChronology(ISOChronology.getInstanceUTC());
 
-  public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser().withOffsetParsed();
+  public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser()
+          .withOffsetParsed().withChronology(ISOChronology.getInstanceUTC());
 
   public IsoInstant(Schema.Type type) {
     super(type, Collections.EMPTY_SET, "isoinstant", Collections.EMPTY_MAP, Instant.class);

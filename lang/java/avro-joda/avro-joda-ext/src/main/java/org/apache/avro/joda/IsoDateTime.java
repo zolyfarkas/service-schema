@@ -33,9 +33,11 @@ public class IsoDateTime extends AbstractLogicalType<DateTime> {
   }
 
 
-  public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime().withOffsetParsed();
+  public static final DateTimeFormatter FMT = ISODateTimeFormat.dateTime()
+          .withOffsetParsed();
 
-  public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser().withOffsetParsed();
+  public static final DateTimeFormatter PARSER_FMT = ISODateTimeFormat.dateTimeParser()
+          .withOffsetParsed();
 
 
   @Override

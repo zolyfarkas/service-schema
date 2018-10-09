@@ -33,7 +33,13 @@ public class IsoDateFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new IsoDate(schemaType);
+    throw new UnsupportedOperationException();
   }
+
+  @Override
+  public LogicalType fromSchema(Schema schema) {
+    return new IsoDate(schema);
+  }
+
 
 }

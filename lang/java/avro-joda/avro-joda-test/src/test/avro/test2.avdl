@@ -2,6 +2,14 @@
 protocol None {
 
     @namespace("org.apache.avro.test")
+    @logicalType("isodate")
+    record LocalDate {
+      int year;
+      int monthOfYear;
+      int dayOfMonth;
+    }
+
+    @namespace("org.apache.avro.test")
     record TestRecord2 {
         int intVal;
         double doubleVal;
@@ -16,5 +24,7 @@ protocol None {
         @logicalType("isodate") int dateVal3;
         @logicalType("isodatetime") long dateTimeVal;
         string description = "none";
+        union {null, string, LocalDate} dateValUnion = null;
+        union {null,  LocalDate} dateValUnionS = null;
     }
 }

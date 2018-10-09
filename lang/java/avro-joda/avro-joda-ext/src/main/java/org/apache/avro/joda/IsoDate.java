@@ -21,25 +21,48 @@ import com.google.common.cache.LoadingCache;
 import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.specific.SpecificRecord;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
+import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 public class IsoDate extends AbstractLogicalType<LocalDate> {
 
-  IsoDate(Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "isodate", Collections.EMPTY_MAP, LocalDate.class);
+  private final Schema schema;
+  private final Class<?> specificType;
+  IsoDate(Schema schema) {
+    super(schema.getType(), Collections.EMPTY_SET, "isodate", Collections.EMPTY_MAP, LocalDate.class);
     if (type != Schema.Type.INT && type != Schema.Type.LONG
-            && type != Schema.Type.STRING) {
+            && type != Schema.Type.STRING && type != Schema.Type.RECORD) {
       throw new IllegalArgumentException(
               "Logical type " + this + " must be backed by long or int or string");
     }
+    this.schema = schema;
+    if (schema.getType() == Schema.Type.RECORD) {
+      Class<?> clasz;
+      try {
+        clasz = Class.forName(schema.getFullName());
+      } catch (ClassNotFoundException ex) {
+        clasz = null;
+      }
+      if (clasz != null && SpecificRecord.class.isAssignableFrom(clasz)) {
+        specificType = clasz;
+      } else {
+        specificType = null;
+      }
+    } else {
+      specificType = null;
+    }
   }
 
-  public static final DateTimeFormatter FMT = ISODateTimeFormat.date();
+  public static final DateTimeFormatter FMT = ISODateTimeFormat.date()
+          .withChronology(ISOChronology.getInstanceUTC());
 
   // This can be anything really, the number serialized will be the number of days between this date and the date.
   // this serialized number will be negative for anything before 1970-01-01.
@@ -76,6 +99,9 @@ public class IsoDate extends AbstractLogicalType<LocalDate> {
         return new DateTime((Long) object, DateTimeZone.UTC).toLocalDate();
       case INT: // nr of days since epoch
         return EPOCH.plusDays((Integer) object);
+      case RECORD:
+        GenericRecord rec = (GenericRecord) object;
+        return new LocalDate((int) rec.get("year"), (int) rec.get("monthOfYear"), (int) rec.get("dayOfMonth"));
       default:
         throw new UnsupportedOperationException();
     }
@@ -90,6 +116,21 @@ public class IsoDate extends AbstractLogicalType<LocalDate> {
         return object.toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis();
       case INT:
         return Days.daysBetween(EPOCH, object).getDays();
+      case RECORD:
+        GenericRecord rec;
+        if (specificType != null) {
+          try {
+            rec = (GenericRecord) specificType.newInstance();
+          } catch (InstantiationException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+          }
+        } else {
+          rec = new GenericData.Record(schema);
+        }
+        rec.put("year", object.getYear());
+        rec.put("monthOfYear", object.getMonthOfYear());
+        rec.put("dayOfMonth", object.getDayOfMonth());
+        return rec;
       default:
         throw new UnsupportedOperationException();
     }

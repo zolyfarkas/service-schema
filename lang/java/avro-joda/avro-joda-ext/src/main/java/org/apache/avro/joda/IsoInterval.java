@@ -19,6 +19,7 @@ import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.joda.time.Interval;
+import org.joda.time.chrono.ISOChronology;
 
 public class IsoInterval extends AbstractLogicalType<Interval> {
 
@@ -33,12 +34,12 @@ public class IsoInterval extends AbstractLogicalType<Interval> {
 
   @Override
   public Interval deserialize(Object object) {
-    return Interval.parseWithOffset(object.toString());
+    return Interval.parseWithOffset(object.toString()).withChronology(ISOChronology.getInstanceUTC());
   }
 
   @Override
   public Object serialize(Interval object) {
-    return object.toString();
+    return object.withChronology(ISOChronology.getInstanceUTC()).toString();
   }
 
 }

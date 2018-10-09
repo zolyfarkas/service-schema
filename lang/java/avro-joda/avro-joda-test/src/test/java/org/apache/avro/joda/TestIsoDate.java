@@ -28,8 +28,10 @@ import org.apache.avro.test.TestRecord;
 import org.apache.avro.test.TestRecord2;
 import org.apache.avro.test.TestRecord3;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
+import org.joda.time.chrono.ISOChronology;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -81,7 +83,7 @@ public class TestIsoDate {
                 .setDateVal2(new LocalDate())
                 .setDateVal3(new LocalDate())
                 .setDateTimeVal(new DateTime())
-                .setDateTimeStrVal(new DateTime(2014, 8, 15, 9, 0))
+                .setDateTimeStrVal(new DateTime(2014, 8, 15, 9, 0, DateTimeZone.UTC))
                 .build();
         byte [] result = AvroUtils.writeAvroExtendedJson(record);
         System.out.println("Test JSON String: " + new String(result, "UTF-8"));
@@ -134,13 +136,19 @@ public class TestIsoDate {
                 .build();
         byte [] result = AvroUtils.writeAvroBin(record);
         TestRecord2 record2 = AvroUtils.readAvroBin(result, TestRecord2.class, null);
+        Assert.assertEquals(record.getDecimalVal4(), record2.getDecimalVal4());
+        Assert.assertEquals(record.getDecimalVal(), record2.getDecimalVal());
+        Assert.assertEquals(record.getDecimalVal2(), record2.getDecimalVal2());
+        Assert.assertEquals(record.getDecimalVal3(), record2.getDecimalVal3());
+        Assert.assertEquals(record.getIntervalVal(), record2.getIntervalVal());
+        Assert.assertEquals(record.getDateValUnion(), record2.getDateValUnion());
+        Assert.assertEquals(record.getDateValUnionS(), record2.getDateValUnionS());
         Assert.assertEquals(record, record2);
         result = AvroUtils.writeAvroJson(record);
         System.out.println(new String(result, Charset.forName("UTF-8")));
         record2 = AvroUtils.readAvroJson(result, TestRecord2.class);
         Assert.assertEquals(record, record2);
     }
-
 
     @Test
     public void testSerializationCompatibility() throws IOException {
@@ -155,10 +163,47 @@ public class TestIsoDate {
                 .setDateVal3(new LocalDate())
                 .setDateTimeVal(new DateTime())
                 .setIntervalVal(Interval.parse("2011-01-01/P1D"))
+                .setDateValUnionS(new LocalDate())
+                .setDateValUnion(new LocalDate())
                 .build();
         byte [] result = AvroUtils.writeAvroBin(record);
         TestRecord record2 = AvroUtils.readAvroBin(result, TestRecord.class, record.getSchema());
         Assert.assertEquals(record.getDecimalVal4(), record2.getDecimalVal4());
+    }
+
+
+    @Test
+    public void testSerDeserRecordLt() throws IOException {
+        TestRecord2 record = TestRecord2.newBuilder()
+                .setDecimalVal(new BigDecimal("3.14"))
+                .setDecimalVal2(new BigDecimal("3.14"))
+                .setDecimalVal3(null)
+                .setDecimalVal4(2)
+                .setIntVal(0)
+                .setDoubleVal(3.5).setDateVal(new LocalDate())
+                .setDateVal2(new LocalDate())
+                .setDateVal3(new LocalDate())
+                .setDateTimeVal(new DateTime())
+                .setIntervalVal(Interval.parse("2011-01-01/P1D")
+                        .withChronology(ISOChronology.getInstanceUTC()))
+                .setDateValUnionS(new LocalDate())
+                .setDateValUnion(new LocalDate())
+                .build();
+        byte [] result = AvroUtils.writeAvroBin(record);
+        TestRecord2 record2 = AvroUtils.readAvroBin(result, TestRecord2.class, record.getSchema());
+
+        Assert.assertEquals(record.getDecimalVal4(), record2.getDecimalVal4());
+        Assert.assertEquals(record.getDecimalVal(), record2.getDecimalVal());
+        Assert.assertEquals(record.getDecimalVal2(), record2.getDecimalVal2());
+        Assert.assertEquals(record.getDecimalVal3(), record2.getDecimalVal3());
+        Assert.assertEquals(record.getIntervalVal(), record2.getIntervalVal());
+        Assert.assertEquals(record.getDateValUnion(), record2.getDateValUnion());
+        Assert.assertEquals(record.getDateValUnionS(), record2.getDateValUnionS());
+        System.out.println(record);
+        System.out.println(record2);
+        Assert.assertEquals(record, record2);
+        Assert.assertEquals(record.hashCode(), record2.hashCode());
+
 //        result = AvroUtils.writeAvroJson(record);
 //        System.out.println(new String(result, Charset.forName("UTF-8")));
 //        record2 = AvroUtils.readAvroJson(result, TestRecord.class);

@@ -28,6 +28,11 @@ public interface LogicalType<T>  {
   /** get java type */
   Class<T> getLogicalJavaType();
 
+
+  default int computehashCode(T object) {
+    return object.hashCode();
+  }
+
   /**
    * convert from the avro type -> logical type.
    * @param object
