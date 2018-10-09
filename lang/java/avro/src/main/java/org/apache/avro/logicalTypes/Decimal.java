@@ -214,7 +214,7 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public boolean tryDirectEncode(BigDecimal object, Encoder enc, final Schema schema) throws IOException {
-    if (enc instanceof DecimalEncoder) {
+    if (DecimalEncoder.OPTIMIZED_JSON_DECIMAL_WRITE && enc instanceof DecimalEncoder) {
       ((DecimalEncoder) enc).writeDecimal(object, schema);
       return true;
     } else {

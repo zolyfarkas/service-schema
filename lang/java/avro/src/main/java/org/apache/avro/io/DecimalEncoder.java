@@ -22,6 +22,10 @@ import org.apache.avro.Schema;
 
 public interface DecimalEncoder {
 
+  @Deprecated
+  final boolean OPTIMIZED_JSON_DECIMAL_WRITE =
+          Boolean.parseBoolean(System.getProperty("avro.optimized_decimal_write", "true"));
+
   void writeDecimal(final BigDecimal decimal, final Schema schema) throws IOException;
 
   void writeBigInteger(final BigInteger decimal, final Schema schema) throws IOException;
