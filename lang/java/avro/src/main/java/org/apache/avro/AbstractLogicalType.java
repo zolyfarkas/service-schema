@@ -52,7 +52,7 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
   }
 
   @Override
-  public final Class<T> getLogicalJavaType() {
+  public Class<T> getLogicalJavaType() {
     return javaClasZ;
   }
 
