@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
@@ -151,7 +151,7 @@ protocol NodeTest {
 
    @Test
     public void testValidSymbolTree2() throws IOException {
- 
+
         Symbol root = Symbol.root(new ResolvingGrammarGenerator()
                 .generate(NODE_SCHEMA, NODE_SCHEMA, new HashMap<ValidatingGrammarGenerator.LitS, Symbol>()));
         validateNonNull(root, new HashSet<Symbol>());
