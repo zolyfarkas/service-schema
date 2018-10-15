@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Assert;
 
 import org.apache.avro.Schema.Field;
 import org.apache.avro.SchemaCompatibility.SchemaCompatibilityType;
@@ -83,23 +84,23 @@ public class TestSchemaCompatibility {
       Schema.createUnion(list(INT_SCHEMA));
   private static final Schema LONG_UNION_SCHEMA =
       Schema.createUnion(list(LONG_SCHEMA));
-  private static final Schema FLOAT_UNION_SCHEMA = 
+  private static final Schema FLOAT_UNION_SCHEMA =
       Schema.createUnion(list(FLOAT_SCHEMA));
-  private static final Schema DOUBLE_UNION_SCHEMA = 
+  private static final Schema DOUBLE_UNION_SCHEMA =
       Schema.createUnion(list(DOUBLE_SCHEMA));
   private static final Schema STRING_UNION_SCHEMA =
       Schema.createUnion(list(STRING_SCHEMA));
-  private static final Schema BYTES_UNION_SCHEMA = 
+  private static final Schema BYTES_UNION_SCHEMA =
       Schema.createUnion(list(BYTES_SCHEMA));
   private static final Schema INT_STRING_UNION_SCHEMA =
       Schema.createUnion(list(INT_SCHEMA, STRING_SCHEMA));
   private static final Schema STRING_INT_UNION_SCHEMA =
       Schema.createUnion(list(STRING_SCHEMA, INT_SCHEMA));
-  private static final Schema INT_FLOAT_UNION_SCHEMA = 
+  private static final Schema INT_FLOAT_UNION_SCHEMA =
       Schema.createUnion(list(INT_SCHEMA, FLOAT_SCHEMA));
-  private static final Schema INT_LONG_UNION_SCHEMA = 
+  private static final Schema INT_LONG_UNION_SCHEMA =
       Schema.createUnion(list(INT_SCHEMA, LONG_SCHEMA));
-  private static final Schema INT_LONG_FLOAT_DOUBLE_UNION_SCHEMA = 
+  private static final Schema INT_LONG_FLOAT_DOUBLE_UNION_SCHEMA =
       Schema.createUnion(list(INT_SCHEMA, LONG_SCHEMA, FLOAT_SCHEMA, DOUBLE_SCHEMA));
 
   // Non recursive records:
@@ -365,7 +366,7 @@ public class TestSchemaCompatibility {
 
       new ReaderWriter(ENUM1_AB_SCHEMA, ENUM1_AB_SCHEMA),
       new ReaderWriter(ENUM1_ABC_SCHEMA, ENUM1_AB_SCHEMA),
-      
+
       // String-to/from-bytes, introduced in Avro 1.7.7
       new ReaderWriter(STRING_SCHEMA, BYTES_SCHEMA),
       new ReaderWriter(BYTES_SCHEMA, STRING_SCHEMA),
@@ -472,7 +473,7 @@ public class TestSchemaCompatibility {
       new ReaderWriter(FLOAT_SCHEMA, INT_LONG_FLOAT_DOUBLE_UNION_SCHEMA),
       new ReaderWriter(LONG_SCHEMA, INT_FLOAT_UNION_SCHEMA),
       new ReaderWriter(INT_SCHEMA, INT_FLOAT_UNION_SCHEMA),
-      
+
       new ReaderWriter(EMPTY_RECORD2, EMPTY_RECORD1),
       new ReaderWriter(A_INT_RECORD1, EMPTY_RECORD1),
       new ReaderWriter(A_INT_B_DINT_RECORD1, EMPTY_RECORD1),
@@ -526,7 +527,7 @@ public class TestSchemaCompatibility {
         "Expecting reader %s to be incompatible with writer %s, but tested compatible.",
         FLOAT_UNION_SCHEMA, INT_UNION_SCHEMA),
         SchemaCompatibilityType.INCOMPATIBLE, result.getType());
-    
+
     result = checkReaderWriterCompatibility(FLOAT_UNION_SCHEMA, LONG_UNION_SCHEMA);
     assertEquals(String.format(
         "Expecting reader %s to be incompatible with writer %s, but tested compatible.",
@@ -539,7 +540,7 @@ public class TestSchemaCompatibility {
         FLOAT_UNION_SCHEMA, INT_LONG_UNION_SCHEMA),
         SchemaCompatibilityType.INCOMPATIBLE, result.getType());
   }
-  
+
   // -----------------------------------------------------------------------------------------------
 
   /**
@@ -666,5 +667,31 @@ public class TestSchemaCompatibility {
     Collections.addAll(list, elements);
     return list;
   }
+
+
+  @Test
+  public void testRWCompatibility() {
+    Schema schema1 = new Schema.Parser().parse("{\"type\":\"record\",\"name\":\"JFileLocation\","
+            + "\"namespace\":\"org.spf4j.base.avro\","
+            + "\"doc\":\"a location in a file\",\"fields\":[{\"name\":\"fileName\",\"type\":\"string\","
+            + "\"doc\":\"file name\"},{\"name\":\"lineNumber\",\"type\":\"int\",\"doc\":\"line number\"},"
+            + "{\"name\":\"someField\",\"type\":\"string\",\"doc\":\"place on the moon\",\"default\":\"\"}],"
+            + "\"mvnId\":\"org.spf4j:test-schema:2.0\"}");
+
+    Schema  schema2 = new Schema.Parser().parse("{\"type\":\"record\",\"name\":\"JFileLocation\","
+            + "\"namespace\":\"org.spf4j.base.avro\","
+            + "\"doc\":\"a location in a file\",\"fields\":[{\"name\":\"fileName\",\"type\":\"string\","
+            + "\"doc\":\"file name\"},{\"name\":\"lineNumber\",\"type\":\"int\",\"doc\":\"line number\"},"
+            + "{\"name\":\"someField\",\"type\":\"string\",\"doc\":\"place on the moon\",\"default\":\"\"},"
+            + "{\"name\":\"breakBuild\",\"type\":\"string\",\"doc\":\"field to break the build\"}],"
+            + "\"mvnId\":\"org.spf4j:test-schema:3.0\"}");
+
+    Assert.assertEquals(SchemaCompatibilityType.COMPATIBLE,
+            SchemaCompatibility.checkReaderWriterCompatibility(schema1, schema2).getType());
+
+    Assert.assertEquals(SchemaCompatibilityType.INCOMPATIBLE,
+            SchemaCompatibility.checkReaderWriterCompatibility(schema2, schema1).getType());
+  }
+
 
 }
