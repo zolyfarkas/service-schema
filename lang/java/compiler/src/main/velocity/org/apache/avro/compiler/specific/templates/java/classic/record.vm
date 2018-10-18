@@ -15,6 +15,7 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
+
 #if ($schema.getNamespace())
 package $schema.getNamespace();
 #end
@@ -34,12 +35,12 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse(${this.javaSplit($schema.toString())});
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 #foreach ($field in $schema.getFields())
-#if ($field.doc())
+ #if ($field.doc())
   /** $field.doc() */
-#end
-#foreach ($annotation in $this.javaAnnotations($field))
+ #end
+ #foreach ($annotation in $this.javaAnnotations($field))
   @$annotation
-#end
+ #end
   #if (${this.deprecatedFields()})@Deprecated#end #if (${this.publicFields()})public#elseif (${this.privateFields()})private#end ${this.javaUnbox($field.schema())} ${this.mangle($field.name(), $schema.isError())};
 #end
 #if ($schema.isError())

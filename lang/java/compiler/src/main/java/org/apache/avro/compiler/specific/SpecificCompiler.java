@@ -666,19 +666,22 @@ public class SpecificCompiler {
 
   /** Utility for template use.  Returns the java annotations for a schema. */
   public String[] javaAnnotations(JsonProperties props) {
+    Set<String> annotations = new HashSet<>(4);
     JsonNode value = props.getJsonProp("javaAnnotation");
-    if (value == null)
-      return new String[0];
-    if (value.isTextual())
-      return new String[] { value.getTextValue() };
-    if (value.isArray()) {
-      int i = 0;
-      String[] result = new String[value.size()];
-      for (JsonNode v : value)
-        result[i++] = v.getTextValue();
-      return result;
+    if (value != null) {
+      if (value.isTextual()) {
+        annotations.add(value.getTextValue());
+      }
+      if (value.isArray()) {
+        for (JsonNode v : value) {
+          annotations.add(v.getTextValue());
+        }
+      }
     }
-    return new String[0];
+    if (props.getProp("deprecated") != null && (!(props instanceof Field) || !this.deprecatedFields())) {
+      annotations.add(Deprecated.class.getName());
+    }
+    return annotations.toArray(new String[annotations.size()]);
   }
 
   // maximum size for string constants, to avoid javac limits
