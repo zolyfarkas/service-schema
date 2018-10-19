@@ -105,7 +105,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   public static final JsonFactory FACTORY = new JsonFactory();
-  static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+  public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
 
   private static final int NO_HASHCODE = Integer.MIN_VALUE;
 

@@ -21,10 +21,10 @@ import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
-import org.apache.avro.io.DecimalDecoder;
-import org.apache.avro.io.DecimalEncoder;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.io.JsonExtensionDecoder;
+import org.apache.avro.io.JsonExtensionEncoder;
 
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
@@ -76,8 +76,8 @@ public final class BigInteger extends AbstractLogicalType<java.math.BigInteger> 
   @Override
   public boolean tryDirectEncode(final java.math.BigInteger object, final Encoder enc, final Schema schema)
           throws IOException {
-    if (enc instanceof DecimalEncoder) {
-      ((DecimalEncoder) enc).writeBigInteger(object, schema);
+    if (enc instanceof JsonExtensionEncoder) {
+      ((JsonExtensionEncoder) enc).writeBigInteger(object, schema);
       return true;
     } else {
       return false;
@@ -86,8 +86,8 @@ public final class BigInteger extends AbstractLogicalType<java.math.BigInteger> 
 
   @Override
   public java.math.BigInteger tryDirectDecode(final Decoder dec, final Schema schema) throws IOException {
-    if (dec instanceof DecimalDecoder) {
-      return ((DecimalDecoder) dec).readBigInteger(schema);
+    if (dec instanceof JsonExtensionDecoder) {
+      return ((JsonExtensionDecoder) dec).readBigInteger(schema);
     } else {
       return null;
     }

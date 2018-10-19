@@ -24,6 +24,7 @@ import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.avro.test.TestRecord;
 import org.apache.avro.test.TestRecord2;
 import org.apache.avro.test.TestRecord3;
@@ -85,11 +86,11 @@ public class TestIsoDate {
                 .setDateTimeVal(new DateTime())
                 .setDateTimeStrVal(new DateTime(2014, 8, 15, 9, 0, DateTimeZone.UTC))
                 .build();
-        byte [] result = AvroUtils.writeAvroExtendedJson(record);
-        System.out.println("Test JSON String: " + new String(result, "UTF-8"));
+        byte [] result = AvroUtils.writeAvroExtendedJson((SpecificRecord) record);
+        System.out.println("Test JSON String aaa: " + new String(result, "UTF-8"));
         TestRecord record2 = AvroUtils.readAvroExtendedJson(result, TestRecord.class);
         Assert.assertEquals(record, record2);
-        result = AvroUtils.writeAvroExtendedJson(record);
+        result = AvroUtils.writeAvroExtendedJson((SpecificRecord) record);
         System.out.println(new String(result, Charset.forName("UTF-8")));
         record2 = AvroUtils.readAvroExtendedJson(result, TestRecord.class);
         Assert.assertEquals(record, record2);

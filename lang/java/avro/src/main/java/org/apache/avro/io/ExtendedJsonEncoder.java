@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import org.apache.avro.AvroTypeException;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 
 /**
@@ -16,7 +17,8 @@ import org.apache.avro.io.parsing.JsonGrammarGenerator;
  * type as a more normal key=value rather than key={type=value}.
  * @author zfarkas
  */
-public final class ExtendedJsonEncoder extends JsonEncoder implements DecimalEncoder {
+public final class ExtendedJsonEncoder extends JsonEncoder
+        implements JsonExtensionEncoder {
 
 
   public ExtendedJsonEncoder(final Schema sc, final OutputStream out) throws IOException {
@@ -65,16 +67,44 @@ public final class ExtendedJsonEncoder extends JsonEncoder implements DecimalEnc
 
   @Override
   public void writeDecimal(final BigDecimal decimal, final Schema schema) throws IOException {
-    Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-    parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
+    advanceBy(schema);
     out.writeNumber(decimal);
   }
 
   @Override
   public void writeBigInteger(BigInteger decimal,final Schema schema) throws IOException {
-    Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-    parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
+    advanceBy(schema);
     out.writeNumber(decimal);
+  }
+
+  public void writeValue(final Object value, final Schema schema) throws IOException {
+    if (value == null) {
+      throw new AvroTypeException("value cannot be null, must be " + schema);
+    }
+    advanceBy(schema);
+    out.writeObject(value);
+  }
+
+  public void advanceBy(final Schema schema) throws IOException {
+    Schema.Type type = schema.getType();
+    switch (type) {
+        case BYTES:
+          parser.advance(Symbol.BYTES);
+          break;
+        case STRING:
+          parser.advance(Symbol.STRING);
+          break;
+        case LONG:
+          parser.advance(Symbol.LONG);
+          break;
+        case INT:
+          parser.advance(Symbol.INT);
+          break;
+        default:
+          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+          parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
+          break;
+      }
   }
 
 }

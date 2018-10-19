@@ -13,13 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.avro.io;
+package org.apache.avro.logicalTypes;
 
-//CHECKSTYLE:OFF
-public interface DecimalEncoder {
+import java.util.Map;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypeFactory;
+import org.apache.avro.Schema;
 
-  @Deprecated
-  final boolean OPTIMIZED_JSON_DECIMAL_WRITE =
-          Boolean.parseBoolean(System.getProperty("avro.optimized_decimal_write", "true"));
+/**
+ *
+ * @author zfarkas
+ */
+public class JsonRecordLogicalTypeFactory implements LogicalTypeFactory {
+
+  @Override
+  public String getLogicalTypeName() {
+    return "json_record";
+  }
+
+  @Override
+  public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
+    return new JsonRecordLogicalType(schemaType);
+  }
 
 }

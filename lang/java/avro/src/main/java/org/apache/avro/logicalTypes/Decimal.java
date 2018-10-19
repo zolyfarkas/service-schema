@@ -29,10 +29,11 @@ import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryData;
-import org.apache.avro.io.DecimalDecoder;
 import org.apache.avro.io.DecimalEncoder;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.io.JsonExtensionDecoder;
+import org.apache.avro.io.JsonExtensionEncoder;
 import org.codehaus.jackson.JsonNode;
 
 /**
@@ -205,8 +206,8 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public BigDecimal tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
-    if (dec instanceof DecimalDecoder) {
-      return ((DecimalDecoder) dec).readBigDecimal(schema);
+    if (dec instanceof JsonExtensionDecoder) {
+      return ((JsonExtensionDecoder) dec).readBigDecimal(schema);
     } else {
       return null;
     }
@@ -214,8 +215,8 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public boolean tryDirectEncode(BigDecimal object, Encoder enc, final Schema schema) throws IOException {
-    if (DecimalEncoder.OPTIMIZED_JSON_DECIMAL_WRITE && enc instanceof DecimalEncoder) {
-      ((DecimalEncoder) enc).writeDecimal(object, schema);
+    if (DecimalEncoder.OPTIMIZED_JSON_DECIMAL_WRITE && enc instanceof JsonExtensionEncoder) {
+      ((JsonExtensionEncoder) enc).writeDecimal(object, schema);
       return true;
     } else {
       return false;

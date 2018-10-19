@@ -21,7 +21,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 
 import java.io.ByteArrayInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -42,7 +41,8 @@ import org.apache.avro.logicalTypes.Decimal;
  * deliberately skips fields that match the default we need to start mucking about with the stack when the
  * next field isn't there! More info to come as we remember how it works!
  */
-public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDecoder {
+public final class ExtendedJsonDecoder extends JsonDecoder
+        implements JsonExtensionDecoder {
 
 
     private final boolean lenient;
@@ -53,6 +53,12 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
     }
 
     public ExtendedJsonDecoder(final Schema schema, final InputStream in, boolean lenient)
+            throws IOException {
+        super(schema, in);
+        this.lenient = lenient;
+    }
+
+    public ExtendedJsonDecoder(final Schema schema, final JsonParser in, boolean lenient)
             throws IOException {
         super(schema, in);
         this.lenient = lenient;
@@ -121,7 +127,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
                     List<JsonDecoder.JsonElement> node = currentReorderBuffer.savedFields.remove(name);
                     if (node != null) {
                         currentReorderBuffer.origParser = in;
-                        this.in = makeParser(node);
+                        this.in = makeParser(node, this.in.getCodec());
                         return null;
                     }
                 }
@@ -141,12 +147,14 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
                     if (injectDefaultValueIfAvailable(in, fa)) {
                         return null;
                     }
-                    throw new AvroTypeException("Expected field name not found: " + fa.fname);
+                    throw new AvroTypeException("Expected field name not found: " + fa.fname
+                            + " instead found " + in.getCurrentToken());
                 } else {
                     if (injectDefaultValueIfAvailable(in, fa)) {
                         return null;
                     }
-                    throw new AvroTypeException("Expected field name not found: " + fa.fname);
+                    throw new AvroTypeException("Expected field name not found: " + fa.fname
+                          + " instead found " + in.getCurrentToken());
                 }
             } else if (top == Symbol.FIELD_END) {
                 if (currentReorderBuffer != null && currentReorderBuffer.origParser != null) {
@@ -226,7 +234,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
                 currentReorderBuffer = new ReorderBuffer();
             }
             currentReorderBuffer.origParser = in;
-            this.in = makeParser(result);
+            this.in = makeParser(result, this.in.getCodec());
             return true;
         }
         return false;
@@ -320,44 +328,71 @@ public final class ExtendedJsonDecoder extends JsonDecoder implements DecimalDec
 
   @Override
   public BigInteger readBigInteger(final Schema schema) throws IOException {
+      advanceBy(schema);
       JsonToken currentToken = in.getCurrentToken();
-      if (currentToken == null) {
-        throw new EOFException("EOF at " + in.getCurrentLocation());
-      }
+      BigInteger result;
       switch (currentToken) {
         case VALUE_STRING:
-          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          advance(rootSymbol.production[rootSymbol.production.length - 1]);
-          return new BigInteger(in.getText());
+          result = new BigInteger(in.getText());
+          break;
         case VALUE_NUMBER_INT:
-          rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          advance(rootSymbol.production[rootSymbol.production.length - 1]);
-          return in.getBigIntegerValue();
+          result = in.getBigIntegerValue();
+          break;
         default:
           throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");
       }
+      in.nextToken();
+      return result;
   }
 
   @Override
   public BigDecimal readBigDecimal(final Schema schema) throws IOException {
+      advanceBy(schema);
       JsonToken currentToken = in.getCurrentToken();
-      if (currentToken == null) {
-        throw new EOFException("EOF at " + in.getCurrentLocation());
-      }
+      BigDecimal result;
       switch (currentToken) {
         case VALUE_STRING:
-          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          advance(rootSymbol.production[rootSymbol.production.length - 1]);
-          return new BigDecimal(in.getText());
+          result = new BigDecimal(in.getText());
+          break;
         case VALUE_NUMBER_INT:
         case VALUE_NUMBER_FLOAT:
-          rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          advance(rootSymbol.production[rootSymbol.production.length - 1]);
-          return in.getDecimalValue();
+          result = in.getDecimalValue();
+          break;
         default:
-          throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");
+          throw new AvroTypeException("Invalid token type " + currentToken + ", expecting " + schema);
       }
+      in.nextToken();
+      return result;
   }
 
+  @Override
+  public <T> T readValue(final Schema schema, final Class<T> clasz) throws IOException {
+    advanceBy(schema);
+    T result = in.readValueAs(clasz);
+    in.nextToken();
+    return result;
+  }
+
+  public void advanceBy(final Schema schema) throws IOException {
+    Schema.Type type = schema.getType();
+    switch (type) {
+        case BYTES:
+          advance(Symbol.BYTES);
+          break;
+        case STRING:
+          advance(Symbol.STRING);
+          break;
+        case LONG:
+          advance(Symbol.LONG);
+          break;
+        case INT:
+          advance(Symbol.INT);
+          break;
+        default:
+          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+          advance(rootSymbol.production[rootSymbol.production.length - 1]);
+          break;
+      }
+  }
 
 }

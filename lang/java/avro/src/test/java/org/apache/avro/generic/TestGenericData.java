@@ -313,8 +313,7 @@ public class TestGenericData {
     r.put(enumField.name(), new GenericData.EnumSymbol(enumField.schema(),"a"));
 
     String json = r.toString();
-    JsonFactory factory = new JsonFactory();
-    JsonParser parser = factory.createJsonParser(json);
+    JsonParser parser = Schema.FACTORY.createJsonParser(json);
     ObjectMapper mapper = new ObjectMapper();
 
     // will throw exception if string is not parsable json

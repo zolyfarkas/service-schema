@@ -18,7 +18,6 @@
 package org.apache.avro.generic;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -26,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
@@ -35,17 +33,16 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.ResolvingDecoder;
 import org.apache.avro.util.Utf8;
+import org.apache.avro.util.WeakIdentityHashMap;
 
 /** {@link DatumReader} for generic Java objects. */
 public class GenericDatumReader<D> implements DatumReader<D> {
   private final GenericData data;
   private Schema actual;
   private Schema expected;
-
-  private ResolvingDecoder creatorResolver = null;
-  private final WeakReference<Thread> creator;
 
   public GenericDatumReader() {
     this(null, null, GenericData.get());
@@ -69,7 +66,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
 
   protected GenericDatumReader(GenericData data) {
     this.data = data;
-    this.creator = new WeakReference<Thread>(Thread.currentThread());
   }
 
   /** Return the {@link GenericData} implementation. */
@@ -84,7 +80,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     if (expected == null) {
       expected = actual;
     }
-    creatorResolver = null;
   }
 
   /** Get the reader's schema. */
@@ -93,14 +88,21 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   /** Set the reader's schema. */
   public void setExpected(Schema reader) {
     this.expected = reader;
-    creatorResolver = null;
   }
 
   private static final ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>
     RESOLVER_CACHE =
     new ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>() {
     protected Map<Schema,Map<Schema,ResolvingDecoder>> initialValue() {
-      return new WeakHashMap<Schema,Map<Schema,ResolvingDecoder>>();
+      return new WeakIdentityHashMap<>();
+    }
+  };
+
+  private static final ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>
+    RESOLVER_CACHE_EXT =
+    new ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>() {
+    protected Map<Schema,Map<Schema,ResolvingDecoder>> initialValue() {
+      return new WeakIdentityHashMap<>();
     }
   };
 
@@ -109,38 +111,40 @@ public class GenericDatumReader<D> implements DatumReader<D> {
    *  Currently uses a thread local cache to prevent constructing the
    *  resolvers too often, because that is very expensive.
    */
-  protected final ResolvingDecoder getResolver(Schema actual, Schema expected)
-    throws IOException {
-    Thread currThread = Thread.currentThread();
-    ResolvingDecoder resolver;
-    if (currThread == creator.get() && creatorResolver != null) {
-      return creatorResolver;
+  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder) throws IOException {
+    if (decoder instanceof JsonExtensionDecoder) {
+      return getResolver(actual, expected, decoder, RESOLVER_CACHE_EXT);
+    } else {
+       return getResolver(actual, expected, decoder, RESOLVER_CACHE);
     }
+  }
 
-    Map<Schema,ResolvingDecoder> cache = RESOLVER_CACHE.get().get(actual);
+
+  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder,
+          ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>> tlCache)
+    throws IOException {
+    ResolvingDecoder resolver;
+    Map<Schema, Map<Schema, ResolvingDecoder>> sMap = tlCache.get();
+    Map<Schema,ResolvingDecoder> cache = sMap.get(actual);
     if (cache == null) {
-      cache = new WeakHashMap<Schema,ResolvingDecoder>();
-      RESOLVER_CACHE.get().put(actual, cache);
+      cache = new WeakIdentityHashMap<>();
+      sMap.put(actual, cache);
     }
     resolver = cache.get(expected);
     if (resolver == null) {
       resolver = DecoderFactory.get().resolvingDecoder(
-          Schema.applyAliases(actual, expected), expected, null);
+          Schema.applyAliases(actual, expected), expected, decoder);
       cache.put(expected, resolver);
+    } else {
+      resolver.configure(decoder);
     }
-
-    if (currThread == creator.get()){
-      creatorResolver = resolver;
-    }
-
     return resolver;
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public D read(D reuse, Decoder in) throws IOException {
-    ResolvingDecoder resolver = getResolver(actual, expected);
-    resolver.configure(in);
+    ResolvingDecoder resolver = getResolver(actual, expected, in);
     D result = (D) read(reuse, expected, resolver);
     resolver.drain();
     return result;

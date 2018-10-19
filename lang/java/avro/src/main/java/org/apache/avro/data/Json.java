@@ -22,10 +22,8 @@ import java.io.StringReader;
 import java.util.Iterator;
 
 import org.apache.avro.util.internal.JacksonUtils;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.LongNode;
 import org.codehaus.jackson.node.DoubleNode;
@@ -47,9 +45,6 @@ import org.apache.avro.io.ResolvingDecoder;
 /** Utilities for reading and writing arbitrary Json data in Avro format. */
 public class Json {
   private Json() {}                               // singleton: no public ctor
-
-  static final JsonFactory FACTORY = new JsonFactory();
-  static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
 
   /** The schema for Json data. */
   public static final Schema SCHEMA;
@@ -154,7 +149,7 @@ public class Json {
    */
   public static Object parseJson(String s) {
     try {
-      return JacksonUtils.toObject(MAPPER.readTree(FACTORY.createJsonParser(
+      return JacksonUtils.toObject(Schema.MAPPER.readTree(Schema.FACTORY.createJsonParser(
           new StringReader(s))));
     } catch (JsonParseException e) {
       throw new RuntimeException(e);

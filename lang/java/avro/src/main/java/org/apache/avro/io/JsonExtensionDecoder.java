@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Apache Software Foundation.
+ * Copyright 2018 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,22 @@
  */
 package org.apache.avro.io;
 
-//CHECKSTYLE:OFF
-public interface DecimalEncoder {
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import org.apache.avro.Schema;
 
-  @Deprecated
-  final boolean OPTIMIZED_JSON_DECIMAL_WRITE =
-          Boolean.parseBoolean(System.getProperty("avro.optimized_decimal_write", "true"));
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public interface JsonExtensionDecoder {
+
+  <T> T readValue(final Schema schema, final Class<T> clasz) throws IOException;
+
+
+  BigInteger readBigInteger(final Schema schema) throws IOException;
+
+  BigDecimal readBigDecimal(final Schema schema) throws IOException;
 
 }

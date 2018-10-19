@@ -304,7 +304,11 @@ public class DecoderFactory {
    */
   public ResolvingDecoder resolvingDecoder(Schema writer, Schema reader,
       Decoder wrapped) throws IOException {
-    return new ResolvingDecoder(writer, reader, wrapped);
+    if (wrapped instanceof JsonExtensionDecoder) {
+      return new JsonExtensionResolvingDecoder(writer, reader, wrapped);
+    } else {
+      return new ResolvingDecoder(writer, reader, wrapped);
+    }
   }
 
   private static class DefaultDecoderFactory extends DecoderFactory {

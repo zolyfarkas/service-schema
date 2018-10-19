@@ -79,6 +79,9 @@ public final class JacksonUtils {
         toJson(entry.getValue(), generator);
       }
       generator.writeEndObject();
+    } else if (datum.getClass() == Object.class) {
+      generator.writeStartObject();
+      generator.writeEndObject();
     } else if (datum instanceof Collection) { // array
       generator.writeStartArray();
       for (Object element : (Collection<?>) datum) {

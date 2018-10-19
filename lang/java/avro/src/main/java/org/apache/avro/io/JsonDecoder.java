@@ -38,7 +38,6 @@ import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
 import org.codehaus.jackson.Base64Variant;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonLocation;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonStreamContext;
@@ -54,7 +53,6 @@ import org.codehaus.jackson.ObjectCodec;
 public class JsonDecoder extends ParsingDecoder
   implements Parser.ActionHandler {
   protected JsonParser in;
-  static final JsonFactory JSON_FACTORY = new JsonFactory();
   SimpleStack<ReorderBuffer> reorderBuffers = new SimpleStack<ReorderBuffer>(4);
   ReorderBuffer currentReorderBuffer;
 
@@ -79,6 +77,13 @@ public class JsonDecoder extends ParsingDecoder
     this(JsonGrammarGenerator.getRootSymbol(schema), in);
   }
 
+  JsonDecoder(Schema schema, JsonParser in) throws IOException {
+    super(JsonGrammarGenerator.getRootSymbol(schema));
+    parser.reset();
+    this.in = in;
+    this.in.nextToken();
+  }
+
   JsonDecoder(Schema schema, String in) throws IOException {
     this(JsonGrammarGenerator.getRootSymbol(schema), in);
   }
@@ -98,7 +103,7 @@ public class JsonDecoder extends ParsingDecoder
    */
   private JsonDecoder configure(@Nonnull InputStream in) throws IOException {
     parser.reset();
-    this.in = JSON_FACTORY.createJsonParser(in);
+    this.in = Schema.FACTORY.createJsonParser(in);
     this.in.nextToken();
     return this;
   }
@@ -117,7 +122,7 @@ public class JsonDecoder extends ParsingDecoder
    */
   public JsonDecoder configure(@Nonnull String in) throws IOException {
     parser.reset();
-    this.in = JSON_FACTORY.createJsonParser(in);
+    this.in = Schema.FACTORY.createJsonParser(in);
     this.in.nextToken();
     return this;
   }
@@ -449,7 +454,7 @@ public class JsonDecoder extends ParsingDecoder
         List<JsonElement> node = currentReorderBuffer.savedFields.remove(name);
         if (node != null) {
           currentReorderBuffer.origParser = in;
-          in = makeParser(node);
+          in = makeParser(node, in.getCodec());
           return null;
         }
       }
@@ -585,13 +590,13 @@ public class JsonDecoder extends ParsingDecoder
     return result;
   }
 
-  JsonParser makeParser(final List<JsonElement> elements) throws IOException {
+  JsonParser makeParser(final List<JsonElement> elements, final ObjectCodec codec) throws IOException {
     return new JsonParser() {
       int pos = 0;
 
       @Override
       public ObjectCodec getCodec() {
-        throw new UnsupportedOperationException();
+        return codec;
       }
 
       @Override

@@ -21,12 +21,13 @@ import java.math.BigInteger;
 import org.apache.avro.Schema;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public interface DecimalDecoder {
+public interface JsonExtensionEncoder {
+  void writeValue(final Object value, final Schema schema) throws IOException;
 
-  BigInteger readBigInteger(final Schema schema) throws IOException;
+  void writeDecimal(final BigDecimal decimal, final Schema schema) throws IOException;
 
-  BigDecimal readBigDecimal(final Schema schema) throws IOException;
-
+  void writeBigInteger(final BigInteger decimal, final Schema schema) throws IOException;
 }
