@@ -23,6 +23,10 @@ Features implemented in this fork on the java side:
 
  6) Enhanced decimal logical type support, where JSON serialization is a proper number. (not bytes/string)
 
+ 7) json_record and json_array logical type support.
+
+ 8) @deprecated support for record and fields.
+
  [ ![Download latest](https://api.bintray.com/packages/zolyfarkas/core/avro/images/download.svg) ](https://bintray.com/zolyfarkas/core/avro/_latestVersion)
 
 This fork is published to bintray, and you can use it by adding the repositories:
