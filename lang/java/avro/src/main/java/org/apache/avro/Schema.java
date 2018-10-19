@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.avro.util.internal.JacksonUtils;
@@ -236,6 +237,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   /** Return the type of this schema. */
+  @Nonnull
   public Type getType() { return type; }
 
   /** Return the logical type annotation for this schema */
