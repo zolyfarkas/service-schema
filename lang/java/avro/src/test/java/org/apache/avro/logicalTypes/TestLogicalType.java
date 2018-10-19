@@ -26,11 +26,18 @@ public class TestLogicalType {
     Schema bytes = Schema.create(Schema.Type.BYTES);
     bytes.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_record");
     bytes.setLogicalType(LogicalTypes.fromSchema(bytes));
+
+      Schema bytes2 = Schema.create(Schema.Type.BYTES);
+      bytes2.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_array");
+      bytes2.setLogicalType(LogicalTypes.fromSchema(bytes2));
+
     Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
             .name("jsonField").type(bytes)
             .withDefault("{}".getBytes(StandardCharsets.UTF_8))
             .name("jsonField2").type(bytes)
             .withDefault("{}".getBytes(StandardCharsets.UTF_8))
+            .name("jsonField5").type(bytes2)
+            .withDefault("[]".getBytes(StandardCharsets.UTF_8))
             .name("jsonField3").type(bytes)
             .withDefault("{}".getBytes(StandardCharsets.UTF_8)).endRecord();
     Map<String, Object> json = ImmutableMap.of("a", 3, "b", "ty");
@@ -38,6 +45,7 @@ public class TestLogicalType {
     record.put("jsonField", json);
     record.put("jsonField2", Collections.EMPTY_MAP);
     record.put("jsonField3", json);
+    record.put("jsonField5", Arrays.asList(1, "b"));
     String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
     System.out.println(writeAvroExtendedJson);
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
