@@ -1104,6 +1104,21 @@ public abstract class Schema extends JsonProperties implements Serializable {
         && size == that.size
         && props.equals(that.props);
     }
+
+    @Override
+    void toJson(Names names, JsonGenerator gen) throws IOException {
+      if (writeNameRef(names, gen)) return;
+      gen.writeStartObject();
+      gen.writeStringField("type", "fixed");
+      writeName(names, gen);
+      if (getDoc() != null)
+        gen.writeStringField("doc", getDoc());
+      gen.writeNumberField("size", size);
+      writeProps(gen);
+      aliasesToJson(gen);
+      gen.writeEndObject();
+    }
+
   }
 
   private static class StringSchema extends Schema {

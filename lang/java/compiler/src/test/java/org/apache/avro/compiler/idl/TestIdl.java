@@ -152,7 +152,11 @@ public class TestIdl {
     public void run() throws Exception {
       String output = generate();
       String slurped = slurp(expectedOut);
-      assertEquals(slurped.trim(), output.replace("\\r", "").trim());
+      Protocol expected = Protocol.parse(slurped);
+      System.out.println(output);
+      Protocol generated = Protocol.parse(output);
+      assertEquals(expected, generated);
+//      assertEquals(slurped.trim(), output.replace("\\r", "").trim());
     }
 
     public void write() throws Exception {
