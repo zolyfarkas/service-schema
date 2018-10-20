@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Objects;
 
 import org.apache.avro.Schema.Field;
 import org.codehaus.jackson.JsonNode;
@@ -290,7 +291,7 @@ public class Protocol extends JsonProperties {
     if (!(o instanceof Protocol)) return false;
     Protocol that = (Protocol)o;
     return this.name.equals(that.name)
-      && this.namespace.equals(that.namespace)
+      && Objects.equals(this.namespace, that.namespace)
       && this.types.equals(that.types)
       && this.messages.equals(that.messages)
       && this.props.equals(that.props);
