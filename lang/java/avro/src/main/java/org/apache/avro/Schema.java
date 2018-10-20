@@ -648,7 +648,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
     @Override
     int computeHash() {
-      return name.full != null ? name.full.hashCode() : 0;
+      return name.hashCode();
     }
     public void aliasesToJson(JsonGenerator gen) throws IOException {
       if (aliases == null || aliases.size() == 0) return;
