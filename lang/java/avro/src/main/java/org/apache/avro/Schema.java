@@ -164,21 +164,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   int hashCode = NO_HASHCODE;
 
-  @Override public void addProp(String name, JsonNode value) {
-    super.addProp(name, value);
-    hashCode = NO_HASHCODE;
-  }
-
-  @Override public void addProp(String name, Object value) {
-    super.addProp(name, value);
-    hashCode = NO_HASHCODE;
-  }
-
-  @Override public void addProp(String name, String value) {
-    super.addProp(name, value);
-    hashCode = NO_HASHCODE;
-  }
-
   public Schema withProp(String name, String value) {
     addProp(name, value);
     return this;
@@ -429,8 +414,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   int computeHash() {
-    return getType().hashCode() + props.hashCode() +
-        (logicalType != null ? logicalType.hashCode() : 0);
+    return (logicalType != null ?  23 * logicalType.hashCode() : getType().hashCode());
   }
 
   final boolean equalCachedHash(Schema other) {
@@ -550,7 +534,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         (order == that.order) &&
         props.equals(that.props);
     }
-    public int hashCode() { return name.hashCode() + schema.computeHash(); }
+    public int hashCode() { return name.hashCode() + 7 * schema.hashCode(); }
 
     private boolean defaultValueEquals(JsonNode thatDefaultValue) {
       if (defaultValue == null)
@@ -662,8 +646,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public boolean equalNames(NamedSchema that) {
       return this.name.equals(that.name);
     }
-    @Override int computeHash() {
-      return super.computeHash() + name.hashCode();
+    @Override
+    int computeHash() {
+      return name.full != null ? name.full.hashCode() : 0;
     }
     public void aliasesToJson(JsonGenerator gen) throws IOException {
       if (aliases == null || aliases.size() == 0) return;
@@ -713,6 +698,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     public boolean isError() { return isError; }
+
+    @Override
+    public int computeHash() {
+      int nameHash = super.computeHash();
+      return nameHash == 0 ? (fields == null ? 0 : fields.size()) : nameHash;
+    }
 
     @Override
     public Field getField(String fieldname) {
@@ -771,17 +762,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         if (first) seen.clear();
       }
     }
-    @Override int computeHash() {
-      Map seen = SEEN_HASHCODE.get();
-      if (seen.containsKey(this)) return 0;       // prevent stack overflow
-      boolean first = seen.isEmpty();
-      try {
-        seen.put(this, this);
-        return super.computeHash() + fields.hashCode();
-      } finally {
-        if (first) seen.clear();
-      }
-    }
+
     void toJson(Names names, JsonGenerator gen) throws IOException {
       if (writeNameRef(names, gen)) return;
       String savedSpace = names.space;            // save namespace
@@ -979,7 +960,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         && symbols.equals(that.symbols)
         && props.equals(that.props);
     }
-    @Override int computeHash() { return super.computeHash() + symbols.hashCode(); }
+
     void toJson(Names names, JsonGenerator gen) throws IOException {
       if (writeNameRef(names, gen)) return;
       gen.writeStartObject();
@@ -1014,7 +995,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         && props.equals(that.props);
     }
     @Override int computeHash() {
-      return super.computeHash() + elementType.computeHash();
+      return  super.computeHash() + 7 * elementType.hashCode();
     }
     void toJson(Names names, JsonGenerator gen) throws IOException {
       gen.writeStartObject();
@@ -1043,7 +1024,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         && props.equals(that.props);
     }
     @Override int computeHash() {
-      return super.computeHash() + valueType.computeHash();
+      return super.computeHash() + 13 * valueType.hashCode();
     }
     void toJson(Names names, JsonGenerator gen) throws IOException {
       gen.writeStartObject();
@@ -1087,7 +1068,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Override int computeHash() {
       int hash = super.computeHash();
       for (Schema type : types)
-        hash += type.computeHash();
+        hash += 19 * type.hashCode();
       return hash;
     }
 
@@ -1122,19 +1103,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
         && equalLogicalTypes(that)
         && size == that.size
         && props.equals(that.props);
-    }
-    @Override int computeHash() { return super.computeHash() + size; }
-    void toJson(Names names, JsonGenerator gen) throws IOException {
-      if (writeNameRef(names, gen)) return;
-      gen.writeStartObject();
-      gen.writeStringField("type", "fixed");
-      writeName(names, gen);
-      if (getDoc() != null)
-        gen.writeStringField("doc", getDoc());
-      gen.writeNumberField("size", size);
-      writeProps(gen);
-      aliasesToJson(gen);
-      gen.writeEndObject();
     }
   }
 
