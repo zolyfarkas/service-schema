@@ -46,10 +46,12 @@ public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
   public Map deserialize(Object object) {
     switch (type) {
       case BYTES:
-        ByteBuffer buf = (ByteBuffer) object;
-        buf.rewind();
-        byte[] unscaled = new byte[buf.remaining()];
-        buf.get(unscaled);
+        byte[] unscaled;
+        if (object instanceof ByteBuffer) {
+          unscaled = readByteBuffer((ByteBuffer) object);
+        } else {
+          unscaled = (byte[]) object;
+        }
         try {
           return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), Map.class);
         } catch (IOException ex) {
@@ -59,6 +61,13 @@ public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
     }
 
+  }
+
+  static byte[] readByteBuffer(final ByteBuffer buf) {
+    buf.rewind();
+    byte[] unscaled = new byte[buf.remaining()];
+    buf.get(unscaled);
+    return unscaled;
   }
 
   @Override

@@ -28,6 +28,7 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.JsonExtensionEncoder;
+import static org.apache.avro.logicalTypes.JsonRecordLogicalType.readByteBuffer;
 
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
@@ -46,10 +47,12 @@ public final class JsonArrayLogicalType extends AbstractLogicalType<List> {
   public List deserialize(Object object) {
     switch (type) {
       case BYTES:
-        ByteBuffer buf = (ByteBuffer) object;
-        buf.rewind();
-        byte[] unscaled = new byte[buf.remaining()];
-        buf.get(unscaled);
+        byte[] unscaled;
+        if (object instanceof ByteBuffer) {
+          unscaled = readByteBuffer((ByteBuffer) object);
+        } else {
+          unscaled = (byte[]) object;
+        }
         try {
           return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), List.class);
         } catch (IOException ex) {

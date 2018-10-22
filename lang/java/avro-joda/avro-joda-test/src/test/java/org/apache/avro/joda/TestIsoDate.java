@@ -66,7 +66,7 @@ public class TestIsoDate {
         TestRecord record2 = AvroUtils.readAvroBin(result, TestRecord.class, null);
         record.setDecimalVal(new BigDecimal("3.12345678"));
         Assert.assertEquals(record, record2);
-        result = AvroUtils.writeAvroJson(record);
+        result = AvroUtils.writeAvroJson((SpecificRecord) record);
         System.out.println(new String(result, Charset.forName("UTF-8")));
         record2 = AvroUtils.readAvroJson(result, TestRecord.class);
         Assert.assertEquals(record, record2);
@@ -116,7 +116,7 @@ public class TestIsoDate {
         byte [] result = AvroUtils.writeAvroBin(record);
         TestRecord record2 = AvroUtils.readAvroBin(result, TestRecord.class, null);
         Assert.assertEquals(record, record2);
-        result = AvroUtils.writeAvroJson(record);
+        result = AvroUtils.writeAvroJson((SpecificRecord) record);
         System.out.println(new String(result, Charset.forName("UTF-8")));
         record2 = AvroUtils.readAvroJson(result, TestRecord.class);
         Assert.assertEquals(record, record2);
@@ -145,7 +145,7 @@ public class TestIsoDate {
         Assert.assertEquals(record.getDateValUnion(), record2.getDateValUnion());
         Assert.assertEquals(record.getDateValUnionS(), record2.getDateValUnionS());
         Assert.assertEquals(record, record2);
-        result = AvroUtils.writeAvroJson(record);
+        result = AvroUtils.writeAvroJson((SpecificRecord) record);
         System.out.println(new String(result, Charset.forName("UTF-8")));
         record2 = AvroUtils.readAvroJson(result, TestRecord2.class);
         Assert.assertEquals(record, record2);

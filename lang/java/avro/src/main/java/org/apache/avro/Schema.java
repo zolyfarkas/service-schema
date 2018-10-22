@@ -706,8 +706,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     @Override
-    public Field getField(String fieldname) {
-      if (fieldMap == null)
+    public Field getField(@Nonnull String fieldname) {
+      if (fields == null)
         throw new AvroRuntimeException("Schema fields not set yet");
       return fieldMap.get(fieldname);
     }
@@ -959,6 +959,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
         && equalLogicalTypes(that)
         && symbols.equals(that.symbols)
         && props.equals(that.props);
+    }
+
+    @Override
+    int computeHash() {
+      return super.computeHash() + 29 * symbols.size();
     }
 
     void toJson(Names names, JsonGenerator gen) throws IOException {

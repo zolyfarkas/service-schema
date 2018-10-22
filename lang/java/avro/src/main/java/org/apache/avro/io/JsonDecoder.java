@@ -259,7 +259,7 @@ public class JsonDecoder extends ParsingDecoder
     }
   }
 
-  private byte[] readByteArray() throws IOException {
+  byte[] readByteArray() throws IOException {
    return in.getText().getBytes(CHARSET);
   }
 
@@ -468,7 +468,7 @@ public class JsonDecoder extends ParsingDecoder
             if (currentReorderBuffer == null) {
               currentReorderBuffer = new ReorderBuffer();
             }
-            currentReorderBuffer.savedFields.put(fn, getValueAsTree(in));
+            currentReorderBuffer.savedFields.put(fn, getValueAsTree(in, 8));
           }
         } while (in.getCurrentToken() == JsonToken.FIELD_NAME);
         throw new AvroTypeException("Expected field name not found: " + fa.fname);
@@ -508,30 +508,324 @@ public class JsonDecoder extends ParsingDecoder
 
     JsonToken getToken();
 
-    String getValue();
+    default String getStringValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default int getIntValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default long getLongValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default float getFloatValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default double getDoubleValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default BigDecimal getBigDecimalValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default BigInteger getBigIntegerValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default boolean getBooleanValue() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    default JsonParser.NumberType getNumberType() {
+      throw new UnsupportedOperationException("for " + this);
+    }
+
+    JsonElement TRUE = new JsonElement() {
+      @Override
+      public JsonToken getToken() {
+        return JsonToken.VALUE_TRUE;
+      }
+
+      @Override
+      public boolean getBooleanValue() {
+        return true;
+      }
+    };
+
+    JsonElement FALSE = new JsonElement() {
+      @Override
+      public JsonToken getToken() {
+        return JsonToken.VALUE_TRUE;
+      }
+
+      @Override
+      public boolean getBooleanValue() {
+        return false;
+      }
+    };
+
+    JsonElement NULL = new JsonElement() {
+      @Override
+      public JsonToken getToken() {
+        return JsonToken.VALUE_NULL;
+      }
+    };
+
+    JsonElement NONE = new JsonElement() {
+      @Override
+      public JsonToken getToken() {
+        return null;
+      }
+    };
+
 
   }
 
-  static class JsonElementValue implements JsonElement {
-    public final JsonToken token;
-    public final String value;
 
-    public JsonElementValue(JsonToken token, String value) {
-      this.token = token;
+  static class JsonElementIntValue  extends JsonElementToken {
+    public final int value;
+
+    public JsonElementIntValue(int value, JsonToken token) {
+      super(token);
       this.value = value;
     }
 
-    public JsonToken getToken() {
-      return token;
+    @Override
+    public int getIntValue() {
+     return value;
     }
 
-    public String getValue() {
+    @Override
+    public BigInteger getBigIntegerValue() {
+      return BigInteger.valueOf(value);
+    }
+
+    @Override
+    public BigDecimal getBigDecimalValue() {
+      return BigDecimal.valueOf(value);
+    }
+
+    @Override
+    public double getDoubleValue() {
+      return (double) value;
+    }
+
+    @Override
+    public float getFloatValue() {
+      return (float) value;
+    }
+
+    @Override
+    public long getLongValue() {
+      return (long) value;
+    }
+
+    @Override
+    public String getStringValue() {
+      return Integer.toString(value);
+    }
+
+    @Override
+    public JsonParser.NumberType getNumberType() {
+      return JsonParser.NumberType.INT;
+    }
+
+  }
+
+  static class JsonElementLongValue extends JsonElementToken {
+    public final long value;
+
+    public JsonElementLongValue(long value, JsonToken token) {
+      super(token);
+      this.value = value;
+    }
+
+    @Override
+    public String getStringValue() {
+      return Long.toString(value);
+    }
+
+    @Override
+    public long getLongValue() {
+     return value;
+    }
+
+    @Override
+    public BigInteger getBigIntegerValue() {
+      return BigInteger.valueOf(value);
+    }
+
+    @Override
+    public BigDecimal getBigDecimalValue() {
+      return BigDecimal.valueOf(value);
+    }
+
+    @Override
+    public double getDoubleValue() {
+      return (double) value;
+    }
+
+    @Override
+    public float getFloatValue() {
+      return (float) value;
+    }
+
+    @Override
+    public JsonParser.NumberType getNumberType() {
+      return JsonParser.NumberType.LONG;
+    }
+
+  }
+
+  static class JsonElementFloatValue extends JsonElementToken {
+    public final float value;
+
+    public JsonElementFloatValue(float value, JsonToken token) {
+      super(token);
+      this.value = value;
+    }
+
+    @Override
+    public String getStringValue() {
+      return Float.toString(value);
+    }
+
+    @Override
+    public float getFloatValue() {
+     return value;
+    }
+
+    @Override
+    public BigDecimal getBigDecimalValue() {
+      return BigDecimal.valueOf(value);
+    }
+
+    @Override
+    public double getDoubleValue() {
       return value;
     }
 
     @Override
-    public String toString() {
-      return "JsonElement{" + "token=" + token + ", value=" + value + '}';
+    public JsonParser.NumberType getNumberType() {
+      return JsonParser.NumberType.FLOAT;
+    }
+
+  }
+
+  static class JsonElementDoubleValue extends JsonElementToken {
+    public final double value;
+
+    public JsonElementDoubleValue(double value, JsonToken token) {
+      super(token);
+      this.value = value;
+    }
+
+    @Override
+    public String getStringValue() {
+      return Double.toString(value);
+    }
+
+    @Override
+    public double getDoubleValue() {
+     return value;
+    }
+
+    @Override
+    public BigDecimal getBigDecimalValue() {
+      return BigDecimal.valueOf(value);
+    }
+
+    @Override
+    public JsonParser.NumberType getNumberType() {
+      return JsonParser.NumberType.DOUBLE;
+    }
+
+  }
+
+  static class JsonElementBigDecimalValue extends JsonElementToken {
+    public final BigDecimal value;
+
+    public JsonElementBigDecimalValue(BigDecimal value, JsonToken token) {
+      super(token);
+      this.value = value;
+    }
+
+    @Override
+    public String getStringValue() {
+      return value.toString();
+    }
+
+    @Override
+    public BigDecimal getBigDecimalValue() {
+     return value;
+    }
+
+    @Override
+    public double getDoubleValue() {
+      return value.doubleValue();
+    }
+
+    @Override
+    public float getFloatValue() {
+      return value.floatValue();
+    }
+
+    @Override
+    public JsonParser.NumberType getNumberType() {
+      return JsonParser.NumberType.BIG_DECIMAL;
+    }
+
+  }
+
+
+  static class JsonElementBigIntegerValue extends JsonElementToken {
+    public final BigInteger value;
+
+    public JsonElementBigIntegerValue(BigInteger value, JsonToken token) {
+      super(token);
+      this.value = value;
+    }
+
+    @Override
+    public String getStringValue() {
+      return value.toString();
+    }
+
+    @Override
+    public BigInteger getBigIntegerValue() {
+     return value;
+    }
+
+    @Override
+    public double getDoubleValue() {
+      return value.doubleValue();
+    }
+
+    @Override
+    public float getFloatValue() {
+      return value.floatValue();
+    }
+
+    @Override
+    public JsonParser.NumberType getNumberType() {
+      return JsonParser.NumberType.BIG_INTEGER;
+    }
+  }
+
+  static class JsonElementStringValue extends JsonElementToken {
+    public final String value;
+
+    public JsonElementStringValue(JsonToken token, String value) {
+      super(token);
+      this.value = value;
+    }
+
+    public String getStringValue() {
+      return value;
     }
 
   }
@@ -547,22 +841,25 @@ public class JsonDecoder extends ParsingDecoder
       return token;
     }
 
-    public String getValue() {
+    public String getStringValue() {
       return null;
     }
 
     @Override
     public String toString() {
-      return "JsonElement{" + "token=" + token + '}';
+      return this.getClass().getName() + "{token=" + token + ", value = " + getStringValue() + '}';
     }
 
   }
 
-  static List<JsonElement> getValueAsTree(JsonParser in) throws IOException {
+  static List<JsonElement> getValueAsTree(JsonParser in, final int expectedSize) throws IOException {
     int level = 0;
-    List<JsonElement> result = new ArrayList<JsonElement>();
+    List<JsonElement> result = new ArrayList<JsonElement>(expectedSize);
     do {
       JsonToken t = in.getCurrentToken();
+      if (t == null) {
+        break;
+      }
       switch (t) {
       case START_OBJECT:
       case START_ARRAY:
@@ -576,23 +873,57 @@ public class JsonDecoder extends ParsingDecoder
         break;
       case FIELD_NAME:
       case VALUE_STRING:
+        result.add(new JsonElementStringValue(t, in.getText()));
+        break;
       case VALUE_NUMBER_INT:
+        JsonParser.NumberType numberType = in.getNumberType();
+        switch (numberType) {
+          case BIG_INTEGER:
+            result.add(new JsonElementBigIntegerValue(in.getBigIntegerValue(), t));
+            break;
+          case INT:
+            result.add(new JsonElementIntValue(in.getIntValue(), t));
+            break;
+          case LONG:
+            result.add(new JsonElementLongValue(in.getLongValue(), t));
+            break;
+          default:
+            throw new UnsupportedOperationException("Unsupperted int number type " + numberType);
+        }
+        break;
       case VALUE_NUMBER_FLOAT:
+        numberType = in.getNumberType();
+        switch (numberType) {
+          case FLOAT:
+          case DOUBLE:
+          case BIG_DECIMAL:
+            result.add(new JsonElementBigDecimalValue(in.getDecimalValue(), t));
+            break;
+          default:
+            throw new UnsupportedOperationException("Unsupperted int number type " + numberType);
+        }
+        break;
       case VALUE_TRUE:
+        result.add(JsonElement.TRUE);
+        break;
       case VALUE_FALSE:
+        result.add(JsonElement.FALSE);
+        break;
       case VALUE_NULL:
-        result.add(new JsonElementValue(t, in.getText()));
+        result.add(JsonElement.NULL);
         break;
       }
       in.nextToken();
     } while (level != 0);
-    result.add(new JsonElementToken(null));
+    result.add(JsonElement.NONE);
     return result;
   }
 
   JsonParser makeParser(final List<JsonElement> elements, final ObjectCodec codec) throws IOException {
     return new JsonParser() {
       int pos = 0;
+
+      private JsonElement currElement = elements.get(pos);
 
       @Override
       public ObjectCodec getCodec() {
@@ -612,12 +943,18 @@ public class JsonDecoder extends ParsingDecoder
       @Override
       public JsonToken nextToken() throws IOException {
         pos++;
-        return elements.get(pos).getToken();
+        if (pos < elements.size()) {
+          currElement = elements.get(pos);
+          return currElement.getToken();
+        } else {
+          currElement = JsonElement.NONE;
+          return null;
+        }
       }
 
       @Override
       public JsonParser skipChildren() throws IOException {
-        JsonToken tkn = elements.get(pos).getToken();
+        JsonToken tkn = currElement.getToken();
         int level = (tkn == JsonToken.START_ARRAY || tkn == JsonToken.START_OBJECT) ? 1 : 0;
         while (level > 0) {
           switch(elements.get(++pos).getToken()) {
@@ -631,6 +968,7 @@ public class JsonDecoder extends ParsingDecoder
             break;
           }
         }
+        currElement = elements.get(pos);
         return this;
       }
 
@@ -641,7 +979,7 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public String getCurrentName() throws IOException {
-        throw new UnsupportedOperationException();
+        return currElement.getStringValue();
       }
 
       @Override
@@ -661,17 +999,17 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public String getText() throws IOException {
-        return elements.get(pos).getValue();
+        return currElement.getStringValue();
       }
 
       @Override
       public char[] getTextCharacters() throws IOException {
-        throw new UnsupportedOperationException();
+        return currElement.getStringValue().toCharArray();
       }
 
       @Override
       public int getTextLength() throws IOException {
-        throw new UnsupportedOperationException();
+        return currElement.getStringValue().length();
       }
 
       @Override
@@ -681,56 +1019,58 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public Number getNumberValue() throws IOException {
-        throw new UnsupportedOperationException();
+        JsonParser.NumberType numberType = currElement.getNumberType();
+        switch(numberType) {
+          case BIG_DECIMAL:
+            return currElement.getBigDecimalValue();
+          case BIG_INTEGER:
+            return currElement.getBigDecimalValue();
+          case DOUBLE:
+            return currElement.getDoubleValue();
+          case FLOAT:
+            return currElement.getFloatValue();
+          case INT:
+            return currElement.getIntValue();
+          case LONG:
+            return currElement.getLongValue();
+          default:
+            throw new UnsupportedOperationException("Unsupported number type: " + numberType);
+        }
       }
 
       @Override
       public NumberType getNumberType() throws IOException {
-        throw new UnsupportedOperationException();
+        return currElement.getNumberType();
       }
 
       @Override
       public int getIntValue() throws IOException {
-        return Integer.parseInt(getText());
+        return currElement.getIntValue();
       }
 
       @Override
       public long getLongValue() throws IOException {
-        return Long.parseLong(getText());
+        return currElement.getLongValue();
       }
 
       @Override
       public BigInteger getBigIntegerValue() throws IOException {
-        String text = getText();
-        if ("0".equals(text)) {
-          return BigInteger.ZERO;
-        } else if ("1".equals(text)) {
-          return BigInteger.ONE;
-        } else {
-          return new BigInteger(text);
-        }
+        return currElement.getBigIntegerValue();
       }
 
       @Override
       public float getFloatValue() throws IOException {
-        return Float.parseFloat(getText());
+        return currElement.getFloatValue();
       }
 
       @Override
       public double getDoubleValue() throws IOException {
-        return Double.parseDouble(getText());
+        return currElement.getDoubleValue();
       }
 
       @Override
       public BigDecimal getDecimalValue() throws IOException {
-        String text = getText();
-        if ("0".equals(text)) {
-          return BigDecimal.ZERO;
-        } else if ("1".equals(text)) {
-          return BigDecimal.ONE;
-        } else {
-          return new BigDecimal(text);
-        }
+        return currElement.getBigDecimalValue();
       }
 
       @Override
@@ -741,7 +1081,7 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public JsonToken getCurrentToken() {
-        return elements.get(pos).getToken();
+        return currElement.getToken();
       }
     };
   }

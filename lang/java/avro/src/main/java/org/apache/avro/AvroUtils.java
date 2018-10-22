@@ -22,11 +22,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.avro.generic.ExtendedGenericDatumWriter;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
@@ -39,6 +41,7 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.ExtendedJsonEncoder;
+import org.apache.avro.specific.ExtendedSpecificDatumWriter;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
@@ -191,10 +194,39 @@ public final class AvroUtils {
     encoder.flush();
   }
 
+  public static String writeAvroJson(final GenericRecord req) {
+     StringWriter sw = new StringWriter();
+    try {
+      writeAvroJson(sw, req);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    return sw.toString();
+  }
+
+  public static void writeAvroJson(final Writer out, final GenericRecord req)
+          throws IOException {
+    Schema schema = req.getSchema();
+    DatumWriter writer = new GenericDatumWriter(schema);
+    Encoder encoder = EncoderFactory.get().jsonEncoder(schema, out);
+    writer.write(req, encoder);
+    encoder.flush();
+  }
+
+  public static void writeAvroJson(final OutputStream out, final GenericRecord req)
+          throws IOException {
+    Schema schema = req.getSchema();
+    @SuppressWarnings("unchecked")
+    DatumWriter writer = new GenericDatumWriter(schema);
+    Encoder encoder = EncoderFactory.get().jsonEncoder(schema, out);
+    writer.write(req, encoder);
+    encoder.flush();
+  }
+
   public static void writeAvroExtendedJson(final OutputStream out, final SpecificRecord req)
           throws IOException {
     @SuppressWarnings("unchecked")
-    DatumWriter writer = new SpecificDatumWriter(req.getClass());
+    DatumWriter writer = new ExtendedSpecificDatumWriter(req.getClass());
     Encoder encoder = new ExtendedJsonEncoder(req.getSchema(), out);
     writer.write(req, encoder);
     encoder.flush();
@@ -210,7 +242,7 @@ public final class AvroUtils {
   public static void writeAvroExtendedJson(final OutputStream out, final GenericRecord req)
           throws IOException {
     Schema schema = req.getSchema();
-    DatumWriter writer = new GenericDatumWriter(schema);
+    DatumWriter writer = new ExtendedGenericDatumWriter(schema);
     Encoder encoder = new ExtendedJsonEncoder(schema, out);
     writer.write(req, encoder);
     encoder.flush();
@@ -219,7 +251,7 @@ public final class AvroUtils {
   public static void writeAvroExtendedJson(final Writer out, final GenericRecord req)
           throws IOException {
     Schema schema = req.getSchema();
-    DatumWriter writer = new GenericDatumWriter(schema);
+    DatumWriter writer = new ExtendedGenericDatumWriter(schema);
     Encoder encoder = new ExtendedJsonEncoder(schema, Schema.FACTORY.createJsonGenerator(out));
     writer.write(req, encoder);
     encoder.flush();

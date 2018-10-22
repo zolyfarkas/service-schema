@@ -19,6 +19,7 @@ package org.apache.avro.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -282,6 +283,12 @@ public class EncoderFactory {
   public JsonEncoder jsonEncoder(Schema schema, OutputStream out)
       throws IOException {
     return new JsonEncoder(schema, out);
+  }
+
+
+  public JsonEncoder jsonEncoder(Schema schema, Writer out)
+      throws IOException {
+    return new JsonEncoder(schema, Schema.FACTORY.createJsonGenerator(out));
   }
 
   /**

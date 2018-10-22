@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
@@ -141,7 +140,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                             if (currentReorderBuffer == null) {
                                 currentReorderBuffer = new JsonDecoder.ReorderBuffer();
                             }
-                            currentReorderBuffer.savedFields.put(fn, getValueAsTree(in));
+                            currentReorderBuffer.savedFields.put(fn, getValueAsTree(in, 8));
                         }
                     } while (in.getCurrentToken() == JsonToken.FIELD_NAME);
                     if (injectDefaultValueIfAvailable(in, fa)) {
@@ -213,23 +212,13 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       }
     }
 
-    private static final JsonElement NULL_JSON_ELEMENT = new JsonElementToken(null);
-
     private boolean injectDefaultValueIfAvailable(final JsonParser in, Symbol.FieldAdjustAction action)
             throws IOException, IllegalAccessException {
         JsonNode defVal = action.defaultValue;
         if (null != defVal) {
-            List<JsonElement> result = new ArrayList<JsonElement>(2);
-              JsonParser traverse = defVal.traverse();
-              JsonToken nextToken;
-              while ((nextToken = traverse.nextToken()) != null) {
-                if (nextToken.isScalarValue()) {
-                  result.add(new JsonElementValue(nextToken, traverse.getText()));
-                } else {
-                  result.add(new JsonElementToken(nextToken));
-                }
-              }
-            result.add(NULL_JSON_ELEMENT);
+            JsonParser traverse = defVal.traverse();
+            traverse.nextToken();
+            List<JsonElement> result = JsonDecoder.getValueAsTree(traverse, 2);
             if (currentReorderBuffer == null) {
                 currentReorderBuffer = new ReorderBuffer();
             }
@@ -309,10 +298,6 @@ public final class ExtendedJsonDecoder extends JsonDecoder
     }
   }
 
-  private byte[] readByteArray() throws IOException {
-    return in.getText().getBytes(CHARSET);
-  }
-
   @Override
   public void skipBytes() throws IOException {
     advance(Symbol.BYTES);
@@ -368,6 +353,23 @@ public final class ExtendedJsonDecoder extends JsonDecoder
   @Override
   public <T> T readValue(final Schema schema, final Class<T> clasz) throws IOException {
     advanceBy(schema);
+    if (in.getCurrentToken() == JsonToken.VALUE_STRING) {
+      // probably encoded with recular encoder, will be best effort here.
+      String text = in.getText();
+      T result;
+      switch (schema.getType()) {
+        case STRING:
+          result = Schema.FACTORY.createJsonParser(text).readValueAs(clasz);
+          break;
+        case BYTES:
+          result = Schema.FACTORY.createJsonParser(text.getBytes(CHARSET)).readValueAs(clasz);
+          break;
+        default:
+          throw new UnsupportedOperationException("Unsupported schema " + schema);
+      }
+      in.nextToken();
+      return result;
+    }
     T result = in.readValueAs(clasz);
     in.nextToken();
     return result;
