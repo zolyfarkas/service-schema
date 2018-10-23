@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.Map;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
@@ -32,10 +31,10 @@ import org.apache.avro.io.JsonExtensionEncoder;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
+public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
 
-  JsonRecordLogicalType(final Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "json_record", Collections.EMPTY_MAP , Map.class);
+  JsonLogicalType(final Schema.Type type, final String logicalTypeName, final Class<T> clasz) {
+    super(type, Collections.EMPTY_SET, logicalTypeName, Collections.EMPTY_MAP , clasz);
     if (type != Schema.Type.BYTES) {
        throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
     }
@@ -43,7 +42,7 @@ public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
 
 
   @Override
-  public Map deserialize(Object object) {
+  public T deserialize(Object object) {
     switch (type) {
       case BYTES:
         byte[] unscaled;
@@ -53,7 +52,7 @@ public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
           unscaled = (byte[]) object;
         }
         try {
-          return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), Map.class);
+          return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), getLogicalJavaType());
         } catch (IOException ex) {
           throw new UncheckedIOException(ex);
         }
@@ -71,7 +70,7 @@ public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
   }
 
   @Override
-  public Object serialize(Map json) {
+  public Object serialize(T json) {
     switch (type) {
       case BYTES:
         ByteArrayOutputStream bab = new ByteArrayOutputStream();
@@ -87,17 +86,17 @@ public final class JsonRecordLogicalType extends AbstractLogicalType<Map> {
   }
 
   @Override
-  public Map tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
+  public T tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
-      return (pd).readValue(schema, Map.class);
+      return (pd).readValue(schema, getLogicalJavaType());
     } else {
       return null;
     }
   }
 
   @Override
-  public boolean tryDirectEncode(Map object, Encoder enc, final Schema schema) throws IOException {
+  public boolean tryDirectEncode(T object, Encoder enc, final Schema schema) throws IOException {
     if (enc instanceof JsonExtensionEncoder) {
       ((JsonExtensionEncoder) enc).writeValue(object, schema);
       return true;

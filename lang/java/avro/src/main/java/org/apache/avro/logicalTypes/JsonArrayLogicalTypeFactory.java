@@ -15,25 +15,32 @@
  */
 package org.apache.avro.logicalTypes;
 
+import java.util.List;
 import java.util.Map;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.Schema;
 
 /**
- *
  * @author zfarkas
  */
 public class JsonArrayLogicalTypeFactory implements LogicalTypeFactory {
 
+  private final String logicalTypeName = "json_array";
+
+  private final JsonLogicalType lt = new JsonLogicalType(Schema.Type.BYTES, logicalTypeName, List.class);
+
   @Override
   public String getLogicalTypeName() {
-    return "json_array";
+    return logicalTypeName;
   }
 
   @Override
-  public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new JsonArrayLogicalType(schemaType);
+  public LogicalType create(Schema.Type type, Map<String, Object> attributes) {
+    if (type != Schema.Type.BYTES) {
+       throw new IllegalArgumentException(this.getLogicalTypeName() + " must be backed by string or bytes, not" + type);
+    }
+    return lt;
   }
 
 }
