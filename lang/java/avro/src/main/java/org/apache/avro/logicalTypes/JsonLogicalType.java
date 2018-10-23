@@ -35,7 +35,7 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
 
   JsonLogicalType(final Schema.Type type, final String logicalTypeName, final Class<T> clasz) {
     super(type, Collections.EMPTY_SET, logicalTypeName, Collections.EMPTY_MAP , clasz);
-    if (type != Schema.Type.BYTES) {
+    if (type != Schema.Type.BYTES && type != Schema.Type.STRING) {
        throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
     }
   }
@@ -44,6 +44,12 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
   @Override
   public T deserialize(Object object) {
     switch (type) {
+      case STRING:
+        try {
+          return Schema.MAPPER.readValue((String) object, getLogicalJavaType());
+        } catch (IOException ex) {
+          throw new UncheckedIOException("Cannot deserialize " + object, ex);
+        }
       case BYTES:
         byte[] unscaled;
         if (object instanceof ByteBuffer) {
@@ -54,7 +60,7 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
         try {
           return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), getLogicalJavaType());
         } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
+          throw new UncheckedIOException("Cannot deserialize " + object, ex);
         }
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
@@ -72,12 +78,18 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
   @Override
   public Object serialize(T json) {
     switch (type) {
+      case STRING:
+        try {
+          Schema.MAPPER.writeValueAsString(json);
+        } catch (IOException ex) {
+          throw new UncheckedIOException("Cannot serialize " + json, ex);
+        }
       case BYTES:
         ByteArrayOutputStream bab = new ByteArrayOutputStream();
         try {
           Schema.MAPPER.writeValue(bab, json);
         } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
+          throw new UncheckedIOException("Cannot serialize " + json, ex);
         }
         return ByteBuffer.wrap(bab.toByteArray());
       default:
@@ -104,7 +116,4 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
       return false;
     }
   }
-
-
-
 }

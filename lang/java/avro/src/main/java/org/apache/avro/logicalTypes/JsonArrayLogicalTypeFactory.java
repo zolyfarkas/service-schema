@@ -28,7 +28,9 @@ public class JsonArrayLogicalTypeFactory implements LogicalTypeFactory {
 
   private final String logicalTypeName = "json_array";
 
-  private final JsonLogicalType lt = new JsonLogicalType(Schema.Type.BYTES, logicalTypeName, List.class);
+  private final JsonLogicalType blt = new JsonLogicalType(Schema.Type.BYTES, logicalTypeName, List.class);
+
+  private final JsonLogicalType slt = new JsonLogicalType(Schema.Type.STRING, logicalTypeName, List.class);
 
   @Override
   public String getLogicalTypeName() {
@@ -37,10 +39,14 @@ public class JsonArrayLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType create(Schema.Type type, Map<String, Object> attributes) {
-    if (type != Schema.Type.BYTES) {
-       throw new IllegalArgumentException(this.getLogicalTypeName() + " must be backed by string or bytes, not" + type);
+    switch (type) {
+      case STRING:
+        return slt;
+      case BYTES:
+        return blt;
+      default:
+     throw new IllegalArgumentException(this.getLogicalTypeName() + " must be backed by string or bytes, not" + type);
     }
-    return lt;
   }
 
 }
