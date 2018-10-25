@@ -2,11 +2,11 @@ package org.apache.avro;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import org.junit.Assert;
 
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.EnumSymbol;
@@ -321,7 +321,12 @@ public class TestReadingWritingDataInEvolvedSchemas {
     byte[] encoded = encodeGenericBlob(record);
     Record decoded = decodeGenericBlob(INT_RECORD, writer, encoded);
     assertEquals(42, decoded.get(FIELD_A));
-    assertNull(decoded.get("newTopField"));
+    try {
+      decoded.get("newTopField");
+      Assert.fail();
+    } catch (IllegalArgumentException ex) {
+      // expected
+    }
   }
 
   @Test

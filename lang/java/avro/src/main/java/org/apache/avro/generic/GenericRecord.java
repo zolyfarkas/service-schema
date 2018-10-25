@@ -22,6 +22,12 @@ package org.apache.avro.generic;
 public interface GenericRecord extends IndexedRecord {
   /** Set the value of a field given its name. */
   void put(String key, Object v);
-  /** Return the value of a field given its name. */
+  /** Return the value of a field given its name.
+   if field does not exist an IllegalArgumentException is thron */
   Object get(String key);
+
+  default boolean hasField(String name) {
+    return getSchema().getField(name) != null;
+  }
+
 }

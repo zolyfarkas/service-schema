@@ -166,7 +166,7 @@ public class TestGenericData {
    assertFalse(record1.equals(record2));
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testRecordGetFieldDoesntExist() throws Exception {
     List<Field> fields = new ArrayList<Field>();
     Schema schema = Schema.createRecord(fields);

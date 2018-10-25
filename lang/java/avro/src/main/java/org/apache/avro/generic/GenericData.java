@@ -127,9 +127,12 @@ public class GenericData {
       values[field.pos()] = value;
     }
     @Override public void put(int i, Object v) { values[i] = v; }
+
     @Override public Object get(String key) {
       Field field = schema.getField(key);
-      if (field == null) return null;
+      if (field == null) {
+        throw new IllegalArgumentException("Invalid field " + key);
+      }
       return values[field.pos()];
     }
     @Override public Object get(int i) { return values[i]; }
