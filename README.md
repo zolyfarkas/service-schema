@@ -4,18 +4,21 @@ Learn more about Avro, please visit our website at:
 
   http://avro.apache.org/
 
-To contribute to Avro, please read:
-
-  https://cwiki.apache.org/confluence/display/AVRO/How+To+Contribute
-
 Features implemented in this fork on the java side:
 
  1) ExtendedJsonDecoder/Encoder -  encodes unions of null and a single type as a more normal key=value rather than key={type=value}.
- Also fields equal with the default value will be inferred from the schema and as such need not be present in the serialized json.
+ ExtendedJsonDecoder will infer missing fields using the default values from the write'r schema and as such need not be present in the serialized json. The ExtendedGenericDatumWriter can be used to omit serializing fields that equal the  default values defined in the schema. This can make the json payload smaller than the binary payload in some use cases.
 
- 2) Evolvable enums, where additionally, you can rename enum values to maintain backward compatibility.
+ 2) Evolvable enums, with custom string values, where additionally you can rename enum values to maintain backward compatibility. Example:
 
- 3) Generated java classes are annotated with @Nullable or @Nonnull as appropriate.
+@symbolAliases({"DIAMONDS" : \["Bling Bling", "ROCKS"\]})
+@stringSymbols({"SPADES" : "S P A D E S"})
+@fallbackSymbol("UNKNOWN")
+ enum Suit {
+  UNKNOWN, SPADES, DIAMONDS, CLUBS, HEARTS
+}
+
+ 3) Generated java classes are annotated with @Nullable or @Nonnull as appropriate. As such compiling in conjuction with tools like spotbugs or google error-prone will result in better quality code.
 
  4) @Immutable record support. (setters will not be generated)
 
