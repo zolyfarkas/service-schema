@@ -12,7 +12,7 @@ Features implemented in this fork on the java side:
  2) Evolvable enums, with custom string values, where additionally you can rename enum values to maintain backward compatibility. Example:
 
 ```
-@symbolAliases({"DIAMONDS" : \["Bling Bling", "ROCKS"\]})
+@symbolAliases({"DIAMONDS" : ["Bling Bling", "ROCKS"]})
 @stringSymbols({"SPADES" : "S P A D E S"})
 @fallbackSymbol("UNKNOWN")
  enum Suit {
