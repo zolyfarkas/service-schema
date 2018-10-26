@@ -11,12 +11,14 @@ Features implemented in this fork on the java side:
 
  2) Evolvable enums, with custom string values, where additionally you can rename enum values to maintain backward compatibility. Example:
 
+```
 @symbolAliases({"DIAMONDS" : \["Bling Bling", "ROCKS"\]})
 @stringSymbols({"SPADES" : "S P A D E S"})
 @fallbackSymbol("UNKNOWN")
  enum Suit {
   UNKNOWN, SPADES, DIAMONDS, CLUBS, HEARTS
 }
+```
 
  3) Generated java classes are annotated with @Nullable or @Nonnull as appropriate. As such compiling in conjuction with tools like spotbugs or google error-prone will result in better quality code.
 
