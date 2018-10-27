@@ -72,6 +72,8 @@ the ExtendedJsonEncoder will serialize:
 
  8) @deprecated support for record and fields. You can use @deprecated to deprecate avro records.
 
+Getting started:
+
  [ ![Download latest](https://api.bintray.com/packages/zolyfarkas/core/avro/images/download.svg) ](https://bintray.com/zolyfarkas/core/avro/_latestVersion)
 
 This fork is published to bintray, and you can use it by adding the repositories:
