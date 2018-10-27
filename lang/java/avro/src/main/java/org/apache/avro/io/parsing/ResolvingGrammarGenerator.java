@@ -28,7 +28,6 @@ import java.util.Set;
 
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.EnumSchema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -101,7 +100,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
         String fullName = writer.getFullName();
         if (fullName == null
                 || fullName.equals(reader.getFullName())) {
-          return Symbol.seq(mkEnumAdjust((EnumSchema) writer, (EnumSchema) reader), Symbol.ENUM);
+          return Symbol.seq(mkEnumAdjust(writer, reader), Symbol.ENUM);
         }
       }
         break;
@@ -419,8 +418,8 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
     }
   }
 
-  private static Symbol mkEnumAdjust(final EnumSchema writerSchema,
-      final EnumSchema readerSchema){
+  private static Symbol mkEnumAdjust(final Schema writerSchema,
+      final Schema readerSchema){
     List<String> wsymbols = writerSchema.getEnumSymbols();
     List<String> rsymbols = readerSchema.getEnumSymbols();
     Object[] adjustments = new Object[wsymbols.size()];
@@ -429,7 +428,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       int j = readerSchema.getEnumSymbolOrAliasOrdinal(ws);
       if (j == -1) {
         // try writer aliasses
-        Map<String, Set<String>> symbolAliases = writerSchema.getSymbolAliases();
+        Map<String, Set<String>> symbolAliases = writerSchema.getEnumSymbolAliases();
         if (symbolAliases != null) {
           Set<String> aliases = symbolAliases.get(ws);
           if (aliases != null) {
@@ -443,7 +442,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
         }
       }
       if (j == -1) {
-        String fallbackSymbol = readerSchema.getFallbackSymbol();
+        String fallbackSymbol = readerSchema.getEnumDefault();
         if (fallbackSymbol != null) {
           adjustments[i] = readerSchema.getEnumOrdinal(fallbackSymbol);
         } else {

@@ -192,7 +192,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
   public static Schema createEnum(String name, String doc, String namespace,
                                   List<String> values) {
     return new EnumSchema(new Name(name, namespace), doc,
-        new LockableArrayList<String>(values));
+        new LockableArrayList<String>(values), null);
+  }
+
+  /** Create an enum schema. */
+  public static Schema createEnum(String name, String doc, String namespace,
+                                  List<String> values, final String defaultEnumVal) {
+    return new EnumSchema(new Name(name, namespace), doc,
+        new LockableArrayList<String>(values), defaultEnumVal);
   }
 
   /** Create an array schema. */
@@ -278,6 +285,23 @@ public abstract class Schema extends JsonProperties implements Serializable {
     throw new AvroRuntimeException("Not an enum: "+this);
   }
 
+  @Nullable
+  public String getEnumDefault() {
+    throw new AvroRuntimeException("Not an enum: " + this);
+  }
+
+  public String getEnumStringSymbol(final String symbol) {
+    throw new AvroRuntimeException("Not an enum: " + this);
+  }
+
+  public  Map<String, Set<String>> getEnumSymbolAliases()  {
+    throw new AvroRuntimeException("Not an enum: " + this);
+  }
+
+  public List<String> getEnumStringSymbols() {
+    throw new AvroRuntimeException("Not an enum: " + this);
+  }
+
   /** If this is an enum, return a symbol's ordinal value. */
   public int getEnumOrdinal(String symbol) {
     throw new AvroRuntimeException("Not an enum: "+this);
@@ -285,7 +309,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   /** If this is an enum, returns true if it contains given symbol. */
   public boolean hasEnumSymbol(String symbol) {
-    throw new AvroRuntimeException("Not an enum: "+this);
+    throw new AvroRuntimeException("Not an enum: " + this);
+  }
+
+  public boolean hasEnumSymbolOrAlias(String symbol) {
+    throw new AvroRuntimeException("Not an enum: " + this);
+  }
+
+  public int getEnumSymbolOrAliasOrdinal(String soa) {
+    throw new AvroRuntimeException("Not an enum: " + this);
   }
 
   /** If this is a record, enum or fixed, returns its name, otherwise the name
@@ -818,10 +850,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private final List<String> stringSymbols;
     private final Map<String,Integer> ordinals;
     private volatile Map<String, Set<String>> aliases;
-    private volatile int fallbackOrdinal;
+    private String enumDefault;
 
     public EnumSchema(Name name, String doc,
-        LockableArrayList<String> symbols) {
+        LockableArrayList<String> symbols, @Nullable  String enumDefault) {
       super(Type.ENUM, name, doc);
       this.symbols = symbols.lock();
       this.stringSymbols = new ArrayList<>(symbols);
@@ -830,16 +862,30 @@ public abstract class Schema extends JsonProperties implements Serializable {
       for (String symbol : symbols)
         if (ordinals.put(validateName(symbol), i++) != null)
           throw new SchemaParseException("Duplicate enum symbol: "+symbol);
-
-      fallbackOrdinal = -1;
+      if (enumDefault != null) {
+        if (!ordinals.containsKey(enumDefault)) {
+          throw new IllegalArgumentException("Invalid enum default/fallback value " + enumDefault
+                  + " for " + name + ", symbols = " + symbols);
+        }
+        this.enumDefault = enumDefault;
+      } else {
+        this.enumDefault = null;
+      }
     }
 
 
+    @Override
     public List<String> getEnumSymbols() { return symbols; }
 
-
+    @Override
     public List<String> getEnumStringSymbols() { return stringSymbols; }
 
+    @Override
+    public  Map<String, Set<String>> getEnumSymbolAliases() {
+      return aliases;
+    }
+
+    @Deprecated
     public  Map<String, Set<String>> getSymbolAliases() {
       return aliases;
     }
@@ -881,21 +927,26 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
-
-    private void setFalbackSymbol(JsonNode value) throws AvroTypeException {
-      String textValue = value.getTextValue();
-      if (!symbols.contains(textValue)) {
-        throw new AvroTypeException("Enum fallbackSymbol " + value + " must be one of " + symbols);
-      }
-      this.fallbackOrdinal = ordinals.get(textValue);
-    }
-
+    /**
+     * @deprecated use getEnumDefault() instead.
+     */
+    @Deprecated
     public String getFallbackSymbol() {
-      return fallbackOrdinal < 0 ? null : symbols.get(fallbackOrdinal);
+      return enumDefault;
     }
 
+    @Override
+    public String getEnumDefault() {
+      return enumDefault;
+    }
 
+    @Deprecated
     public String getStringSymbol(final String symbol) {
+      return getEnumStringSymbol(symbol);
+    }
+
+    @Override
+    public String getEnumStringSymbol(final String symbol) {
       Map<String, String> strSymbols = (Map<String, String>) this.getObjectProp("stringSymbols");
       if (strSymbols == null) {
         return symbol;
@@ -905,10 +956,23 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
+    private void setFalbackSymbol(JsonNode value) throws AvroTypeException {
+      String textValue = value.getTextValue();
+      if (!symbols.contains(textValue)) {
+        throw new AvroTypeException("Enum fallbackSymbol " + value + " must be one of " + symbols);
+      }
+      if (this.enumDefault == null) {
+        this.enumDefault = textValue;
+      } else {
+         throw new AvroTypeException("Enum default symbol " + textValue + " is already set to " + this.enumDefault);
+      }
+    }
+
     @Override
     public void addProp(String name, JsonNode value) {
       switch (name) {
         case "fallbackSymbol":
+        case "default":
           setFalbackSymbol(value);
           break;
         case "symbolAliases":
@@ -928,18 +992,26 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
+    @Override
     public boolean hasEnumSymbol(String symbol) {
       return ordinals.containsKey(symbol);
     }
 
+    @Override
+    public boolean hasEnumSymbolOrAlias(String symbol) {
+      return getEnumSymbolOrAliasOrdinal(symbol) >= 0;
+    }
+
+    @Override
     public int getEnumOrdinal(String symbol) { return ordinals.get(symbol); }
 
+    @Override
     public int getEnumSymbolOrAliasOrdinal(String soa) {
       Integer ordinal = ordinals.get(soa);
       if (ordinal != null) {
         return ordinal;
       }
-      Map<String, Set<String>> aliasses = getSymbolAliases();
+      Map<String, Set<String>> aliasses = getEnumSymbolAliases();
       if (aliasses != null) {
         for (Map.Entry<String, Set<String>> entry : aliasses.entrySet()) {
           if (entry.getValue().contains(soa)) {
@@ -1512,7 +1584,19 @@ public abstract class Schema extends JsonProperties implements Serializable {
         for (JsonNode n : symbolsNode) {
           symbols.add(n.getTextValue());
         }
-        result = new EnumSchema(name, doc, symbols);
+        JsonNode enumDefault = schema.get("default");
+        String defaultSymbol;
+        if (enumDefault != null) {
+          defaultSymbol = enumDefault.getTextValue();
+        } else {
+          enumDefault = schema.get("fallbackSymbol"); //backwards compatible
+           if (enumDefault != null) {
+              defaultSymbol = enumDefault.getTextValue();
+           } else {
+              defaultSymbol = null;
+           }
+        }
+        result = new EnumSchema(name, doc, symbols, defaultSymbol);
         if (name != null) names.add(result);
       } else if ("array".equals(type)) {          // array
         JsonNode itemsNode = schema.get("items");

@@ -38,7 +38,6 @@ import org.apache.avro.AvroTypeException;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
-import org.apache.avro.Schema.EnumSchema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.UnresolvedUnionException;
@@ -323,11 +322,11 @@ public class GenericData {
   /** Default implementation of {@link GenericEnumSymbol}. */
   public static class EnumSymbol
       implements GenericEnumSymbol<EnumSymbol>  {
-    private final EnumSchema schema;
+    private final Schema schema;
     private final String symbol;
 
     public EnumSymbol(Schema schema, String symbol) {
-      this.schema = (EnumSchema) schema;
+      this.schema = schema;
       this.symbol = symbol;
     }
 
@@ -353,7 +352,7 @@ public class GenericData {
 
     @Override
     public String toString() {
-      return schema.getStringSymbol(symbol);
+      return schema.getEnumStringSymbol(symbol);
     }
 
     @Override
@@ -394,7 +393,7 @@ public class GenericData {
       return true;
     case ENUM:
       if (!isEnum(datum)) return false;
-      return ((EnumSchema) schema).getEnumSymbolOrAliasOrdinal(datum.toString()) >= 0;
+      return schema.hasEnumSymbolOrAlias(datum.toString());
     case ARRAY:
       if (!(isArray(datum))) return false;
       for (Object element : getArrayAsCollection(datum))

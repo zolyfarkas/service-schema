@@ -18,7 +18,6 @@
 package org.apache.avro.generic;
 
 import java.util.Set;
-import org.apache.avro.Schema;
 
 
 /** An enum symbol. */
@@ -26,8 +25,7 @@ public interface GenericEnumSymbol<T extends GenericEnumSymbol>
     extends GenericContainer, Comparable<T> {
 
   default Set<String> getAliasses() {
-      Schema.EnumSchema schema = (Schema.EnumSchema) getSchema();
-      return schema.getSymbolAliases().get(toString());
+    return getSchema().getEnumSymbolAliases().get(toString());
   }
 
   default String getSymbol() {

@@ -44,7 +44,7 @@ public class TestEnumEvolution {
 
     Schema schema2 = SchemaBuilder
             .record("myrecord").namespace("org.example").aliases("oldrecord").fields()
-            .name("f0").aliases("f0alias").type().enumeration("MyEnum").prop("fallbackSymbol", "UNKNOWN")
+            .name("f0").aliases("f0alias").type().enumeration("MyEnum").prop("default", "UNKNOWN")
             .symbols("UNKNOWN", "A", "B", "C", "D").enumDefault("UNKNOWN")
             .endRecord();
 

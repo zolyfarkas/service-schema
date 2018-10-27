@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.avro.Schema.EnumSchema;
 
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
@@ -304,21 +303,21 @@ public class SchemaCompatibility {
             if (symbols.isEmpty()) {
               return SchemaCompatibilityType.COMPATIBLE;
             } else {
-              String fallbackSymbol = ((Schema.EnumSchema) reader).getFallbackSymbol();
+              String fallbackSymbol = reader.getEnumDefault();
               if (fallbackSymbol != null) {
                 return SchemaCompatibilityType.COMPATIBLE;
               }
               //validate everything considering aliasses
               SchemaCompatibilityType result = SchemaCompatibilityType.COMPATIBLE;
               for (String rs : symbols) {
-                if (((EnumSchema) reader).getEnumSymbolOrAliasOrdinal(rs) == -1) {
-                  Map<String, Set<String>> rsaliasses = ((EnumSchema) writer).getSymbolAliases();
+                if (!reader.hasEnumSymbolOrAlias(rs)) {
+                  Map<String, Set<String>> rsaliasses = writer.getEnumSymbolAliases();
                   if (rsaliasses != null) {
                     Set<String> ral = rsaliasses.get(rs);
                     if (ral != null) {
                       boolean foundAlias = false;
                       for (String ras : ral) {
-                        if (((EnumSchema) reader).getEnumSymbolOrAliasOrdinal(ras) != -1) {
+                        if (!reader.hasEnumSymbolOrAlias(ras)) {
                           foundAlias = true;
                           break;
                         }
