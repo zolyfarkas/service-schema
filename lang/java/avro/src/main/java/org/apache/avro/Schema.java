@@ -161,6 +161,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
                        "doc", "fields", "items", "name", "namespace",
                        "size", "symbols", "values", "type", "aliases");
   }
+  private static final Set<String> ENUM_RESERVED = new HashSet<>();
+  static {
+    ENUM_RESERVED.add("default");
+    ENUM_RESERVED.addAll(SCHEMA_RESERVED);
+  }
 
   int hashCode = NO_HASHCODE;
 
@@ -973,7 +978,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
       switch (name) {
         case "fallbackSymbol":
         case "default":
-          setFalbackSymbol(value);
+          if (this.enumDefault == null) {
+            setFalbackSymbol(value);
+          } else if (!this.enumDefault.equals(value)) {
+            throw new IllegalStateException("Denum  default already set to " + this.enumDefault
+              + " cannot overwrite with " + value + " for " + this);
+          }
           break;
         case "symbolAliases":
           setAliases(value);
@@ -1532,6 +1542,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         }
       }
       Type prType = PRIMITIVES.get(type);
+      Set reserved = SCHEMA_RESERVED;
       if (prType != null) {         // primitive
         result = create(prType);
       } else if (type.equals("record") || type.equals("error")) { // record
@@ -1577,6 +1588,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         }
         result.setFields(fields);
       } else if ("enum".equals(type)) {           // enum
+        reserved = ENUM_RESERVED;
         JsonNode symbolsNode = schema.get("symbols");
         if (symbolsNode == null || !symbolsNode.isArray())
           throw new SchemaParseException("Enum has no symbols: "+schema);
@@ -1620,7 +1632,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       Iterator<String> i = schema.getFieldNames();
       while (i.hasNext()) {                       // add properties
         String prop = i.next();
-        if (!SCHEMA_RESERVED.contains(prop))      // ignore reserved
+        if (!reserved.contains(prop))      // ignore reserved
           result.addProp(prop, schema.get(prop));
       }
       LogicalType logicalType = LogicalTypes.fromSchema(result);
@@ -1753,7 +1765,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     case ENUM:
       Name aname3 = aliases.get(name);
       if (aname3 != null)
-        result = Schema.createEnum(aname3.full, s.getDoc(), null, s.getEnumSymbols());
+        result = Schema.createEnum(aname3.full, s.getDoc(), null, s.getEnumSymbols(), s.getEnumDefault());
       break;
 
     case ARRAY:
