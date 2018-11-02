@@ -961,10 +961,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
-    private void setFalbackSymbol(JsonNode value) throws AvroTypeException {
-      String textValue = value.getTextValue();
+    private void setFalbackSymbol(String textValue) throws AvroTypeException {
       if (!symbols.contains(textValue)) {
-        throw new AvroTypeException("Enum fallbackSymbol " + value + " must be one of " + symbols);
+        throw new AvroTypeException("Enum fallbackSymbol " + textValue + " must be one of " + symbols);
       }
       if (this.enumDefault == null) {
         this.enumDefault = textValue;
@@ -978,11 +977,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
       switch (name) {
         case "fallbackSymbol":
         case "default":
+          String  tVal = value.getTextValue();
           if (this.enumDefault == null) {
-            setFalbackSymbol(value);
-          } else if (!this.enumDefault.equals(value)) {
+            setFalbackSymbol(tVal);
+          } else if (!this.enumDefault.equals(tVal)) {
             throw new IllegalStateException("Denum  default already set to " + this.enumDefault
-              + " cannot overwrite with " + value + " for " + this);
+              + " cannot overwrite with " + tVal + " for " + this);
           }
           break;
         case "symbolAliases":
