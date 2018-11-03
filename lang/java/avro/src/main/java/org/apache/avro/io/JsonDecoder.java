@@ -559,7 +559,7 @@ public class JsonDecoder extends ParsingDecoder
     JsonElement FALSE = new JsonElement() {
       @Override
       public JsonToken getToken() {
-        return JsonToken.VALUE_TRUE;
+        return JsonToken.VALUE_FALSE;
       }
 
       @Override
