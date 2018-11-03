@@ -51,6 +51,27 @@ public class ExtendedJsonDecoderTest {
   }
 
   @Test
+  public void testBooleanHandling() throws IOException {
+    Schema recordSchema = SchemaBuilder.record("TestRecord").fields()
+            .name("boolVal").type(Schema.create(Schema.Type.BOOLEAN)).noDefault()
+            .name("mapVal").type(Schema.createMap(Schema.create(Schema.Type.BOOLEAN))).noDefault()
+            .name("defBoolVal").type(Schema.create(Schema.Type.BOOLEAN)).withDefault(false)
+            .endRecord();
+
+    GenericData.Record record = new GenericData.Record(recordSchema);
+    record.put("boolVal", true);
+    record.put("defBoolVal", false);
+    record.put("mapVal", ImmutableMap.of("a", true, "b", false,
+            "c", true,  "d", false));
+    Assert.assertTrue((Boolean) serDeser(record).get("boolVal"));
+    Assert.assertFalse((Boolean) serDeser(record).get("defBoolVal"));
+    Assert.assertFalse((Boolean)((Map<String, Boolean>) serDeser(record).get("mapVal"))
+            .get(new Utf8("b")));
+
+  }
+
+
+  @Test
   public void testDoubleHandling() throws IOException {
     Schema recordSchema = SchemaBuilder.record("TestRecord").fields()
             .name("doubleVal").type(Schema.create(Schema.Type.DOUBLE)).noDefault()
