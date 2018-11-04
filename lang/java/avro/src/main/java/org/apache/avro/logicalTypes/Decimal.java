@@ -34,7 +34,6 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.JsonExtensionEncoder;
-import org.codehaus.jackson.JsonNode;
 
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
@@ -87,11 +86,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
     this.precision = precision;
   }
 
-  public Decimal(JsonNode node, Schema.Type type) {
-    this(getInteger(node, "precision"), getInteger(node, "scale"), type,
-            getRoundingMode(node, "serRounding"), getRoundingMode(node, "deserRounding"));
-  }
-
   private static Map<String, Object> toAttributes(Integer precision, Integer scale,
           RoundingMode serRm, RoundingMode deserRm) {
     Map<String, Object> attr = new HashMap<String, Object>(4);
@@ -108,24 +102,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
       attr.put("deserRounding", deserRm.toString());
     }
     return attr;
-  }
-
-  private static Integer getInteger(JsonNode node, String fieldName) {
-    JsonNode n = node.get(fieldName);
-    if (n == null) {
-      return null;
-    } else {
-      return n.asInt();
-    }
-  }
-
-  private static RoundingMode getRoundingMode(JsonNode node, String fieldName) {
-    JsonNode n = node.get(fieldName);
-    if (n == null) {
-      return null;
-    } else {
-      return RoundingMode.valueOf(n.getTextValue());
-    }
   }
 
   public static boolean is(final Schema schema) {
