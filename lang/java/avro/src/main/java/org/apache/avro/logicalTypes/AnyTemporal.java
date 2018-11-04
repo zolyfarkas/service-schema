@@ -38,24 +38,35 @@ public final class AnyTemporal extends AbstractLogicalType<Temporal> {
     }
   }
 
+  public static int indexOf(final CharSequence cs, final int from, final int to, final char c) {
+    for (int i = from; i < to; i++) {
+      if (c == cs.charAt(i)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   @Override
   public Temporal deserialize(Object object) {
     switch (type) {
       case STRING:
-        String strVal = (String) object;
-        int idx = strVal.indexOf('-');
+        CharSequence strVal = (CharSequence) object;
+        int l = strVal.length();
+        int idx = indexOf(strVal, 0, l, '-');
         if (idx < 0) {
           return Year.parse(strVal);
         }
-        idx = strVal.indexOf('-', idx + 1);
+        idx = indexOf(strVal, idx + 1, l, '-');
         if (idx < 0) {
           return YearMonth.parse(strVal);
         }
-        idx = strVal.indexOf('T', idx + 1);
+        idx = indexOf(strVal, idx + 1, l, 'T');
         if (idx <  0) {
           return LocalDate.parse(strVal);
         }
         return LocalDateTime.parse(strVal);
+
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
     }
