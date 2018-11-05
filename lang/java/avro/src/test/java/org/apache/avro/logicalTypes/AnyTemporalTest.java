@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
@@ -39,15 +40,54 @@ public class AnyTemporalTest {
     schema.addProp("logicalType", "any_temporal");
     schema.setLogicalType(LogicalTypes.fromSchema(schema));
     LogicalType<Temporal> at = schema.getLogicalType();
-    testDT(at);
+    testLDT(at);
+    testZDT(at);
+    testZDT2(at);
+    testZDT3(at);
+    testZDT4(at);
+    testZDT5(at);
     testD(at);
     testYM(at);
     testYM2(at);
     testY(at);
   }
 
-  public void testDT(LogicalType<Temporal> at) {
+  public void testLDT(LogicalType<Temporal> at) {
     LocalDateTime now = LocalDateTime.now();
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+
+  public void testZDT(LogicalType<Temporal> at) {
+    ZonedDateTime now = ZonedDateTime.now();
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+
+  public void testZDT2(LogicalType<Temporal> at) {
+    ZonedDateTime now = ZonedDateTime.parse("2018-11-05T11:17:09.871Z");
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+
+  public void testZDT3(LogicalType<Temporal> at) {
+    ZonedDateTime now = ZonedDateTime.parse("2018-11-05T06:04-05:00");
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+
+  public void testZDT4(LogicalType<Temporal> at) {
+    ZonedDateTime now = ZonedDateTime.parse("2018-11-05T06:04:37.000000001-05:00");
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+  public void testZDT5(LogicalType<Temporal> at) {
+    ZonedDateTime now = ZonedDateTime.parse("-2018-11-05T06:04:37.000000001-05:00");
     Object serialize = at.serialize(now);
     Temporal now2 = at.deserialize(serialize);
     Assert.assertEquals(now, now2);

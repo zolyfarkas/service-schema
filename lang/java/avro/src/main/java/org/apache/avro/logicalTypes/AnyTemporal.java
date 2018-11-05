@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
@@ -38,9 +39,21 @@ public final class AnyTemporal extends AbstractLogicalType<Temporal> {
     }
   }
 
-  public static int indexOf(final CharSequence cs, final int from, final int to, final char c) {
+  private static int indexOf(final CharSequence cs, final int from, final int to, final char c) {
     for (int i = from; i < to; i++) {
       if (c == cs.charAt(i)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private static int indexOfZone(final CharSequence cs, final int from, final int to) {
+    for (int i = from; i < to; i++) {
+      char c = cs.charAt(i);
+      if (c == ':' || c  == '.' || Character.isDigit(c)) {
+        continue;
+      } else {
         return i;
       }
     }
@@ -68,7 +81,12 @@ public final class AnyTemporal extends AbstractLogicalType<Temporal> {
         if (idx <  0) {
           return LocalDate.parse(strVal);
         }
-        return LocalDateTime.parse(strVal);
+        idx = indexOfZone(strVal, idx + 1, l);
+        if (idx < 0) {
+          return LocalDateTime.parse(strVal);
+        } else {
+          return ZonedDateTime.parse(strVal);
+        }
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
     }
