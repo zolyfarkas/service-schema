@@ -54,6 +54,9 @@ public final class AnyTemporal extends AbstractLogicalType<Temporal> {
         CharSequence strVal = (CharSequence) object;
         int l = strVal.length();
         int idx = indexOf(strVal, 0, l, '-');
+        if (idx == 0) { // BC Year
+          idx = indexOf(strVal, 1, l, '-');
+        }
         if (idx < 0) {
           return Year.parse(strVal);
         }
@@ -66,7 +69,6 @@ public final class AnyTemporal extends AbstractLogicalType<Temporal> {
           return LocalDate.parse(strVal);
         }
         return LocalDateTime.parse(strVal);
-
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
     }

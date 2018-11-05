@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.temporal.Temporal;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.junit.Test;
@@ -33,35 +35,46 @@ public class AnyTemporalTest {
 
   @Test
   public void testTemporal() {
-    AnyTemporal at = new AnyTemporal(Schema.Type.STRING);
+    Schema schema = Schema.create(Schema.Type.STRING);
+    schema.addProp("logicalType", "any_temporal");
+    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    LogicalType<Temporal> at = schema.getLogicalType();
     testDT(at);
     testD(at);
     testYM(at);
+    testYM2(at);
     testY(at);
   }
 
-  public void testDT(AnyTemporal at) {
+  public void testDT(LogicalType<Temporal> at) {
     LocalDateTime now = LocalDateTime.now();
     Object serialize = at.serialize(now);
     Temporal now2 = at.deserialize(serialize);
     Assert.assertEquals(now, now2);
   }
 
-  public void testD(AnyTemporal at) {
+  public void testD(LogicalType<Temporal> at) {
     LocalDate now = LocalDate.now();
     Object serialize = at.serialize(now);
     Temporal now2 = at.deserialize(serialize);
     Assert.assertEquals(now, now2);
   }
 
-  public void testYM(AnyTemporal at) {
+  public void testYM(LogicalType<Temporal> at) {
     YearMonth now = YearMonth.now();
     Object serialize = at.serialize(now);
     Temporal now2 = at.deserialize(serialize);
     Assert.assertEquals(now, now2);
   }
 
-  public void testY(AnyTemporal at) {
+  public void testYM2(LogicalType<Temporal> at) {
+    YearMonth now = YearMonth.of(-10, 2);
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+
+  public void testY(LogicalType<Temporal> at) {
     Year now = Year.now();
     Object serialize = at.serialize(now);
     Temporal now2 = at.deserialize(serialize);
