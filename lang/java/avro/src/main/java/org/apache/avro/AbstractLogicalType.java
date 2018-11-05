@@ -81,9 +81,5 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
     return reserved;
   }
 
-  @Override
-  public void addToSchema(Schema schema) {
-    schema.setLogicalType(this);
-  }
 
 }

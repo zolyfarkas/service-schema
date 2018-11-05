@@ -8,6 +8,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 
+/**
+ * Avro Logical type interface.
+ * @author Zoltan Farkas
+ * @param <T> the primary type this logical type maps to.
+ * a conversion to/from this type to the underlying type must exist.
+ */
 @ParametersAreNonnullByDefault
 public interface LogicalType<T>  {
 
@@ -71,6 +77,14 @@ public interface LogicalType<T>  {
     return getName();
   }
 
-  void addToSchema(Schema schema);
+  default void addToSchema(Schema schema) {
+    validate(schema);
+    schema.setLogicalType(this);
+  }
+
+  default void validate(Schema schema) {
+    // no validation by default.
+  }
+
 
 }
