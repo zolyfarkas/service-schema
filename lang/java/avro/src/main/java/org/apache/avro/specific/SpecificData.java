@@ -33,6 +33,9 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.InvocationTargetException;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.avro.Schema;
 import org.apache.avro.Protocol;
 import org.apache.avro.AvroRuntimeException;
@@ -166,7 +169,11 @@ public class SpecificData extends GenericData {
         try {
           c = ClassUtils.forName(getClassLoader(), getClassName(schema));
         } catch (ClassNotFoundException e) {
-          c = NO_CLASS;
+          try {                                   // nested class?
+            c = ClassUtils.forName(getClassLoader(), getNestedClassName(schema));
+          } catch (ClassNotFoundException ex) {
+            c = NO_CLASS;
+          }
         }
         classCache.put(name, c);
       }
@@ -219,17 +226,32 @@ public class SpecificData extends GenericData {
     return namespace + dot + name;
   }
 
-  private final WeakHashMap<java.lang.reflect.Type,Schema> schemaCache =
-    new WeakHashMap<java.lang.reflect.Type,Schema>();
+  private static String getNestedClassName(Schema schema) {
+    String namespace = schema.getNamespace();
+    String name = schema.getName();
+    if (namespace == null || "".equals(namespace))
+      return name;
+    return namespace + '$' + name;
+  }
+
+  private final LoadingCache<java.lang.reflect.Type,Schema> schemaCache =
+      CacheBuilder.newBuilder()
+          .weakKeys()
+          .build(new CacheLoader<java.lang.reflect.Type,Schema>() {
+            public Schema load(java.lang.reflect.Type type)
+                throws AvroRuntimeException {
+              return createSchema(type, new LinkedHashMap<>());
+            }
+          });
 
   /** Find the schema for a Java type. */
   public Schema getSchema(java.lang.reflect.Type type) {
-    Schema schema = schemaCache.get(type);
-    if (schema == null) {
-      schema = createSchema(type, new LinkedHashMap<String,Schema>());
-      schemaCache.put(type, schema);
+    try {
+      return schemaCache.get(type);
+    } catch (Exception e) {
+      throw (e instanceof AvroRuntimeException) ?
+          (AvroRuntimeException)e.getCause() : new AvroRuntimeException(e);
     }
-    return schema;
   }
 
   /** Create the schema for a Java type. */
