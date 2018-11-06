@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import java.util.Set;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
+import org.apache.avro.Conversion;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
@@ -90,6 +92,77 @@ public class GenericData {
   /** Return the class loader that's used (by subclasses). */
   public ClassLoader getClassLoader() { return classLoader; }
 
+  private Map<String, Conversion<?>> conversions =
+      new HashMap<>();
+
+  private Map<Class<?>, Map<String, Conversion<?>>> conversionsByClass =
+      new IdentityHashMap<>();
+
+  /**
+   * Registers the given conversion to be used when reading and writing with
+   * this data model.
+   *
+   * @param conversion a logical type Conversion.
+   */
+  public void addLogicalTypeConversion(Conversion<?> conversion) {
+    conversions.put(conversion.getLogicalTypeName(), conversion);
+    Class<?> type = conversion.getConvertedType();
+    if (conversionsByClass.containsKey(type)) {
+      conversionsByClass.get(type).put(
+          conversion.getLogicalTypeName(), conversion);
+    } else {
+      Map<String, Conversion<?>> conversions = new LinkedHashMap<>();
+      conversions.put(conversion.getLogicalTypeName(), conversion);
+      conversionsByClass.put(type, conversions);
+    }
+  }
+
+  /**
+   * Returns the first conversion found for the given class.
+   *
+   * @param datumClass a Class
+   * @return the first registered conversion for the class, or null
+   */
+  @SuppressWarnings("unchecked")
+  public <T> Conversion<T> getConversionByClass(Class<T> datumClass) {
+    Map<String, Conversion<?>> conversions = conversionsByClass.get(datumClass);
+    if (conversions != null) {
+      return (Conversion<T>) conversions.values().iterator().next();
+    }
+    return null;
+  }
+
+  /**
+   * Returns the conversion for the given class and logical type.
+   *
+   * @param datumClass a Class
+   * @param logicalType a LogicalType
+   * @return the conversion for the class and logical type, or null
+   */
+  @SuppressWarnings("unchecked")
+  public <T> Conversion<T> getConversionByClass(Class<T> datumClass,
+                                                LogicalType logicalType) {
+    Map<String, Conversion<?>> conversions = conversionsByClass.get(datumClass);
+    if (conversions != null) {
+      return (Conversion<T>) conversions.get(logicalType.getName());
+    }
+    return null;
+  }
+
+  /**
+   * Returns the Conversion for the given logical type.
+   *
+   * @param logicalType a logical type
+   * @return the conversion for the logical type, or null
+   */
+  @SuppressWarnings("unchecked")
+  public Conversion<Object> getConversionFor(LogicalType logicalType) {
+    if (logicalType == null) {
+      return null;
+    }
+    return (Conversion<Object>) conversions.get(logicalType.getName());
+  }
+
   /** Default implementation of {@link GenericRecord}. Note that this implementation
    * does not fill in default values for fields if they are not specified; use {@link
    * GenericRecordBuilder} in that case.
@@ -126,7 +199,6 @@ public class GenericData {
       values[field.pos()] = value;
     }
     @Override public void put(int i, Object v) { values[i] = v; }
-
     @Override public Object get(String key) {
       Field field = schema.getField(key);
       if (field == null) {
@@ -181,7 +253,11 @@ public class GenericData {
     @Override
     public Schema getSchema() { return schema; }
     @Override public int size() { return size; }
-    @Override public void clear() { size = 0; }
+    @Override public void clear() {
+      // Let GC do its work
+      Arrays.fill(elements, 0, size, null);
+      size = 0;
+    }
     @Override public Iterator<T> iterator() {
       return new Iterator<T>() {
         private int position = 0;
@@ -197,15 +273,6 @@ public class GenericData {
       if (i >= size)
         throw new IndexOutOfBoundsException("Index " + i + " out of bounds.");
       return (T)elements[i];
-    }
-    @Override public boolean add(T o) {
-      if (size == elements.length) {
-        Object[] newElements = new Object[(size * 3)/2 + 1];
-        System.arraycopy(elements, 0, newElements, 0, size);
-        elements = newElements;
-      }
-      elements[size++] = o;
-      return true;
     }
     @Override public void add(int location, T o) {
       if (location > size || location < 0) {
@@ -673,9 +740,7 @@ public class GenericData {
   /** Return the schema full name for a datum.  Called by {@link
    * #resolveUnion(Schema,Object)}. */
   protected String getSchemaName(Object datum) {
-    if (datum == null)
-      return Type.NULL.getName();
-    if (JsonProperties.NULL_VALUE.equals(datum))
+    if (datum == null || datum == JsonProperties.NULL_VALUE)
       return Type.NULL.getName();
     if (isRecord(datum))
       return getRecordSchema(datum).getFullName();
@@ -846,9 +911,8 @@ public class GenericData {
         for (Field f : s.getFields()) {
           if (f.order() == Field.Order.IGNORE)
             continue;
-          Schema schema = f.schema();
           hashCode = hashCodeAdd(hashCode,
-                                 getField(o, f.name(), f.pos()), schema);
+                               getField(o, f.name(), f.pos()), f.schema());
         }
       return hashCode;
     case ARRAY:

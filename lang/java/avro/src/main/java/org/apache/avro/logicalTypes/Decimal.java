@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.AvroRuntimeException;
-import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.BinaryData;
 import org.apache.avro.io.DecimalEncoder;
@@ -104,19 +103,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
     return attr;
   }
 
-  public static boolean is(final Schema schema) {
-    Schema.Type type1 = schema.getType();
-    // validate the type
-    if (type1 != Schema.Type.BYTES && type1 != Schema.Type.STRING) {
-      return false;
-    }
-    LogicalType logicalType = schema.getLogicalType();
-    if (logicalType == null) {
-      return false;
-    }
-    return logicalType.getClass() == Decimal.class;
-  }
-
   @Override
   public BigDecimal deserialize(Object object) {
     switch (type) {
@@ -133,7 +119,6 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
         }
         return result;
       case BYTES:
-        //ByteBuffer buf = ByteBuffer.wrap((byte []) object);
         ByteBuffer buf = (ByteBuffer) object;
         buf.rewind();
         int lscale = readInt(buf);
