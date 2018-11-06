@@ -15,11 +15,9 @@
  */
 package org.apache.avro.logicalTypes;
 
-import com.google.common.collect.ImmutableMap;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
@@ -34,47 +32,65 @@ public class TestDecimal {
 
   @Test
   public void testDecimal() {
+    Schema stringSchema = Schema.create(Schema.Type.STRING)
+            .withProp("precision", 32)
+            .withProp("scale", 10);
     LogicalType type2 = new DecimalFactory()
-            .create(Schema.Type.STRING, (Map) ImmutableMap.of("precision", 32, "scale", 10));
+            .fromSchema(stringSchema);
     runTests(type2);
     runTestFailure(type2);
 
+    Schema bytesSchema = Schema.create(Schema.Type.BYTES)
+            .withProp("precision", 32)
+            .withProp("scale", 10);
+
     LogicalType type = new DecimalFactory()
-            .create(Schema.Type.BYTES, (Map) ImmutableMap.of("precision", 32, "scale", 10));
+            .fromSchema(bytesSchema);
     runTests(type);
     runTestFailure(type2);
   }
 
   @Test
   public void testDecimalRoundingModeSerialization() {
+    Schema strSchema = Schema.create(Schema.Type.STRING)
+            .withProp("precision", 32)
+            .withProp("scale", 10)
+            .withProp("serRounding", RoundingMode.HALF_DOWN.DOWN);
     LogicalType type2 = new DecimalFactory()
-            .create(Schema.Type.STRING,
-                    (Map) ImmutableMap.of("precision", 32, "scale", 10, "serRounding", RoundingMode.HALF_DOWN.DOWN));
+            .fromSchema(strSchema);
     serializeDeserialize(type2, new BigDecimal("0.12345678910"), new BigDecimal(0.0000000001));
   }
 
   @Test
   public void testDecimalRoundingModeDeSerialization() {
+    Schema bytesSchema0 = Schema.create(Schema.Type.STRING)
+            .withProp("precision", 32)
+            .withProp("scale", 10)
+            .withProp("deserRounding", RoundingMode.HALF_DOWN.DOWN);
+
     LogicalType type2 = new DecimalFactory()
-            .create(Schema.Type.STRING,
-                    (Map) ImmutableMap.of("precision", 32, "scale", 10, "deserRounding", RoundingMode.HALF_DOWN.DOWN));
+            .fromSchema(bytesSchema0);
     BigDecimal nr2 = (BigDecimal) type2.deserialize("0.1234567891000124");
     Assert.assertTrue(new BigDecimal("0.1234567891000124").subtract(nr2).abs().compareTo(new BigDecimal(0.0000000001))
             < 0);
 
+    Schema bytesSchema = Schema.create(Schema.Type.BYTES)
+            .withProp("precision", 32)
+            .withProp("scale", 20)
+            .withProp("serRounding", RoundingMode.HALF_DOWN.DOWN)
+            .withProp("deserRounding", RoundingMode.HALF_DOWN.DOWN);
 
      LogicalType typex = new DecimalFactory()
-            .create(Schema.Type.BYTES,
-                    (Map) ImmutableMap.of("precision", 32, "scale", 20,
-                            "serRounding", RoundingMode.HALF_DOWN.DOWN,
-                            "deserRounding", RoundingMode.HALF_DOWN.DOWN));
+            .fromSchema(bytesSchema);
 
+     Schema bytesSchema2 = Schema.create(Schema.Type.BYTES)
+            .withProp("precision", 32)
+            .withProp("scale", 10)
+            .withProp("serRounding", RoundingMode.HALF_DOWN.DOWN)
+            .withProp("deserRounding", RoundingMode.HALF_DOWN.DOWN);
 
     LogicalType type1 = new DecimalFactory()
-            .create(Schema.Type.BYTES,
-                    (Map) ImmutableMap.of("precision", 32, "scale", 10,
-                            "serRounding", RoundingMode.HALF_DOWN.DOWN,
-                            "deserRounding", RoundingMode.HALF_DOWN.DOWN));
+           .fromSchema(bytesSchema2);
     ByteBuffer buf = (ByteBuffer) typex.serialize(new BigDecimal("0.1234567891000124"));
     nr2 = (BigDecimal) type1.deserialize(buf);
     Assert.assertTrue(new BigDecimal("0.1234567891000124").subtract(nr2).abs().compareTo(new BigDecimal(0.0000000001))

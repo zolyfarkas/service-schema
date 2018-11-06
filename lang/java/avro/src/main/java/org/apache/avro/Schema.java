@@ -174,6 +174,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
     return this;
   }
 
+  public Schema withProp(String name, Object value) {
+    addProp(name, value);
+    return this;
+  }
+
   /** Create an anonymous record schema. */
   public static Schema createRecord(List<Field> fields) {
     Schema result = createRecord(null, null, null, false);

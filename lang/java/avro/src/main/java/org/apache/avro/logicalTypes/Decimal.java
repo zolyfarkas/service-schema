@@ -35,7 +35,7 @@ import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.JsonExtensionEncoder;
 
 /**
- * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ * Decimal represents precision and scale limited decimal numbers.
  */
 public final class Decimal extends AbstractLogicalType<BigDecimal> {
 

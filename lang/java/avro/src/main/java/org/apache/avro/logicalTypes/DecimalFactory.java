@@ -22,8 +22,7 @@ import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.Schema;
 
 /**
- *
- * @author zfarkas
+ * factory for creating the decimal logical type.
  */
 public class DecimalFactory implements LogicalTypeFactory {
 
@@ -51,10 +50,22 @@ public class DecimalFactory implements LogicalTypeFactory {
   }
 
   @Override
-  public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new Decimal((Integer) attributes.get("precision"),
-            (Integer) attributes.get("scale"), schemaType, getRoundingMode(attributes, "serRounding"),
+  public LogicalType fromSchema(Schema schema) {
+    Map<String, Object> attributes = schema.getObjectProps();
+    if ("official".equals(attributes.get("format")) || Boolean.getBoolean("avro.defaultToStandardDecimalFormat")) {
+      return new AvroDecimal((Integer) attributes.get("scale"), schema);
+    } else {
+      return new Decimal((Integer) attributes.get("precision"),
+            (Integer) attributes.get("scale"), schema.getType(), getRoundingMode(attributes, "serRounding"),
             getRoundingMode(attributes, "deserRounding"));
+    }
+  }
+
+
+
+  @Override
+  public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
+    throw new UnsupportedOperationException();
   }
 
 }
