@@ -179,6 +179,31 @@ public abstract class Schema extends JsonProperties implements Serializable {
     return this;
   }
 
+  @Override
+  public void addJsonProps(Map<String, JsonNode> xtraProps) {
+    hashCode = NO_HASHCODE;
+    super.addJsonProps(xtraProps);
+  }
+
+  @Override
+  public void addProp(String name, Object value) {
+    hashCode = NO_HASHCODE;
+    super.addProp(name, value);
+  }
+
+  @Override
+  public void addProp(String name, JsonNode value) {
+    hashCode = NO_HASHCODE;
+    super.addProp(name, value);
+  }
+
+  @Override
+  public void addProp(String name, String value) {
+    hashCode = NO_HASHCODE;
+    super.addProp(name, value);
+  }
+
+
   /** Create an anonymous record schema. */
   public static Schema createRecord(List<Field> fields) {
     Schema result = createRecord(null, null, null, false);

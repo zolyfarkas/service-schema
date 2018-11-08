@@ -192,7 +192,7 @@ public abstract class JsonProperties {
       throw new AvroRuntimeException("Can't overwrite property: " + name + " old = " + old + ", value = " + value );
   }
 
-  public synchronized void addProp(String name, Object value) {
+  public void addProp(String name, Object value) {
     addProp(name, JacksonUtils.toJsonNode(value));
   }
 
