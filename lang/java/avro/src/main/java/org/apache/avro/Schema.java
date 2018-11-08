@@ -598,22 +598,33 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private final String name;
     private final String space;
     private final String full;
+    /**
+     * @param name if name is a fully qualified name, the space parameter value is being ignored.
+     * @param space namespace in case the name is not fully qualified.
+     */
     public Name(String name, String space) {
       if (name == null) {                         // anonymous
         this.name = this.space = this.full = null;
         return;
       }
-      int lastDot = name.lastIndexOf('.');
-      if (lastDot < 0) {                          // unqualified name
-        this.name = validateName(name);
-      } else {                                    // qualified name
-        space = name.substring(0, lastDot);       // ordinal space from name
-        this.name = validateName(name.substring(lastDot+1, name.length()));
+      int lastDol = name.lastIndexOf('$');
+      if (lastDol >= 0) {
+        space = name.substring(0, lastDol + 1);       // ordinal space from name
+        this.name = validateName(name.substring(lastDol + 1, name.length()));
+      } else {
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot < 0) {                          // unqualified name
+          this.name = validateName(name);
+        } else {                                    // qualified name
+          space = name.substring(0, lastDot);       // ordinal space from name
+          this.name = validateName(name.substring(lastDot + 1, name.length()));
+        }
       }
       if ("".equals(space))
         space = null;
       this.space = space;
-      this.full = (this.space == null) ? this.name : this.space+"."+this.name;
+      this.full = (this.space == null) ? this.name
+              : this.space.endsWith("$") ? this.space + this.name : this.space  + "." + this.name;
     }
     public boolean equals(Object o) {
       if (o == this) return true;
