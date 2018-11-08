@@ -3,14 +3,18 @@ protocol UnionFwd {
 
     record TestRecord {
       union {SR1, SR2} unionField;
+
+      SR1 field;
     }
 
     record SR1 {
       string field;
+      union {null, SR2} field2 = null;
     }
 
     record SR2 {
       string field;
+      union {null, SR1} field2 = null;
     }
 
 }
