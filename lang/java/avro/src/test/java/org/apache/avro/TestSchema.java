@@ -17,11 +17,13 @@
  */
 package org.apache.avro;
 
+import com.google.common.io.Resources;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -124,6 +126,13 @@ public class TestSchema {
     Schema sp = (Schema) ois.readObject();
     Assert.assertEquals(payload, sp);
     ois.close();
+  }
+
+  @Test
+  public void testSchemaAttr() throws IOException {
+    Schema s = new Schema.Parser().parse(Resources.toString(Resources.getResource("TestSchema.avsc"),
+            StandardCharsets.UTF_8));
+    Assert.assertTrue(s.getProp("beta") != null);
   }
 
 

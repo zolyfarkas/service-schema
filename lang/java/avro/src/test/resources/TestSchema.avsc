@@ -1,0 +1,146 @@
+{
+  "type" : "record",
+  "name" : "JThrowable",
+  "namespace" : "org.spf4j.base.avro",
+  "doc" : "a throwable",
+  "fields" : [ {
+    "name" : "className",
+    "type" : "string",
+    "doc" : "exception class name"
+  }, {
+    "name" : "message",
+    "type" : [ "null", "string" ],
+    "doc" : "exception message, java exception messages can be null",
+    "default" : null
+  }, {
+    "name" : "stackTrace",
+    "type" : {
+      "type" : "array",
+      "items" : {
+        "type" : "record",
+        "name" : "JStackTraceElement",
+        "doc" : "record representing the samples where a particular method was executed",
+        "fields" : [ {
+          "name" : "className",
+          "type" : "string",
+          "doc" : "java class name"
+        }, {
+          "name" : "methodName",
+          "type" : "string",
+          "doc" : "java method name"
+        }, {
+          "name" : "location",
+          "type" : [ "null", {
+            "type" : "record",
+            "name" : "JFileLocation",
+            "doc" : "a location in a file",
+            "fields" : [ {
+              "name" : "fileName",
+              "type" : "string",
+              "doc" : "file name"
+            }, {
+              "name" : "lineNumber",
+              "type" : "int",
+              "doc" : "line number"
+            }, {
+              "name" : "someField",
+              "type" : "string",
+              "doc" : "place on the moon",
+              "default" : ""
+            } ],
+            "mvnId" : "org.spf4j:test-schema:3.0:4"
+          } ],
+          "doc" : "location, null when no location available"
+        }, {
+          "name" : "packageInfo",
+          "type" : [ "null", {
+            "type" : "record",
+            "name" : "JPackageInfo",
+            "doc" : "record representing a jar archive info",
+            "fields" : [ {
+              "name" : "url",
+              "type" : "string",
+              "doc" : "the package url",
+              "default" : ""
+            }, {
+              "name" : "version",
+              "type" : "string",
+              "doc" : "version from manifest",
+              "default" : ""
+            }, {
+              "name" : "kv",
+              "type" : {
+                "type" : "record",
+                "name" : "LocalKeyValue",
+                "doc" : "record representing a key value pair",
+                "fields" : [ {
+                  "name" : "key",
+                  "type" : "string",
+                  "doc" : "the key"
+                }, {
+                  "name" : "value",
+                  "type" : [ "null", "string" ],
+                  "doc" : "the value, value can be null to allow storing everything a java String field can",
+                  "default" : null
+                } ],
+                "mvnId" : "org.spf4j:test-schema:3.0:2"
+              },
+              "doc" : "some key value for test",
+              "default" : {
+                "key" : "la",
+                "value" : null
+              }
+            } ],
+            "mvnId" : "org.spf4j:test-schema:3.0:3"
+          } ],
+          "doc" : "package info, null when no package info is available"
+        } ],
+        "mvnId" : "org.spf4j:test-schema:3.0:5"
+      }
+    },
+    "doc" : "the stack trace",
+    "default" : [ ]
+  }, {
+    "name" : "cause",
+    "type" : [ "null", "JThrowable" ],
+    "doc" : "exception cause, null when there is no cause",
+    "default" : null
+  }, {
+    "name" : "suppressed",
+    "type" : {
+      "type" : "array",
+      "items" : "JThrowable"
+    },
+    "doc" : "suppressed exceptions",
+    "default" : [ ]
+  }, {
+    "name" : "values",
+    "type" : {
+      "type" : "array",
+      "items" : {
+        "type" : "record",
+        "name" : "KeyValue",
+        "doc" : "record representing a key value pair",
+        "fields" : [ {
+          "name" : "key",
+          "type" : "string",
+          "doc" : "the key"
+        }, {
+          "name" : "value",
+          "type" : [ "null", "string" ],
+          "doc" : "the value, value can be null to allow storing everything a java String field can",
+          "default" : null
+        } ],
+        "mvnId" : "org.spf4j:test-schema:3.0:1"
+      }
+    },
+    "doc" : "some key values",
+    "default" : [ ]
+  }, {
+    "name" : "breakBuild",
+    "type" : "string",
+    "doc" : "field to break the build"
+  } ],
+  "beta" : "",
+  "mvnId" : "org.spf4j:test-schema:3.0:6"
+}
