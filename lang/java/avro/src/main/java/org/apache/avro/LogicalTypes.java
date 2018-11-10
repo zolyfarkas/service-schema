@@ -90,6 +90,11 @@ public class LogicalTypes {
       return fromSchema(schema, Boolean.getBoolean("allowUndefinedLogicalTypes"));
   }
 
+
+  public static LogicalType fromSchemaIgnoreInvalid(Schema schema) {
+    return fromSchema(schema, true);
+  }
+
   /**
    * for avro official compatibility.
    */
