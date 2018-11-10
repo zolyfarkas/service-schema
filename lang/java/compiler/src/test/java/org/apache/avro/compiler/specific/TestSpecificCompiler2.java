@@ -21,9 +21,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.avro.AvroTestUtil;
 import org.apache.avro.Schema;
@@ -39,6 +41,8 @@ import javax.tools.ToolProvider;
 import org.apache.avro.Protocol;
 import org.apache.avro.compiler.idl.Idl;
 import org.apache.avro.compiler.idl.ParseException;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 
 @RunWith(JUnit4.class)
 public class TestSpecificCompiler2 {
@@ -99,6 +103,8 @@ public class TestSpecificCompiler2 {
     SpecificCompiler compiler = createCompiler();
     compiler.compileToDestination(this.src, this.outputDir);
     assertTrue(this.outputFile.exists());
+    String javaClass = Files.readAllLines(this.outputFile.toPath()).stream().collect(Collectors.joining("\n"));
+    Assert.assertThat(javaClass, CoreMatchers.containsString("java.math.BigDecimal"));
   }
 
 
