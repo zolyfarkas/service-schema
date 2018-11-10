@@ -13,6 +13,7 @@ protocol UnionFwd {
     }
 
     record SR2 {
+      @logicalType("decimal")
       string field;
       union {null, SR1} field2 = null;
     }
