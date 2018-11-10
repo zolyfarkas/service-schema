@@ -85,18 +85,23 @@ public class LogicalTypes {
     }
   }
 
+  @Nullable
+  public static LogicalType fromSchema(Schema schema) {
+      return fromSchema(schema, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+  }
+
   /**
    * for avro official compatibility.
    */
   @Nullable
-  public static LogicalType fromSchema(Schema schema) {
+  public static LogicalType fromSchema(Schema schema, final boolean allowUndefinedLogicalTypes) {
     String typeName = (String) schema.getProp(LogicalType.LOGICAL_TYPE_PROP);
     if (typeName != null) {
       org.apache.avro.LogicalTypeFactory ltf = REGISTERED_TYPES.get(typeName);
       if (ltf != null) {
         return ltf.fromSchema(schema);
       } else {
-        if (Boolean.getBoolean("allowUndefinedLogicalTypes"))  {
+        if (allowUndefinedLogicalTypes)  {
           return null;
         } else {
           throw new IllegalArgumentException("Undefined logical type "  + typeName + " for " + schema);

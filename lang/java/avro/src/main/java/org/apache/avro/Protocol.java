@@ -362,12 +362,21 @@ public class Protocol extends JsonProperties {
 
   /** Read a protocol from a Json file. */
   public static Protocol parse(File file) throws IOException {
-    return parse(Schema.FACTORY.createJsonParser(file));
+      return parse(file, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+  }
+
+  /** Read a protocol from a Json file. */
+  public static Protocol parse(File file, final boolean allowUndefinedLogicalTypes) throws IOException {
+    return parse(Schema.FACTORY.createJsonParser(file), allowUndefinedLogicalTypes);
+  }
+
+  public static Protocol parse(InputStream stream) throws IOException {
+    return parse(stream, Boolean.getBoolean("allowUndefinedLogicalTypes"));
   }
 
   /** Read a protocol from a Json stream. */
-  public static Protocol parse(InputStream stream) throws IOException {
-    return parse(Schema.FACTORY.createJsonParser(stream));
+  public static Protocol parse(InputStream stream, final boolean allowUndefinedLogicalTypes) throws IOException {
+    return parse(Schema.FACTORY.createJsonParser(stream), allowUndefinedLogicalTypes);
   }
 
   /** Read a protocol from one or more json strings */
@@ -380,28 +389,33 @@ public class Protocol extends JsonProperties {
 
   /** Read a protocol from a Json string. */
   public static Protocol parse(String string) {
+    return parse(string, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+  }
+
+  /** Read a protocol from a Json string. */
+  public static Protocol parse(String string, final boolean allowUndefinedLogicalTypes) {
     try {
-      return parse(Schema.FACTORY.createJsonParser(new StringReader(string)));
+      return parse(Schema.FACTORY.createJsonParser(new StringReader(string)), allowUndefinedLogicalTypes);
     } catch (IOException e) {
       throw new AvroRuntimeException(e);
     }
   }
 
-  private static Protocol parse(JsonParser parser) {
+  private static Protocol parse(JsonParser parser, final boolean allowUndefinedLogicalTypes) {
     try {
       Protocol protocol = new Protocol();
-      protocol.parse(Schema.MAPPER.readTree(parser));
+      protocol.parse(Schema.MAPPER.readTree(parser), allowUndefinedLogicalTypes);
       return protocol;
     } catch (IOException e) {
       throw new SchemaParseException(e);
     }
   }
 
-  private void parse(JsonNode json) {
+  private void parse(JsonNode json, final boolean allowUndefinedLogicalTypes) {
     parseNamespace(json);
     parseName(json);
-    parseTypes(json);
-    parseMessages(json);
+    parseTypes(json, allowUndefinedLogicalTypes);
+    parseMessages(json, allowUndefinedLogicalTypes);
     parseDoc(json);
     parseProps(json);
   }
@@ -430,7 +444,7 @@ public class Protocol extends JsonProperties {
     this.name = nameNode.getTextValue();
   }
 
-  private void parseTypes(JsonNode json) {
+  private void parseTypes(JsonNode json, final boolean allowUndefinedLogicalTypes) {
     JsonNode defs = json.get("types");
     if (defs == null) return;                    // no types defined
     if (!defs.isArray())
@@ -438,7 +452,7 @@ public class Protocol extends JsonProperties {
     for (JsonNode type : defs) {
       if (!type.isObject())
         throw new SchemaParseException("Type not an object: "+type);
-      Schema.parse(type, types);
+      Schema.parse(type, types, allowUndefinedLogicalTypes);
     }
   }
 
@@ -450,16 +464,16 @@ public class Protocol extends JsonProperties {
     }
   }
 
-  private void parseMessages(JsonNode json) {
+  private void parseMessages(JsonNode json, final boolean allowUndefinedLogicalTypes) {
     JsonNode defs = json.get("messages");
     if (defs == null) return;                    // no messages defined
     for (Iterator<String> i = defs.getFieldNames(); i.hasNext();) {
       String prop = i.next();
-      this.messages.put(prop, parseMessage(prop, defs.get(prop)));
+      this.messages.put(prop, parseMessage(prop, defs.get(prop), allowUndefinedLogicalTypes));
     }
   }
 
-  private Message parseMessage(String messageName, JsonNode json) {
+  private Message parseMessage(String messageName, JsonNode json, final boolean allowUndefinedLogicalTypes) {
     String doc = parseDocNode(json);
 
     Map<String,JsonNode> mProps = new LinkedHashMap<String,JsonNode>();
@@ -481,7 +495,7 @@ public class Protocol extends JsonProperties {
       if (fieldTypeNode == null)
         throw new SchemaParseException("No param type: "+field);
       String name = fieldNameNode.getTextValue();
-      fields.add(new Field(name, Schema.parse(fieldTypeNode,types),
+      fields.add(new Field(name, Schema.parse(fieldTypeNode, types, allowUndefinedLogicalTypes),
                            null /* message fields don't have docs */,
                            field.get("default")));
     }
@@ -505,12 +519,12 @@ public class Protocol extends JsonProperties {
       if (decls != null)
         throw new SchemaParseException("one-way can't have errors: "+json);
       if (responseNode != null
-          && Schema.parse(responseNode, types).getType() != Schema.Type.NULL)
+          && Schema.parse(responseNode, types, allowUndefinedLogicalTypes).getType() != Schema.Type.NULL)
         throw new SchemaParseException("One way response must be null: "+json);
       return new Message(messageName, doc, mProps, request);
     }
 
-    Schema response = Schema.parse(responseNode, types);
+    Schema response = Schema.parse(responseNode, types, allowUndefinedLogicalTypes);
 
     List<Schema> errs = new ArrayList<Schema>();
     errs.add(SYSTEM_ERROR);                       // every method can throw

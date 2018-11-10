@@ -1329,10 +1329,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return parse(FACTORY.createJsonParser(file));
     }
 
+    public Schema parse(InputStream in) throws IOException {
+      return parse(in, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+    }
+
     /** Parse a schema from the provided stream.
      * If named, the schema is added to the names known to this parser. */
-    public Schema parse(InputStream in) throws IOException {
-      return parse(FACTORY.createJsonParser(in));
+    public Schema parse(InputStream in, final boolean allowUndefinedLogicalTypes) throws IOException {
+      return parse(FACTORY.createJsonParser(in), allowUndefinedLogicalTypes);
     }
 
     /** Read a schema from one or more json strings */
@@ -1343,23 +1347,30 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return parse(b.toString());
     }
 
+    public Schema parse(String s) {
+      return parse(s, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+    }
     /** Parse a schema from the provided string.
      * If named, the schema is added to the names known to this parser. */
-    public Schema parse(String s) {
+    public Schema parse(String s, final boolean allowUndefinedLogicalTypes) {
       try {
-        return parse(FACTORY.createJsonParser(new StringReader(s)));
+        return parse(FACTORY.createJsonParser(new StringReader(s)), allowUndefinedLogicalTypes);
       } catch (IOException e) {
         throw new SchemaParseException(e);
       }
     }
 
     public Schema parse(JsonParser parser) throws IOException {
+      return parse(parser, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+    }
+
+    public Schema parse(JsonParser parser, final boolean allowUndefinedLogicalTypes) throws IOException {
       boolean saved = validateNames.get();
       boolean savedValidateDefaults = VALIDATE_DEFAULTS.get();
       try {
         validateNames.set(validate);
         VALIDATE_DEFAULTS.set(validateDefaults);
-        return Schema.parse(MAPPER.readTree(parser), names);
+        return Schema.parse(MAPPER.readTree(parser), names, allowUndefinedLogicalTypes);
       } catch (JsonParseException e) {
         throw new SchemaParseException(e);
       } finally {
@@ -1558,7 +1569,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   /** @see #parse(String) */
-  static Schema parse(JsonNode schema, Names names) {
+  static Schema parse(JsonNode schema, Names names, final boolean allowUndefinedLogicalTypes) {
     if (schema.isTextual()) {                     // name
       Schema result = names.get(schema.getTextValue());
       if (result == null)
@@ -1605,7 +1616,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
               (fieldTypeNode+" is not a defined name."
                +" The type of the \""+fieldName+"\" field must be"
                +" a defined name or a {\"type\": ...} expression.");
-          Schema fieldSchema = parse(fieldTypeNode, names);
+          Schema fieldSchema = parse(fieldTypeNode, names, allowUndefinedLogicalTypes);
           Field.Order order = Field.Order.ASCENDING;
           JsonNode orderNode = field.get("order");
           if (orderNode != null)
@@ -1655,12 +1666,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
         JsonNode itemsNode = schema.get("items");
         if (itemsNode == null)
           throw new SchemaParseException("Array has no items type: "+schema);
-        result = new ArraySchema(parse(itemsNode, names));
+        result = new ArraySchema(parse(itemsNode, names, allowUndefinedLogicalTypes));
       } else if ("map".equals(type)) {            // map
         JsonNode valuesNode = schema.get("values");
         if (valuesNode == null)
           throw new SchemaParseException("Map has no values type: "+schema);
-        result = new MapSchema(parse(valuesNode, names));
+        result = new MapSchema(parse(valuesNode, names, allowUndefinedLogicalTypes));
       } else if ("fixed".equals(type)) {          // fixed
         JsonNode sizeNode = schema.get("size");
         if (sizeNode == null || !sizeNode.isInt())
@@ -1676,7 +1687,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         if (!reserved.contains(prop))      // ignore reserved
           result.addProp(prop, schema.get(prop));
       }
-      LogicalType logicalType = LogicalTypes.fromSchema(result);
+      LogicalType logicalType = LogicalTypes.fromSchema(result, allowUndefinedLogicalTypes);
       if (logicalType != null) {
           result.setLogicalType(logicalType);
       }
@@ -1692,7 +1703,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       LockableArrayList<Schema> types =
         new LockableArrayList<Schema>(schema.size());
       for (JsonNode typeNode : schema)
-        types.add(parse(typeNode, names));
+        types.add(parse(typeNode, names, allowUndefinedLogicalTypes));
       return new UnionSchema(types);
     } else {
       throw new SchemaParseException("Schema not yet supported: "+schema);
