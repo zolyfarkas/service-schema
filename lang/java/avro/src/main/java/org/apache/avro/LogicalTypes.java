@@ -52,7 +52,6 @@ public class LogicalTypes {
         register(iterator.next());
      }
      Logger.getLogger("avro.LogicalTypes").log(Level.FINE, "LogicalTypes loaded {0}", REGISTERED_TYPES.keySet());
-     System.out.println("LogicalTypes loaded " + REGISTERED_TYPES.keySet());
   }
 
   /**
