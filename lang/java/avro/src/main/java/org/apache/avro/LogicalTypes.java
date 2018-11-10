@@ -109,8 +109,12 @@ public class LogicalTypes {
     }
   }
 
-  public void setAllowUndefinedLogicalTypesThreadLocal(final Boolean isAllowUndefinedLogicalTypes) {
+  public static void setAllowUndefinedLogicalTypesThreadLocal(final Boolean isAllowUndefinedLogicalTypes) {
     ALLOW_UNDEF_LT.set(isAllowUndefinedLogicalTypes);
+  }
+
+  public static Boolean getAllowUndefinedLogicalTypesThreadLocal() {
+    return ALLOW_UNDEF_LT.get();
   }
 
   /**

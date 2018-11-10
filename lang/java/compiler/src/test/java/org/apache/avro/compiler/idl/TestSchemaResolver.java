@@ -18,6 +18,7 @@ package org.apache.avro.compiler.idl;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import org.apache.avro.LogicalTypes;
 
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
@@ -47,6 +48,7 @@ public class TestSchemaResolver {
     String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"
         + File.separator + "idl" + File.separator + "cycle/complex.avdl";
     Idl compiler = new Idl(new File(testIdl));
+    compiler.setIsAllowUndefinedLogicalTypes(true);
     Protocol protocol = compiler.CompilationUnit();
     System.out.println(protocol);
     Assert.assertEquals(94, protocol.getTypes().size());

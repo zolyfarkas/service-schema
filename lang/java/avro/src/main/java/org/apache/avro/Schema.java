@@ -283,6 +283,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
     this.hashCode = NO_HASHCODE;
   }
 
+  public void parseLogicalType(final boolean allowUndefinedLogicalTypes) {
+    if (this.logicalType == null) {
+      this.logicalType = LogicalTypes.fromSchema(this, allowUndefinedLogicalTypes);
+      this.hashCode = NO_HASHCODE;
+    }
+  }
+
   protected boolean equalLogicalTypes(@Nullable Schema other) {
     if (logicalType == null) {
       return other.logicalType == null;
@@ -1687,10 +1694,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         if (!reserved.contains(prop))      // ignore reserved
           result.addProp(prop, schema.get(prop));
       }
-      LogicalType logicalType = LogicalTypes.fromSchema(result, allowUndefinedLogicalTypes);
-      if (logicalType != null) {
-          result.setLogicalType(logicalType);
-      }
+      result.parseLogicalType(allowUndefinedLogicalTypes);
       names.space(savedSpace);                  // restore space
       if (result instanceof NamedSchema) {
         Set<String> aliases = parseAliases(schema);

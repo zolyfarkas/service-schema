@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import org.apache.avro.AvroTypeException;
-import org.apache.avro.LogicalType;
-import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.schema.SchemaVisitor;
@@ -23,15 +21,16 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
 
   private final IdentityHashMap<Schema, Schema> replace;
   private final Function<String, Schema> symbolTable;
-
+  private final boolean  allowUndefinedLogicalTypes;
   private final Schema root;
 
 
   public ResolvingVisitor(final Schema root, final IdentityHashMap<Schema, Schema> replace,
-          final Function<String, Schema> symbolTable) {
+          final Function<String, Schema> symbolTable, final boolean  allowUndefinedLogicalTypes) {
     this.replace = replace;
     this.symbolTable = symbolTable;
     this.root = root;
+    this.allowUndefinedLogicalTypes = allowUndefinedLogicalTypes;
   }
 
   @Override
@@ -78,12 +77,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
   }
 
   private void materializeLogicalType(final Schema schema) {
-    if (schema.getLogicalType() == null) {
-      LogicalType lt = LogicalTypes.fromSchema(schema);
-      if (lt != null) {
-        lt.addToSchema(schema);
-      }
-    }
+    schema.parseLogicalType(allowUndefinedLogicalTypes);
   }
 
   public static void copyAllProperties(final Schema first, final Schema second) {
@@ -116,7 +110,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
           if (replacement == null) {
             try {
             replace.put(nt, Schemas.visit(resSchema, new ResolvingVisitor(resSchema,
-                    replace, symbolTable)));
+                    replace, symbolTable, allowUndefinedLogicalTypes)));
             } catch (StackOverflowError err) {
               throw new IllegalStateException("Stack overflow while resolving " + resSchema.getName());
             }

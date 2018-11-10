@@ -90,14 +90,15 @@ final class SchemaResolver {
    * @param protocol
    * @return
    */
-  static Protocol resolve(final Protocol protocol) {
+  static Protocol resolve(final Protocol protocol, final boolean allowUndefinedLogicalTypes) {
     Protocol result = new Protocol(protocol.getName(), protocol.getDoc(), protocol.getNamespace());
     final Collection<Schema> types = protocol.getTypes();
     // replace unresolved schemas.
     List<Schema> newSchemas = new ArrayList(types.size());
     IdentityHashMap<Schema, Schema> replacements = new IdentityHashMap<Schema, Schema>();
     for (Schema schema : types) {
-      newSchemas.add(Schemas.visit(schema, new ResolvingVisitor(schema, replacements, new SymbolTable(protocol))));
+      newSchemas.add(Schemas.visit(schema, new ResolvingVisitor(schema, replacements,
+              new SymbolTable(protocol), allowUndefinedLogicalTypes)));
     }
     result.setTypes(newSchemas); // replace types with resolved ones
 
@@ -106,13 +107,13 @@ final class SchemaResolver {
       Protocol.Message value = entry.getValue();
       Protocol.Message nvalue;
       if (value.isOneWay()) {
-        Schema replacement = resolve(replacements, value.getRequest(), protocol);
+        Schema replacement = resolve(replacements, value.getRequest(), protocol, allowUndefinedLogicalTypes);
         nvalue = result.createMessage(value.getName(), value.getDoc(),
             value.getObjectProps(), replacement);
       } else {
-        Schema request = resolve(replacements, value.getRequest(), protocol);
-        Schema response = resolve(replacements, value.getResponse(), protocol);
-        Schema errors = resolve(replacements, value.getErrors(), protocol);
+        Schema request = resolve(replacements, value.getRequest(), protocol, allowUndefinedLogicalTypes);
+        Schema response = resolve(replacements, value.getResponse(), protocol, allowUndefinedLogicalTypes);
+        Schema errors = resolve(replacements, value.getErrors(), protocol, allowUndefinedLogicalTypes);
         nvalue = result.createMessage(value.getName(), value.getDoc(),
             value.getObjectProps(), request, response, errors);
       }
@@ -123,11 +124,12 @@ final class SchemaResolver {
   }
 
   private static Schema resolve(final IdentityHashMap<Schema, Schema> replacements,
-                                final Schema request, final Protocol protocol) {
+                                final Schema request, final Protocol protocol,
+                                final boolean allowUndefinedLogicalTypes) {
     Schema replacement = replacements.get(request);
     if (replacement == null) {
       replacement = Schemas.visit(request, new ResolvingVisitor(request, replacements,
-          new SymbolTable(protocol)));
+          new SymbolTable(protocol), allowUndefinedLogicalTypes));
     }
     return replacement;
   }
