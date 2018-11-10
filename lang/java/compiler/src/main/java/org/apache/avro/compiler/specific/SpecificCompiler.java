@@ -42,6 +42,7 @@ import org.apache.avro.SchemaNormalization;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.StringType;
+import org.apache.avro.specific.Beta;
 import org.apache.avro.specific.SpecificData;
 import org.apache.commons.compress.utils.Charsets;
 import org.apache.velocity.Template;
@@ -680,6 +681,9 @@ public class SpecificCompiler {
     }
     if (props.getProp("deprecated") != null && (!(props instanceof Field) || !this.deprecatedFields())) {
       annotations.add(Deprecated.class.getName());
+    }
+    if (props.getProp("beta") != null) {
+      annotations.add(Beta.class.getName());
     }
     return annotations.toArray(new String[annotations.size()]);
   }
