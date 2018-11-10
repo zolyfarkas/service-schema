@@ -99,7 +99,7 @@ public class LogicalTypes {
         if (Boolean.getBoolean("allowUndefinedLogicalTypes"))  {
           return null;
         } else {
-          throw new IllegalArgumentException("Undefined logical type " + schema);
+          throw new IllegalArgumentException("Undefined logical type "  + typeName + " for " + schema);
         }
       }
     } else {
