@@ -52,6 +52,7 @@ public class LogicalTypes {
         register(iterator.next());
      }
      Logger.getLogger("avro.LogicalTypes").log(Level.FINE, "LogicalTypes loaded {0}", REGISTERED_TYPES.keySet());
+     System.out.println("LogicalTypes loaded " + REGISTERED_TYPES.keySet());
   }
 
   /**
@@ -90,12 +91,16 @@ public class LogicalTypes {
 
   @Nullable
   public static LogicalType fromSchema(Schema schema) {
-      return fromSchema(schema, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+      return fromSchema(schema, isAllowUndefinedLogicalTypes());
   }
 
 
   public static LogicalType fromSchemaIgnoreInvalid(Schema schema) {
     return fromSchema(schema, true);
+  }
+
+  public static boolean isAllowUndefinedLogicalTypes() {
+    return Boolean.getBoolean("allowUndefinedLogicalTypes");
   }
 
   /**

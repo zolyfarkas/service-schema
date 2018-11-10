@@ -362,7 +362,7 @@ public class Protocol extends JsonProperties {
 
   /** Read a protocol from a Json file. */
   public static Protocol parse(File file) throws IOException {
-      return parse(file, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+      return parse(file, LogicalTypes.isAllowUndefinedLogicalTypes());
   }
 
   /** Read a protocol from a Json file. */
@@ -371,7 +371,7 @@ public class Protocol extends JsonProperties {
   }
 
   public static Protocol parse(InputStream stream) throws IOException {
-    return parse(stream, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+    return parse(stream, LogicalTypes.isAllowUndefinedLogicalTypes());
   }
 
   /** Read a protocol from a Json stream. */
@@ -389,7 +389,7 @@ public class Protocol extends JsonProperties {
 
   /** Read a protocol from a Json string. */
   public static Protocol parse(String string) {
-    return parse(string, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+    return parse(string, LogicalTypes.isAllowUndefinedLogicalTypes());
   }
 
   /** Read a protocol from a Json string. */

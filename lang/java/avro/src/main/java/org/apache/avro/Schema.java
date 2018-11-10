@@ -1330,7 +1330,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     public Schema parse(InputStream in) throws IOException {
-      return parse(in, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+      return parse(in, LogicalTypes.isAllowUndefinedLogicalTypes());
     }
 
     /** Parse a schema from the provided stream.
@@ -1348,7 +1348,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     public Schema parse(String s) {
-      return parse(s, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+      return parse(s, LogicalTypes.isAllowUndefinedLogicalTypes());
     }
     /** Parse a schema from the provided string.
      * If named, the schema is added to the names known to this parser. */
@@ -1361,7 +1361,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     public Schema parse(JsonParser parser) throws IOException {
-      return parse(parser, Boolean.getBoolean("allowUndefinedLogicalTypes"));
+      return parse(parser, LogicalTypes.isAllowUndefinedLogicalTypes());
     }
 
     public Schema parse(JsonParser parser, final boolean allowUndefinedLogicalTypes) throws IOException {
