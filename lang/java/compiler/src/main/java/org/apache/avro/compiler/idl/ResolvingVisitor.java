@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import org.apache.avro.AvroTypeException;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.schema.SchemaVisitor;
@@ -70,8 +72,18 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
         throw new IllegalStateException("Unsupported schema " + terminal);
     }
     copyAllProperties(terminal, newSchema);
+    materializeLogicalType(newSchema);
     replace.put(terminal, newSchema);
     return SchemaVisitorAction.CONTINUE;
+  }
+
+  private void materializeLogicalType(final Schema schema) {
+    if (schema.getLogicalType() == null) {
+      LogicalType lt = LogicalTypes.fromSchema(schema);
+      if (lt != null) {
+        lt.addToSchema(schema);
+      }
+    }
   }
 
   public static void copyAllProperties(final Schema first, final Schema second) {
@@ -115,6 +127,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
           // create a fieldless clone. Fields will be added in afterVisitNonTerminal.
           Schema newSchema = Schema.createRecord(nt.getName(), nt.getDoc(), nt.getNamespace(), nt.isError());
           copyAllProperties(nt, newSchema);
+          materializeLogicalType(newSchema);
           replace.put(nt, newSchema);
         }
     }
