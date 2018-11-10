@@ -105,6 +105,7 @@ public class TestSpecificCompiler2 {
     assertTrue(this.outputFile.exists());
     String javaClass = Files.readAllLines(this.outputFile.toPath()).stream().collect(Collectors.joining("\n"));
     Assert.assertThat(javaClass, CoreMatchers.containsString("java.math.BigDecimal"));
+    Assert.assertThat(javaClass, CoreMatchers.containsString("org.apache.avro.specific.Beta"));
   }
 
 

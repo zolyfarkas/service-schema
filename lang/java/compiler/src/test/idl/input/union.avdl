@@ -12,6 +12,7 @@ protocol UnionFwd {
       union {null, SR2} field2 = null;
     }
 
+    @beta
     record SR2 {
       @logicalType("decimal")
       string field;
