@@ -52,11 +52,13 @@ public class DecimalFactory implements LogicalTypeFactory {
   @Override
   public LogicalType fromSchema(Schema schema) {
     Map<String, Object> attributes = schema.getObjectProps();
+    Number scale = (Number) attributes.get("scale");
     if ("official".equals(attributes.get("format")) || Boolean.getBoolean("avro.defaultToStandardDecimalFormat")) {
-      return new AvroDecimal((Integer) attributes.get("scale"), schema);
+      return new AvroDecimal(scale == null ? null : scale.intValue(), schema);
     } else {
-      return new Decimal((Integer) attributes.get("precision"),
-            (Integer) attributes.get("scale"), schema.getType(), getRoundingMode(attributes, "serRounding"),
+      Number precision = (Number) attributes.get("precision");
+      return new Decimal(precision == null ? null : precision.intValue(),
+            scale == null ? null : scale.intValue(), schema.getType(), getRoundingMode(attributes, "serRounding"),
             getRoundingMode(attributes, "deserRounding"));
     }
   }
