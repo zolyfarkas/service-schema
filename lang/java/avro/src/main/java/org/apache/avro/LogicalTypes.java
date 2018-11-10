@@ -99,8 +99,19 @@ public class LogicalTypes {
     return fromSchema(schema, true);
   }
 
+  private static final ThreadLocal<Boolean> ALLOW_UNDEF_LT = new ThreadLocal<>();
+
   public static boolean isAllowUndefinedLogicalTypes() {
-    return Boolean.getBoolean("allowUndefinedLogicalTypes");
+    Boolean tlb = ALLOW_UNDEF_LT.get();
+    if (tlb == null) {
+      return Boolean.getBoolean("allowUndefinedLogicalTypes");
+    } else {
+      return tlb;
+    }
+  }
+
+  public void setAllowUndefinedLogicalTypesThreadLocal(final Boolean isAllowUndefinedLogicalTypes) {
+    ALLOW_UNDEF_LT.set(isAllowUndefinedLogicalTypes);
   }
 
   /**
