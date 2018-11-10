@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.logicalTypes.AnyTemporalFactory;
@@ -49,6 +51,7 @@ public class LogicalTypes {
      while (iterator.hasNext()) {
         register(iterator.next());
      }
+     Logger.getLogger("avro.LogicalTypes").log(Level.FINE, "LogicalTypes loaded {0}", REGISTERED_TYPES.keySet());
   }
 
   /**
