@@ -20,16 +20,15 @@ import org.junit.Test;
 
 public class TestLogicalType {
 
-
   @Test
   public void testJsonRecord() throws IOException {
     Schema bytes = Schema.create(Schema.Type.BYTES);
     bytes.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_record");
-    bytes.setLogicalType(LogicalTypes.fromSchema(bytes));
-
-      Schema bytes2 = Schema.create(Schema.Type.BYTES);
-      bytes2.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_array");
-      bytes2.setLogicalType(LogicalTypes.fromSchema(bytes2));
+    LogicalType lt = LogicalTypes.fromSchema(bytes);
+    bytes.setLogicalType(lt);
+    Schema bytes2 = Schema.create(Schema.Type.BYTES);
+    bytes2.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_array");
+    bytes2.setLogicalType(LogicalTypes.fromSchema(bytes2));
 
     Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
             .name("jsonField").type(bytes)
@@ -53,16 +52,15 @@ public class TestLogicalType {
 
   }
 
-
   @Test
   public void testJsonRecordLenientParse() throws IOException {
     Schema bytes = Schema.create(Schema.Type.BYTES);
     bytes.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_record");
     bytes.setLogicalType(LogicalTypes.fromSchema(bytes));
 
-      Schema bytes2 = Schema.create(Schema.Type.BYTES);
-      bytes2.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_array");
-      bytes2.setLogicalType(LogicalTypes.fromSchema(bytes2));
+    Schema bytes2 = Schema.create(Schema.Type.BYTES);
+    bytes2.addProp(LogicalType.LOGICAL_TYPE_PROP, "json_array");
+    bytes2.setLogicalType(LogicalTypes.fromSchema(bytes2));
 
     Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
             .name("jsonField").type(bytes)
@@ -86,30 +84,28 @@ public class TestLogicalType {
 
   }
 
-
   @Test
   public void testDecimalWithNonByteArrayOrStringTypes() {
     // test simple types
-    Schema[] nonBytes = new Schema[] {
-        Schema.createRecord("Record", null, null, false),
-        Schema.createArray(Schema.create(Schema.Type.BYTES)),
-        Schema.createMap(Schema.create(Schema.Type.BYTES)),
-        Schema.createEnum("Enum", null, null, Arrays.asList("a", "b")),
-        Schema.create(Schema.Type.BOOLEAN), Schema.create(Schema.Type.INT),
-        Schema.create(Schema.Type.LONG), Schema.create(Schema.Type.FLOAT),
-        Schema.create(Schema.Type.DOUBLE), Schema.create(Schema.Type.NULL)};
+    Schema[] nonBytes = new Schema[]{
+      Schema.createRecord("Record", null, null, false),
+      Schema.createArray(Schema.create(Schema.Type.BYTES)),
+      Schema.createMap(Schema.create(Schema.Type.BYTES)),
+      Schema.createEnum("Enum", null, null, Arrays.asList("a", "b")),
+      Schema.create(Schema.Type.BOOLEAN), Schema.create(Schema.Type.INT),
+      Schema.create(Schema.Type.LONG), Schema.create(Schema.Type.FLOAT),
+      Schema.create(Schema.Type.DOUBLE), Schema.create(Schema.Type.NULL)};
     for (final Schema schema : nonBytes) {
       schema.addProp(LogicalType.LOGICAL_TYPE_PROP, "decimal");
       try {
-       LogicalTypes.fromSchema(schema);
-       Assert.fail("should not be able to create " + schema);
+        LogicalTypes.fromSchema(schema);
+        Assert.fail("should not be able to create " + schema);
       } catch (IllegalArgumentException ex) {
         // expected
       }
 
     }
   }
-
 
   public static void assertEqualsTrue(String message, Object o1, Object o2) {
     Assert.assertTrue("Should be equal (forward): " + message, o1.equals(o2));
@@ -123,26 +119,26 @@ public class TestLogicalType {
 
   /**
    * A convenience method to avoid a large number of @Test(expected=...) tests
+   *
    * @param message A String message to describe this assertion
    * @param expected An Exception class that the Runnable should throw
-   * @param containedInMessage A String that should be contained by the thrown
-   *                           exception's message
+   * @param containedInMessage A String that should be contained by the thrown exception's message
    * @param callable A Callable that is expected to throw the exception
    */
   public static void assertThrows(String message,
-                                  Class<? extends Exception> expected,
-                                  String containedInMessage,
-                                  Callable callable) {
+          Class<? extends Exception> expected,
+          String containedInMessage,
+          Callable callable) {
     try {
       callable.call();
-      Assert.fail("No exception was thrown (" + message + "), expected: " +
-          expected.getName());
+      Assert.fail("No exception was thrown (" + message + "), expected: "
+              + expected.getName());
     } catch (Exception actual) {
       Assert.assertEquals(message, expected, actual.getClass());
       Assert.assertTrue(
-          "Expected exception message (" + containedInMessage + ") missing: " +
-              actual.getMessage(),
-          actual.getMessage().contains(containedInMessage)
+              "Expected exception message (" + containedInMessage + ") missing: "
+              + actual.getMessage(),
+              actual.getMessage().contains(containedInMessage)
       );
     }
   }
