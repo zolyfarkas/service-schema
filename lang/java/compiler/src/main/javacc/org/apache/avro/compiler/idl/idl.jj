@@ -1577,7 +1577,13 @@ JsonNode Json() :
              }
            }
  })
-| (t=<FLOATING_POINT_LITERAL> {n=new DecimalNode(new java.math.BigDecimal(t.image));})
+| (t=<FLOATING_POINT_LITERAL> {
+  try {
+    n=new DecimalNode(new java.math.BigDecimal(t.image));
+  }  catch(NumberFormatException  ex2) { // NaN, positive/negative infinity.
+    n = new DoubleNode(Double.parseDouble(t.image));
+  }
+})
 | n=JsonObject()
 | n=JsonArray()
 | ( "true" { n = BooleanNode.TRUE; } )

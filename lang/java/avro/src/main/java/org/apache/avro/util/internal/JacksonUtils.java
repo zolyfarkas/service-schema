@@ -148,11 +148,14 @@ public final class JacksonUtils {
     }
     if (jsonNode == null) {
       return null;
-    } else if (jsonNode.isNull()) {
+    }
+    if (jsonNode.isNull()) {
       return JsonProperties.NULL_VALUE;
-    } else if (jsonNode.isBoolean()) {
+    }
+    if (jsonNode.isBoolean()) {
       return jsonNode.asBoolean();
-    } else if (jsonNode.isInt()) {
+    }
+    if (jsonNode.isInt()) {
       if (schema == null || schema.getType() == Schema.Type.INT) {
         return jsonNode.asInt();
       } else if (schema.getType() == Schema.Type.LONG) {
@@ -160,6 +163,12 @@ public final class JacksonUtils {
       }
     } else if (jsonNode.isLong()) {
       return jsonNode.asLong();
+    } else if (jsonNode.isBigDecimal()) {
+      if (schema == null || schema.getType() == Schema.Type.DOUBLE) {
+        return jsonNode.asDouble();
+      } else if (schema.getType() == Schema.Type.FLOAT) {
+        return (float) jsonNode.asDouble();
+      }
     } else if (jsonNode.isDouble()) {
       if (schema == null || schema.getType() == Schema.Type.DOUBLE) {
         return jsonNode.asDouble();
