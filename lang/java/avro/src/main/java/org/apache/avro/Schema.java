@@ -278,7 +278,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
     this.logicalType = logicalType;
     for (Map.Entry<String, Object> prop : logicalType.getProperties().entrySet()) {
-      this.addProp(prop.getKey(), prop.getValue());
+      String key = prop.getKey();
+      Object value = prop.getValue();
+      String pVal = this.getProp(key);
+      if (pVal == null) {
+        this.addProp(key, value);
+      } else if (!pVal.equals(value)) {
+        throw new IllegalStateException("Cannot set logicalType property, existing " + pVal + " to " + value);
+      }
     }
     this.hashCode = NO_HASHCODE;
   }
