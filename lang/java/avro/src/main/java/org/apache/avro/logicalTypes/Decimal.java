@@ -60,7 +60,7 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
   private final RoundingMode serRm;
   private final RoundingMode deserRm;
 
-  Decimal(Integer precision, Integer scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
+  Decimal(Number precision, Number scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
     super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm), BigDecimal.class);
     if (type != Schema.Type.BYTES && type != Schema.Type.STRING) {
        throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
@@ -68,24 +68,26 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
     precision = precision == null ? 36 : precision;
     this.serRm = serRm == null ? DEFAULT_SER_ROUNDING : serRm;
     this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
-    if (precision <= 0) {
+    if (precision.intValue() <= 0) {
       throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: "
               + precision + " (must be positive)");
     }
-    scale = scale == null ? (precision == null ? 12 : precision / 2) : scale;
-    if (scale < 0) {
+    scale = scale == null ? (precision == null ? 12 : precision.intValue() / 2) : scale;
+    int sInt = scale.intValue();
+    int pInt = precision.intValue();
+    if (sInt < 0) {
       throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
               + scale + " (must be positive)");
-    } else if (scale > precision) {
+    } else if (sInt > pInt) {
       throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
               + scale + " (greater than precision: " + precision + ")");
     }
-    mc = new MathContext(precision, RoundingMode.HALF_EVEN);
-    this.scale = scale;
-    this.precision = precision;
+    mc = new MathContext(pInt, RoundingMode.HALF_EVEN);
+    this.scale = sInt;
+    this.precision = pInt;
   }
 
-  private static Map<String, Object> toAttributes(Integer precision, Integer scale,
+  private static Map<String, Object> toAttributes(Number precision, Number scale,
           RoundingMode serRm, RoundingMode deserRm) {
     Map<String, Object> attr = new HashMap<String, Object>(4);
     if (precision != null) {

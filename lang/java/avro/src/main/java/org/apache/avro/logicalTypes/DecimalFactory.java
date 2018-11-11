@@ -54,11 +54,10 @@ public class DecimalFactory implements LogicalTypeFactory {
     Map<String, Object> attributes = schema.getObjectProps();
     Number scale = (Number) attributes.get("scale");
     if ("official".equals(attributes.get("format")) || Boolean.getBoolean("avro.defaultToStandardDecimalFormat")) {
-      return new AvroDecimal(scale == null ? null : scale.intValue(), schema);
+      return new AvroDecimal(scale, schema);
     } else {
       Number precision = (Number) attributes.get("precision");
-      return new Decimal(precision == null ? null : precision.intValue(),
-            scale == null ? null : scale.intValue(), schema.getType(), getRoundingMode(attributes, "serRounding"),
+      return new Decimal(precision, scale, schema.getType(), getRoundingMode(attributes, "serRounding"),
             getRoundingMode(attributes, "deserRounding"));
     }
   }
