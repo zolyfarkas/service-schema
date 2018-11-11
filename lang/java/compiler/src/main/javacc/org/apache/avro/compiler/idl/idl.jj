@@ -1566,8 +1566,18 @@ JsonNode Json() :
 { String s; Token t; JsonNode n; }
 { 
 ( s = JsonString() { n = new TextNode(s); }
-| (t=<INTEGER_LITERAL> { n = new LongNode(Long.parseLong(t.image)); })
-| (t=<FLOATING_POINT_LITERAL> {n=new DoubleNode(Double.parseDouble(t.image));})
+| (t=<INTEGER_LITERAL> {
+           try {
+             n = new IntNode(Integer.parseInt(t.image));
+           } catch(NumberFormatException  e) {
+             try {
+                n = new LongNode(Long.parseLong(t.image));
+             } catch(NumberFormatException  ex2) {
+                n = new BigIntegerNode(new java.math.BigInteger(t.image));
+             }
+           }
+ })
+| (t=<FLOATING_POINT_LITERAL> {n=new DecimalNode(new java.math.BigDecimal(t.image));})
 | n=JsonObject()
 | n=JsonArray()
 | ( "true" { n = BooleanNode.TRUE; } )
