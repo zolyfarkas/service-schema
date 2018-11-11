@@ -33,10 +33,12 @@ public class TestDecimal {
   @Test
   public void testDecimal() {
     Schema stringSchema = Schema.create(Schema.Type.STRING)
+            .withProp("logicalType", "decimal")
             .withProp("precision", 32)
             .withProp("scale", 10);
     LogicalType type2 = new DecimalFactory()
             .fromSchema(stringSchema);
+    stringSchema.setLogicalType(type2);
     runTests(type2);
     runTestFailure(type2);
 
