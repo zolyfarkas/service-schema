@@ -1049,9 +1049,6 @@ Schema NamedSchemaDeclaration(Map<String, JsonNode> props):
      } else {                                     // add all other props
        s.addProp(key, props.get(key));
      }
-   if (!source.isEmpty()) {
-    s.addProp("sourceIdl", source);
-   }
    return s;
  }
 }
@@ -1114,14 +1111,19 @@ Schema EnumDeclaration():
 {
   String name;
   List<String> symbols;
+  int line;
 }
 {
   "enum"
+  { line = token.beginLine; }
   name = Identifier()
   symbols = EnumBody()
   {
     Schema s = Schema.createEnum(name, getDoc(), this.namespace, symbols);
     names.put(s.getFullName(), s);
+    if (!source.isEmpty()) {
+     s.addProp("sourceIdl", source + ':' + line );
+    }
     return s;
   }
 }
@@ -1253,14 +1255,20 @@ Schema FixedDeclaration():
 {
   String name;
   Token sizeTok;
+  int line;
 }
 {
-  "fixed" name = Identifier() "(" sizeTok = <INTEGER_LITERAL> ")"
+  "fixed"
+  { line =  token.beginLine; }
+name = Identifier() "(" sizeTok = <INTEGER_LITERAL> ")"
   ";"
   {
     Schema s = Schema.createFixed(name, getDoc(), this.namespace,
                                   Integer.parseInt(sizeTok.image));
     names.put(s.getFullName(), s);
+    if (!source.isEmpty()) {
+     s.addProp("sourceIdl", source + ':' + line );
+    }
     return s;
   }
 }
@@ -1270,12 +1278,14 @@ Schema RecordDeclaration():
   String name;
   List<Field> fields = new ArrayList<Field>();
   boolean isError;
+  int line;
 }
 {
   (
     "record" { isError = false; }
     | "error" { isError = true; }
   )
+  { line =  token.beginLine; }
   name = Identifier()
   {
     Schema result = Schema.createRecord(
@@ -1287,6 +1297,9 @@ Schema RecordDeclaration():
   "}"
   {
     result.setFields(fields);
+    if (!source.isEmpty()) {
+     result.addProp("sourceIdl", source + ':' + line );
+    }
     return result;
   }
 }
