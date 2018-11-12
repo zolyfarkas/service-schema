@@ -18,6 +18,13 @@ package org.apache.avro.compiler.idl;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypeFactory;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -59,12 +66,93 @@ public class TestProtocol {
     compiler.setStringType(GenericData.StringType.String);
     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.PRIVATE);
     compiler.setCreateSetters(true);
-    compiler.compileToDestination(null, new File("./target"));
+    File dest = new File("./target/tp1");
+    dest.mkdirs();
+    compiler.compileToDestination(null, dest);
 
     String strProto = protocol.toString(true);
     System.out.println(strProto);
     Protocol protocol2 = Protocol.parse(strProto, true);
     Assert.assertEquals(protocol, protocol2);
   }
+
+  @Test
+  public void testToString2() throws ParseException, MalformedURLException, IOException {
+    LogicalTypes.register(new LogicalTypeFactory() {
+      @Override
+      public String getLogicalTypeName() {
+        return "date";
+      }
+
+      @Override
+      public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
+        return new LogicalType() {
+          @Override
+          public String getName() {
+            return "date";
+          }
+
+          @Override
+          public Set reserved() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Object getProperty(String propertyName) {
+           return null;
+          }
+
+          @Override
+          public Map getProperties() {
+            return Collections.EMPTY_MAP;
+          }
+
+          @Override
+          public Class getLogicalJavaType() {
+            return LocalDate.class;
+          }
+
+          @Override
+          public Object deserialize(Object object) {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Object serialize(Object object) {
+            throw new UnsupportedOperationException();
+          }
+        };
+      }
+    });
+
+
+    File file = new File(".");
+    String currentWorkPath = file.getAbsolutePath();
+    String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"
+        + File.separator + "idl" + File.separator + File.separator + "test/test.avdl";
+    Idl idl = new Idl(new File(testIdl));
+    idl.setIsAllowUndefinedLogicalTypes(false);
+    Protocol protocol = idl.CompilationUnit();
+    int i = 0;
+    for (Schema s : protocol.getTypes()) {
+      s.addProp("id", "A" + i);
+    }
+
+    SpecificCompiler compiler = new SpecificCompiler(protocol);
+    compiler.setStringType(GenericData.StringType.String);
+    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.PRIVATE);
+    compiler.setCreateSetters(true);
+    File dest = new File("./target/tp2");
+    dest.mkdirs();
+    compiler.compileToDestination(null, dest);
+
+    String strProto = protocol.toString(true);
+    System.out.println(strProto);
+    Protocol protocol2 = Protocol.parse(strProto, false);
+    Assert.assertEquals(protocol, protocol2);
+    LogicalTypes.unregister("date");
+  }
+
+
 
 }

@@ -82,10 +82,14 @@ public class LogicalTypes {
   }
 
   public static void register(@Nonnull org.apache.avro.LogicalTypeFactory factory) {
-    org.apache.avro.LogicalTypeFactory ex = REGISTERED_TYPES.putIfAbsent(factory.getLogicalTypeName(), factory);
+    LogicalTypeFactory ex = REGISTERED_TYPES.putIfAbsent(factory.getLogicalTypeName(), factory);
     if (ex != null) {
       throw new IllegalArgumentException("Already registered " + ex + ", cannot register " + factory);
     }
+  }
+
+  public static LogicalTypeFactory unregister(final String name) {
+    return REGISTERED_TYPES.remove(name);
   }
 
   @Nullable

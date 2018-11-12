@@ -297,13 +297,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
   }
 
-  protected boolean equalLogicalTypes(@Nullable Schema other) {
-    if (logicalType == null) {
-      return other.logicalType == null;
-    }
-    return logicalType.equals(other.logicalType);
-  }
-
   /**
    * If this is a record, returns the Field with the
    * given name <tt>fieldName</tt>. If there is no field by that name, a
@@ -484,7 +477,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
     Schema that = (Schema) o;
     if (!(this.type == that.type)) return false;
     return equalCachedHash(that)
-        && equalLogicalTypes(that)
         && props.equals(that.props);
   }
   public final int hashCode() {
@@ -841,7 +833,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       RecordSchema that = (RecordSchema)o;
       if (!equalCachedHash(that)) return false;
       if (!equalNames(that)) return false;
-      if (!equalLogicalTypes(that)) return false;
       if (!props.equals(that.props)) return false;
       Set seen = SEEN_EQUALS.get();
       SeenPair here = new SeenPair(this, o);
@@ -1093,7 +1084,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       EnumSchema that = (EnumSchema)o;
       return equalCachedHash(that)
         && equalNames(that)
-        && equalLogicalTypes(that)
         && symbols.equals(that.symbols)
         && props.equals(that.props);
     }
@@ -1132,7 +1122,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (!(o instanceof ArraySchema)) return false;
       ArraySchema that = (ArraySchema)o;
       return equalCachedHash(that)
-        && equalLogicalTypes(that)
         && elementType.equals(that.elementType)
         && props.equals(that.props);
     }
@@ -1161,7 +1150,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (!(o instanceof MapSchema)) return false;
       MapSchema that = (MapSchema)o;
       return equalCachedHash(that)
-        && equalLogicalTypes(that)
         && valueType.equals(that.valueType)
         && props.equals(that.props);
     }
@@ -1203,7 +1191,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (!(o instanceof UnionSchema)) return false;
       UnionSchema that = (UnionSchema)o;
       return equalCachedHash(that)
-        && equalLogicalTypes(that)
         && types.equals(that.types)
         && props.equals(that.props);
     }
@@ -1242,7 +1229,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
       FixedSchema that = (FixedSchema)o;
       return equalCachedHash(that)
         && equalNames(that)
-        && equalLogicalTypes(that)
         && size == that.size
         && props.equals(that.props);
     }

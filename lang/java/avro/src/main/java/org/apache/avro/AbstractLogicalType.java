@@ -82,4 +82,6 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
   }
 
 
+
+
 }
