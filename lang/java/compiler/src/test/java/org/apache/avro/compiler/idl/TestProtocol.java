@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
+import org.apache.avro.compiler.specific.SpecificCompiler;
+import org.apache.avro.generic.GenericData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,14 +47,19 @@ public class TestProtocol {
     String currentWorkPath = file.getAbsolutePath();
     String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"
         + File.separator + "idl" + File.separator + File.separator + "test/test.avdl";
-    Idl compiler = new Idl(new File(testIdl));
-    compiler.setIsAllowUndefinedLogicalTypes(true);
-    Protocol protocol = compiler.CompilationUnit();
+    Idl idl = new Idl(new File(testIdl));
+    idl.setIsAllowUndefinedLogicalTypes(true);
+    Protocol protocol = idl.CompilationUnit();
     int i = 0;
     for (Schema s : protocol.getTypes()) {
       s.addProp("id", "A" + i);
     }
 
+    SpecificCompiler compiler = new SpecificCompiler(protocol);
+    compiler.setStringType(GenericData.StringType.String);
+    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.PRIVATE);
+    compiler.setCreateSetters(true);
+    compiler.compileToDestination(null, new File("./target"));
 
     String strProto = protocol.toString(true);
     System.out.println(strProto);

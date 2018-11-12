@@ -1050,7 +1050,7 @@ Schema NamedSchemaDeclaration(Map<String, JsonNode> props):
        s.addProp(key, props.get(key));
      }
    if (!source.isEmpty()) {
-    s.addProp("source", source);
+    s.addProp("sourceIdl", source);
    }
    return s;
  }
