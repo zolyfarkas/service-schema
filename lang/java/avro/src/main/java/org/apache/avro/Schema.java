@@ -1450,7 +1450,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
   static class Names extends LinkedHashMap<Name, Schema> {
     private String space;                         // default namespace
 
-    public Names() {}
+    public Names() {
+      this.space = null;
+    }
     public Names(String space) { this.space = space; }
 
     public String space() { return space; }
@@ -1460,11 +1462,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public Schema get(Object o) {
       Name name;
       if (o instanceof String) {
-        Type primitive = PRIMITIVES.get((String)o);
+        String n = (String) o;
+        Type primitive = PRIMITIVES.get(n);
         if (primitive != null) return Schema.create(primitive);
-        name = new Name((String)o, space);
-        if (!containsKey(name))                   // if not in default
-          name = new Name((String)o, "");         // try anonymous
+        name = new Name(n, space);
+        Schema s = super.get(name);
+        if (s != null) {
+          return s;
+        }
+        name = new Name(n, "");         // try anonymous
       } else {
         name = (Name)o;
       }
