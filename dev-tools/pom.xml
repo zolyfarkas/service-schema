@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.apache.avro</groupId>
     <artifactId>avro-toplevel</artifactId>
-    <version>1.8.1.17p-SNAPSHOT</version>
+    <version>1.8.1.17p</version>
   </parent>
 
   <name>avro-${artifactId} - ${version}</name>
