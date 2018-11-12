@@ -101,6 +101,12 @@ public class Idl implements Closeable {
     return doc;
   }
 
+  private String source = "";
+
+  public void setSource(String source) {
+    this.source = source;
+  }
+
   public void setIsAllowUndefinedLogicalTypes(boolean allowUndefinedLogicalTypes) {
     this.allowUndefinedLogicalTypes = allowUndefinedLogicalTypes;
   }
@@ -108,18 +114,25 @@ public class Idl implements Closeable {
   public Idl(File inputFile) throws IOException {
     this(new FileInputStream(inputFile), "UTF-8");
     this.inputDir = inputFile.getParentFile();
+    this.source = new File(".").toURI().relativize(inputFile.toURI()).toString();
   }
 
   public Idl(File inputFile, ClassLoader resourceLoader) throws IOException {
     this(inputFile);
     this.resourceLoader = resourceLoader;
+    this.source = new File(".").toURI().relativize(inputFile.toURI()).toString();
   }
   
   private Idl(URL input, Idl parent) throws IOException {
     this(input.openStream(), "UTF-8");
-    this.inputDir = "file".equals(input.getProtocol())
-      ? new File(input.getPath()).getParentFile()
-      : parent.inputDir;
+    if ("file".equals(input.getProtocol())) {
+      File f = new File(input.getPath());
+      this.inputDir = f.getParentFile();
+      this.source = new File(".").toURI().relativize(f.toURI()).toString();
+    } else {
+      this.inputDir = parent.inputDir;
+      this.source = input.toString();
+    }
     this.resourceLoader = parent.resourceLoader;
   }
   
@@ -1036,7 +1049,9 @@ Schema NamedSchemaDeclaration(Map<String, JsonNode> props):
      } else {                                     // add all other props
        s.addProp(key, props.get(key));
      }
-
+   if (!source.isEmpty()) {
+    s.addProp("source", source);
+   }
    return s;
  }
 }
@@ -1176,6 +1191,9 @@ Protocol ImportIdl() : {
     {
       try {
         Idl idl = new Idl(findFile(importFile), this);
+        if (source.isEmpty()) {
+           idl.setSource("");
+        }
         idl.setIsAllowUndefinedLogicalTypes(allowUndefinedLogicalTypes);
         try {
           return idl.CompilationUnit();

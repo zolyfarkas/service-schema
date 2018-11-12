@@ -140,6 +140,7 @@ public class TestIdl {
       URLClassLoader ucl = new URLClassLoader(newPathURL, cl);
 
       Idl parser = new Idl(in, ucl);
+      parser.setSource("");
       Protocol p = parser.CompilationUnit();
       parser.close();
       return p.toString();

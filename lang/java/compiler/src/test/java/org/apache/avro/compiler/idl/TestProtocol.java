@@ -15,8 +15,12 @@
  */
 package org.apache.avro.compiler.idl;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import org.apache.avro.Protocol;
+import org.apache.avro.Schema;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -34,4 +38,26 @@ public class TestProtocol {
         String json = protocol.toString(true);
         System.out.println(json);
     }
+
+  @Test
+  public void testToString() throws ParseException, MalformedURLException, IOException {
+    File file = new File(".");
+    String currentWorkPath = file.getAbsolutePath();
+    String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"
+        + File.separator + "idl" + File.separator + File.separator + "test/test.avdl";
+    Idl compiler = new Idl(new File(testIdl));
+    compiler.setIsAllowUndefinedLogicalTypes(true);
+    Protocol protocol = compiler.CompilationUnit();
+    int i = 0;
+    for (Schema s : protocol.getTypes()) {
+      s.addProp("id", "A" + i);
+    }
+
+
+    String strProto = protocol.toString(true);
+    System.out.println(strProto);
+    Protocol protocol2 = Protocol.parse(strProto, true);
+    Assert.assertEquals(protocol, protocol2);
+  }
+
 }
