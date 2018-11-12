@@ -101,7 +101,7 @@ public class Idl implements Closeable {
     return doc;
   }
 
-  private String source = "";
+  private String source = "stream";
 
   public void setSource(String source) {
     this.source = source;
