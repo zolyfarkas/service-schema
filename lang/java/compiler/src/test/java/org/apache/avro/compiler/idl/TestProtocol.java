@@ -172,6 +172,7 @@ public class TestProtocol {
       String normalize = Idl.normalizeDoc("dfjhgsjhdfgashjdfg\r"
               +"   * *dhdh\r\n"
               +"   * \n"
+              +"   *\n"
               +"   sdfsxg");
       System.out.println(normalize);
       Assert.assertEquals("dfjhgsjhdfgashjdfg *dhdh\n" +
