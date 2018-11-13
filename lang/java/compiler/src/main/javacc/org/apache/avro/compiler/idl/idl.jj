@@ -99,7 +99,7 @@ public class Idl implements Closeable {
   private boolean allowUndefinedLogicalTypes = LogicalTypes.isAllowUndefinedLogicalTypes();
   private static final ThreadLocal<String> DOC = new ThreadLocal<String>();
   
-  private static final Pattern STAR_TRIMMER = Pattern.compile("^[ *]*", Pattern.MULTILINE | Pattern.UNIX_LINES);
+  private static final Pattern STAR_TRIMMER = Pattern.compile("^[ ]*([*][ ])?", Pattern.MULTILINE | Pattern.UNIX_LINES);
 
   static String normalizeDoc(final String doc) {
     String cleaned = doc.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");

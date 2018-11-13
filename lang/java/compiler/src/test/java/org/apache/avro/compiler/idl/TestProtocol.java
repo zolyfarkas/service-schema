@@ -170,11 +170,11 @@ public class TestProtocol {
   @Test
   public void testDocTrimmer() {
       String normalize = Idl.normalizeDoc("dfjhgsjhdfgashjdfg\r"
-              +"   * dhdh\r\n"
+              +"   * *dhdh\r\n"
               +"   * \n"
               +"   sdfsxg");
       System.out.println(normalize);
-      Assert.assertEquals("dfjhgsjhdfgashjdfg dhdh\n" +
+      Assert.assertEquals("dfjhgsjhdfgashjdfg *dhdh\n" +
           "sdfsxg", normalize);
   }
 
