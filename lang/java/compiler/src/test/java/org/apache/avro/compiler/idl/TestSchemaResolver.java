@@ -18,7 +18,6 @@ package org.apache.avro.compiler.idl;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import org.apache.avro.LogicalTypes;
 
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;

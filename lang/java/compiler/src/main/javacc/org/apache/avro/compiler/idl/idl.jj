@@ -150,11 +150,14 @@ public class Idl implements Closeable {
       if (jfIdx < 0) {
         throw new IllegalArgumentException("Invalid jar url : " + jarUrl);
       }
-      Path parent = Paths.get(path.substring(jfIdx + 1)).getParent();
-      if (parent == null) {
+      String cpath = path.substring(jfIdx + 1);
+      int ls = cpath.lastIndexOf('/');
+      if (ls < 0) {
         return "";
+      } else if (ls == 0) {
+        return "/";
       } else {
-        return parent.toString();
+        return cpath.substring(0, ls);
       }
   }
 
@@ -233,10 +236,10 @@ public class Idl implements Closeable {
     if (file.exists()) {
       result = file.toURL();
     } else if (this.resourceLoader != null) {
-      String resPath = resourcePath.endsWith(File.separator)
-         ? resourcePath + importFile : resourcePath + File.separatorChar + importFile;
+      String resPath = resourcePath.endsWith("/")
+         ? resourcePath + importFile : resourcePath + '/' + importFile;
       result = this.resourceLoader.getResource(resPath);
-      if (result == null && resPath.startsWith(File.separator)) {
+      if (result == null && resPath.startsWith("/")) {
         result = this.resourceLoader.getResource(resPath.substring(1));
       }
       if (result == null) {
