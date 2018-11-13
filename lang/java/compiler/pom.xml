@@ -149,7 +149,7 @@
       <version>${ant.version}</version>
       <!-- can only be used from within ant -->
       <scope>provided</scope>
-    </dependency>
+    </dependency>    
   </dependencies>
 
 </project>

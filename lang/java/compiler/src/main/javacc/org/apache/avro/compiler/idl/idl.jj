@@ -67,6 +67,9 @@ import java.util.List;
 import java.util.Map;
 import java.net.URL;
 
+import java.nio.file.Paths;
+import java.nio.file.Path;
+
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.*;
 import org.apache.avro.Protocol;
@@ -103,6 +106,25 @@ public class Idl implements Closeable {
 
   private String source = "stream";
 
+  private String resourcePath = "";
+
+  static String getResourcePath(final URL jarUrl) {
+    if (!"jar".equals(jarUrl.getProtocol())) {
+      throw new IllegalArgumentException("No jar url : " + jarUrl);
+    }
+      String path = jarUrl.getPath();
+      int jfIdx = path.lastIndexOf('!');
+      if (jfIdx < 0) {
+        throw new IllegalArgumentException("Invalid jar url : " + jarUrl);
+      }
+      Path parent = Paths.get(path.substring(jfIdx + 1)).getParent();
+      if (parent == null) {
+        return "";
+      } else {
+        return parent.toString();
+      }
+  }
+
   public void setSource(String source) {
     this.source = source;
   }
@@ -125,10 +147,15 @@ public class Idl implements Closeable {
   
   private Idl(URL input, Idl parent) throws IOException {
     this(input.openStream(), "UTF-8");
-    if ("file".equals(input.getProtocol())) {
+    String proto = input.getProtocol();
+    if ("file".equals(proto)) {
       File f = new File(input.getPath());
       this.inputDir = f.getParentFile();
       this.source = new File(".").toURI().relativize(f.toURI()).toString();
+    } else if ("jar".equals(proto)) {
+      this.inputDir = parent.inputDir;
+      this.source = input.toString();
+      this.resourcePath = getResourcePath(input);
     } else {
       this.inputDir = parent.inputDir;
       this.source = input.toString();
@@ -170,10 +197,19 @@ public class Idl implements Closeable {
   private URL findFile(String importFile) throws IOException {
     File file = new File(this.inputDir, importFile);
     URL result = null;
-    if (file.exists())
+    if (file.exists()) {
       result = file.toURL();
-    else if (this.resourceLoader != null)
-      result = this.resourceLoader.getResource(importFile);
+    } else if (this.resourceLoader != null) {
+      String resPath = resourcePath.endsWith("/")
+         ? resourcePath + importFile : resourcePath + '/' + importFile;
+      result = this.resourceLoader.getResource(resPath);
+      if (result == null && resPath.startsWith("/")) {
+        result = this.resourceLoader.getResource(resPath.substring(1));
+      }
+      if (result == null) {
+        result = this.resourceLoader.getResource(importFile);
+      }
+    }
     if (result == null)
       throw new FileNotFoundException(importFile);
     return result;
@@ -1203,7 +1239,7 @@ Protocol ImportIdl() : {
           idl.close();
         }
       } catch (IOException e) {
-        throw error("Error importing "+importFile+": "+e, token);
+        throw error("Error importing from " + source + " file : " + importFile+": "+e, token);
       }        
     }
 }
@@ -1223,7 +1259,7 @@ Protocol ImportProtocol() : {
           stream.close();
         }
       } catch (IOException e) {
-        throw error("Error importing "+importFile+": "+e, token);
+        throw error("Error importing from " + source + " file: " + importFile + ": "+e, token);
       }        
     }
 }
@@ -1246,7 +1282,7 @@ Schema ImportSchema() : {
           stream.close();
         }
       } catch (IOException e) {
-        throw error("Error importing "+importFile+": "+e, token);
+        throw error("Error importing from " + source + " file: " +importFile+": "+e, token);
       }        
     }
 }

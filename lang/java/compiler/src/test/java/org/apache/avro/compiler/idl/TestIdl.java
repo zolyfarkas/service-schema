@@ -136,7 +136,8 @@ public class TestIdl {
       String newPath = currentWorkPath + "src" + File.separator + "test"
         + File.separator + "idl" + File.separator
         + "putOnClassPath" + File.separator;
-      URL[] newPathURL = new URL[]{new URL(newPath)};
+      URL[] newPathURL = new URL[]{new URL(newPath), new URL("jar:file:/Users/zoly/.m2/repository/org/spf4j/avro/"
+              + "examples/test-schema-common/1.5-SNAPSHOT/test-schema-common-1.5-SNAPSHOT.jar!/module/p2.avdl")};
       URLClassLoader ucl = new URLClassLoader(newPathURL, cl);
 
       Idl parser = new Idl(in, ucl);

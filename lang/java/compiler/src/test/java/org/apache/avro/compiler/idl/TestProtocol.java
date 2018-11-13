@@ -18,6 +18,9 @@ package org.apache.avro.compiler.idl;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Map;
@@ -153,6 +156,16 @@ public class TestProtocol {
     LogicalTypes.unregister("date");
   }
 
+
+  @Test
+  public void testJarUrls() throws MalformedURLException {
+    URL url1 = new URL("jar:file:/repository/org/spf4j/avro/examples/test-schema-common/1.5-SNAPSHOT/"
+            + "test-schema-common-1.5-SNAPSHOT.jar!/module/p2.avdl");
+     URL url2 = new URL("jar:file:/repository/org/spf4j/avro/examples/test-schema-common/1.5-SNAPSHOT/"
+            + "test-schema-common-1.5-SNAPSHOT.jar!/p2.avdl");
+     Assert.assertEquals("/module", Idl.getResourcePath(url1));
+     Assert.assertEquals("/", Idl.getResourcePath(url2));
+  }
 
 
 }
