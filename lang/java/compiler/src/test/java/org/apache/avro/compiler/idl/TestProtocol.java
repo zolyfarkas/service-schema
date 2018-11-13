@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.LogicalTypes;
@@ -167,5 +168,17 @@ public class TestProtocol {
      Assert.assertEquals("/", Idl.getResourcePath(url2));
   }
 
+
+
+  @Test
+  public void testDocTrimmer() {
+      String normalize = Idl.normalizeDoc("dfjhgsjhdfgashjdfg\r"
+              +"   * dhdh\r\n"
+              +"   * \n"
+              +"   sdfsxg");
+      System.out.println(normalize);
+      Assert.assertEquals("dfjhgsjhdfgashjdfg dhdh\n" +
+          "sdfsxg", normalize);
+  }
 
 }
