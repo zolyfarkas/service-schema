@@ -233,10 +233,10 @@ public class Idl implements Closeable {
     if (file.exists()) {
       result = file.toURL();
     } else if (this.resourceLoader != null) {
-      String resPath = resourcePath.endsWith("/")
-         ? resourcePath + importFile : resourcePath + '/' + importFile;
+      String resPath = resourcePath.endsWith(File.separator)
+         ? resourcePath + importFile : resourcePath + File.separatorChar + importFile;
       result = this.resourceLoader.getResource(resPath);
-      if (result == null && resPath.startsWith("/")) {
+      if (result == null && resPath.startsWith(File.separator)) {
         result = this.resourceLoader.getResource(resPath.substring(1));
       }
       if (result == null) {
@@ -244,7 +244,7 @@ public class Idl implements Closeable {
       }
     }
     if (result == null)
-      throw new FileNotFoundException(importFile);
+      throw new FileNotFoundException(importFile + " not found relative to " + resourcePath + " or " + this.inputDir);
     return result;
   }
 
