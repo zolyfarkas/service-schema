@@ -19,6 +19,8 @@ package org.apache.avro.util.internal;
 
 import com.google.common.collect.Maps;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +32,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.JsonProperties;
+import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Fixed;
@@ -106,6 +109,8 @@ public final class JacksonUtils {
       generator.writeNumber((Long) datum);
     } else if (datum instanceof Integer) { // int
       generator.writeNumber((Integer) datum);
+    } else if (datum instanceof BigDecimal) { // int
+      generator.writeNumber((BigDecimal) datum);
     } else if (datum instanceof Boolean) { // boolean
       generator.writeBoolean((Boolean) datum);
     } else if (datum instanceof GenericEnumSymbol) {
@@ -154,6 +159,25 @@ public final class JacksonUtils {
     }
     if (jsonNode.isBoolean()) {
       return jsonNode.asBoolean();
+    }
+    if (schema != null) {
+      LogicalType lt = schema.getLogicalType();
+      if (lt != null) {
+        Class logicalJavaType = lt.getLogicalJavaType();
+        if (logicalJavaType == Integer.class) {
+          return jsonNode.asInt();
+        } else if (logicalJavaType == Long.class) {
+          return jsonNode.asLong();
+        } else if  (logicalJavaType == BigDecimal.class) {
+          return jsonNode.getDecimalValue();
+        } else if  (logicalJavaType == BigInteger.class) {
+          return jsonNode.getBigIntegerValue();
+        }  else if  (logicalJavaType == Double.class) {
+          return jsonNode.asDouble();
+        } else if  (logicalJavaType == Float.class) {
+          return jsonNode.asDouble();
+        }
+      }
     }
     if (jsonNode.isInt()) {
       if (schema == null || schema.getType() == Schema.Type.INT) {

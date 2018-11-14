@@ -78,6 +78,17 @@ public class TestProtocol {
   }
 
   @Test
+  public void testToStringX() throws IOException {
+      Protocol parse = Protocol.parse(new File("./../../../share/test/schemas/simple.avpr"));
+      System.out.println(parse.toString(true));
+      SpecificCompiler compiler = new SpecificCompiler(parse);
+      File file = new File("./target/testGen");
+      file.getParentFile().mkdirs();
+      compiler.compileToDestination(null, file);
+  }
+
+
+  @Test
   public void testToString2() throws ParseException, MalformedURLException, IOException {
     LogicalTypes.register(new LogicalTypeFactory() {
       @Override
@@ -150,6 +161,8 @@ public class TestProtocol {
     String strProto = protocol.toString(true);
     System.out.println(strProto);
     Protocol protocol2 = Protocol.parse(strProto, false);
+    Assert.assertEquals(protocol.getType("org.apache.avro.test2.TestLt"),
+            protocol2.getType("org.apache.avro.test2.TestLt"));
     Assert.assertEquals(protocol, protocol2);
     LogicalTypes.unregister("date");
   }

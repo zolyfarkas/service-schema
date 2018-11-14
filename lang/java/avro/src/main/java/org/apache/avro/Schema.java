@@ -549,7 +549,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
       this.schema = schema;
       this.doc = doc;
       this.defaultValue = validateDefault ? validateDefault(name, schema, defaultValue) : defaultValue;
-      this.defaultVal = defaultVal;
+      this.defaultVal = defaultVal == null && this.defaultValue != null ?
+              JacksonUtils.toObject(this.defaultValue, schema) : defaultVal;
       this.order = order;
     }
     /**
@@ -603,17 +604,20 @@ public abstract class Schema extends JsonProperties implements Serializable {
       Field that = (Field) other;
       return (name.equals(that.name)) &&
         (schema.equals(that.schema)) &&
-        defaultValueEquals(that.defaultValue) &&
+        defaultValueEquals(that.defaultValue, that.defaultVal) &&
         (order == that.order) &&
         props.equals(that.props);
     }
     public int hashCode() { return name.hashCode() + 7 * schema.hashCode(); }
 
-    private boolean defaultValueEquals(JsonNode thatDefaultValue) {
+    private boolean defaultValueEquals(JsonNode thatDefaultValue, Object thatJavaDefaultValue) {
       if (defaultValue == null)
         return thatDefaultValue == null;
       if (thatDefaultValue == null)
         return false;
+      if (defaultVal.equals(thatJavaDefaultValue)) {
+        return true;
+      }
       if (Double.isNaN(defaultValue.getDoubleValue()))
         return Double.isNaN(thatDefaultValue.getDoubleValue());
       return defaultValue.equals(thatDefaultValue);
@@ -1528,6 +1532,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   private static boolean isValidDefault(Schema schema, JsonNode defaultValue) {
+    LogicalType lType = schema.getLogicalType();
+    if (lType != null && Number.class.isAssignableFrom(lType.getLogicalJavaType()) && defaultValue.isNumber()) {
+      return true;
+    }
     if (defaultValue == null)
       return false;
     switch (schema.getType()) {

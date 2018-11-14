@@ -36,6 +36,16 @@ protocol Test {
     union { null, org.apache.avro.test.LocalDateTime } field4;
     org.apache.avro.test.LogMessage msg;
   }
+
+  record TestLt {
+
+      @logicalType("decimal") @precision(10) @scale(5)
+      bytes dayOfMonth = "\u0001\u0001";
+
+      @logicalType("decimal") @precision(10) @scale(5)
+      bytes someDecimal = 0.1;
+  }
+
 }
 
 
