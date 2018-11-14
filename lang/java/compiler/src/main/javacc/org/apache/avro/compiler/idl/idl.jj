@@ -103,29 +103,7 @@ public class Idl implements Closeable {
 
   static String normalizeDoc(final String doc) {
     String cleaned = doc.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
-    cleaned = STAR_TRIMMER.matcher(cleaned).replaceAll("");
-
-    int length = cleaned.length();
-    StringBuilder sb = new StringBuilder(length);
-    int consEolCount = 0;
-    for (int i = 0; i <  length; i++) {
-      char c = cleaned.charAt(i);
-      switch (c) {
-        case '\n':
-          consEolCount++;
-          break;
-        default:
-          if (consEolCount > 1) {
-            sb.append('\n');
-            consEolCount = 0;
-          } else if (consEolCount == 1) {
-            sb.append(' ');
-            consEolCount = 0;
-          }
-          sb.append(c);
-      }
-    }
-    return sb.toString();
+    return STAR_TRIMMER.matcher(cleaned).replaceAll("");
   }
 
  static void setDoc(String doc) {
