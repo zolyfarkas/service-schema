@@ -4,6 +4,8 @@ Learn more about Avro, please visit our website at:
 
   http://avro.apache.org/
 
+Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j-avro.png)](https://gitter.im/spf4j-avro/Lobby)
+
 ## Features implemented in this fork on the java side:
 
 ### 1) ExtendedJsonDecoder/Encoder -  encodes unions of null and a single type as a more normal key=value rather than key={type=value}.
