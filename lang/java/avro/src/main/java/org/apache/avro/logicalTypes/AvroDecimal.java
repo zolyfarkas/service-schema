@@ -64,6 +64,9 @@ public final class AvroDecimal extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public BigDecimal deserialize(Object object) {
+    if (BigDecimal.class == object.getClass()) {
+      return (BigDecimal) object;
+    }
     switch (type) {
       case FIXED:
         return new BigDecimal(new BigInteger(((GenericFixed) object).bytes()), scale);

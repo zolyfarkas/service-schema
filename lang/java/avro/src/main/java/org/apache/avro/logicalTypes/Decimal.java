@@ -107,6 +107,9 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public BigDecimal deserialize(Object object) {
+    if (BigDecimal.class == object.getClass()) {
+      return (BigDecimal) object;
+    }
     switch (type) {
       case STRING:
         BigDecimal result = new BigDecimal(object.toString(), mc);
