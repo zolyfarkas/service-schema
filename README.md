@@ -107,7 +107,7 @@ This fork is published to bintray, and you can use it by adding the repositories
             <dependency>
               <groupId>org.apache.avro</groupId>
               <artifactId>avro</artifactId>
-              <version>1.8.0.51p</version>
+              <version>1.8.1.24p</version>
               <type>pom</type>
             </dependency>
 
