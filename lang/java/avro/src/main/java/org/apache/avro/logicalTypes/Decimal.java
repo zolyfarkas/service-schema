@@ -121,8 +121,13 @@ public final class Decimal extends AbstractLogicalType<BigDecimal> {
         }
         return result;
       case BYTES:
-        ByteBuffer buf = (ByteBuffer) object;
-        buf.rewind();
+        ByteBuffer buf;
+        if (object instanceof byte[]) {
+          buf = ByteBuffer.wrap((byte[]) object);
+        } else {
+          buf = (ByteBuffer) object;
+          buf.rewind();
+        }
         int lscale = readInt(buf);
         if (lscale > scale && deserRm == null) {
           throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale

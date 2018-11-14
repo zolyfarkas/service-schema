@@ -68,10 +68,15 @@ public final class AvroDecimal extends AbstractLogicalType<BigDecimal> {
       case FIXED:
         return new BigDecimal(new BigInteger(((GenericFixed) object).bytes()), scale);
       case BYTES:
-      ByteBuffer value = (ByteBuffer) object;
-      byte[] bytes = new byte[value.remaining()];
-      value.get(bytes);
-      return new BigDecimal(new BigInteger(bytes), scale);
+        ByteBuffer value;
+        if (object instanceof byte[]) {
+          return new BigDecimal(new BigInteger((byte[]) object), scale);
+        } else {
+          value = (ByteBuffer) object;
+        }
+        byte[] bytes = new byte[value.remaining()];
+        value.get(bytes);
+        return new BigDecimal(new BigInteger(bytes), scale);
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
     }
