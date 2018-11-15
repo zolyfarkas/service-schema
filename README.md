@@ -42,7 +42,7 @@ the ExtendedJsonEncoder will serialize:
 
 ### 5) Numerous bug fixes and performance enhancements.
 
-### 6) Enhanced decimal logical type support, where JSON serialization is a proper number. (not bytes/string)
+### 6) Enhanced decimal logical type support, (custom binary encoding, or official controllable via @format("official") oor feature flag) where JSON serialization is a proper number. (not bytes/string)
 
 for
 ```
@@ -73,6 +73,8 @@ the ExtendedJsonEncoder will serialize:
 ```
 
 ### 8) @deprecated support for record and fields. You can use @deprecated to deprecate avro records.
+
+### 9) @beta @deprecated schema annotations support for your data model lifecycle.
 
 ## Getting started:
 
