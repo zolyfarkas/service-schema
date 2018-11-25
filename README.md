@@ -37,12 +37,11 @@ the ExtendedJsonEncoder will serialize:
 
 ### 3) Generated java classes are annotated with @Nullable or @Nonnull as appropriate. As such compiling in conjuction with tools like spotbugs or google error-prone will result in better quality code.
 
-### 4) @Immutable record support. (setters will not be generated). This encourages use of builders and constructors to build the 
- records.
+### 4) @Immutable record support. (setters will not be generated). This encourages use of builders and constructors to build the records.
 
 ### 5) Numerous bug fixes and performance enhancements.
 
-### 6) Enhanced decimal logical type support, (custom binary encoding, or official controllable via @format("official") oor feature flag) where JSON serialization is a proper number. (not bytes/string)
+### 6) Enhanced decimal logical type support, (custom binary encoding, or official controllable via @format("official") or feature flag) where JSON serialization is a proper number. (not bytes/string)
 
 for
 ```
