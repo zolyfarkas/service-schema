@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
@@ -36,16 +37,20 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.common.collect.MapMaker;
 import org.apache.avro.AvroRemoteException;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
+import org.apache.avro.Conversion;
+import org.apache.avro.JsonProperties;
+import org.apache.avro.LogicalType;
 import org.apache.avro.Protocol;
 import org.apache.avro.Protocol.Message;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericContainer;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.io.BinaryData;
@@ -55,12 +60,7 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.avro.specific.FixedSize;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.SchemaNormalization;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.NullNode;
-
-import com.thoughtworks.paranamer.CachingParanamer;
-import com.thoughtworks.paranamer.Paranamer;
-import org.apache.avro.generic.GenericEnumSymbol;
+import org.apache.avro.util.Utf8;
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
 public class ReflectData extends SpecificData {
@@ -174,20 +174,22 @@ public class ReflectData extends SpecificData {
     if (datum instanceof Collection) return false;
     if (datum instanceof Map) return false;
     if (datum instanceof GenericFixed) return false;
-    if (datum instanceof GenericEnumSymbol) return false;
-    if (datum instanceof Enum) return false;
     return getSchema(datum.getClass()).getType() == Schema.Type.RECORD;
   }
 
   /**
-   * Returns true also for non-string-keyed maps, which are written as an array
-   * of key/value pair records.
+   * Returns true for arrays and false otherwise, with the following exceptions:
+   * <ul>
+   * <li><p>Returns true for non-string-keyed maps, which are written as an array of key/value pair records.</p></li>
+   * <li><p>Returns false for arrays of bytes, since those should be treated as byte data type instead.</p></li>
+   * </ul>
    */
   @Override
   protected boolean isArray(Object datum) {
     if (datum == null) return false;
+    Class c = datum.getClass();
     return (datum instanceof Collection)
-      || datum.getClass().isArray()
+      || (c.isArray() && c.getComponentType() != Byte.TYPE)
       || isNonStringMap(datum);
   }
 
@@ -228,14 +230,23 @@ public class ReflectData extends SpecificData {
     }
   }
 
-  static final ConcurrentHashMap<Class<?>, ClassAccessorData>
-    ACCESSOR_CACHE = new ConcurrentHashMap<Class<?>, ClassAccessorData>();
+  static final ClassValue<ClassAccessorData>
+    ACCESSOR_CACHE = new ClassValue<ClassAccessorData>() {
+      @Override
+      protected ClassAccessorData computeValue(Class<?> c) {
+        if (!IndexedRecord.class.isAssignableFrom(c)){
+          return new ClassAccessorData(c);
+        }
+        return null;
+      }
+  };
 
   static class ClassAccessorData {
     private final Class<?> clazz;
     private final Map<String, FieldAccessor> byName =
-        new HashMap<String, FieldAccessor>();
-    final Map<Schema, FieldAccessor[]> bySchema = new MapMaker().weakKeys().makeMap();
+        new HashMap<>();
+    //getAccessorsFor is already synchronized, no need to wrap
+    final Map<Schema, FieldAccessor[]> bySchema = new WeakHashMap<>();
 
     private ClassAccessorData(Class<?> c) {
       clazz = c;
@@ -256,6 +267,7 @@ public class ReflectData extends SpecificData {
      * index of the given schema.
      */
     private synchronized FieldAccessor[] getAccessorsFor(Schema schema) {
+      //if synchronized is removed from this method, adjust bySchema appropriately
       FieldAccessor[] result = bySchema.get(schema);
       if (result == null) {
         result = createAccessorsFor(schema);
@@ -284,15 +296,7 @@ public class ReflectData extends SpecificData {
   }
 
   private ClassAccessorData getClassAccessorData(Class<?> c) {
-    ClassAccessorData data = ACCESSOR_CACHE.get(c);
-    if(data == null && !IndexedRecord.class.isAssignableFrom(c)){
-      ClassAccessorData newData = new ClassAccessorData(c);
-      data = ACCESSOR_CACHE.putIfAbsent(c, newData);
-      if (null == data) {
-        data = newData;
-      }
-    }
-    return data;
+    return ACCESSOR_CACHE.get(c);
   }
 
   private FieldAccessor[] getFieldAccessors(Class<?> c, Schema s) {
@@ -322,7 +326,7 @@ public class ReflectData extends SpecificData {
   static final String ELEMENT_PROP = "java-element-class";
 
   private static final Map<String,Class> CLASS_CACHE =
-               new ConcurrentHashMap<String, Class>();
+               new ConcurrentHashMap<>();
 
   static Class getClassProp(Schema schema, String prop) {
     String name = schema.getProp(prop);
@@ -342,7 +346,7 @@ public class ReflectData extends SpecificData {
   private static final Class BYTES_CLASS = new byte[0].getClass();
   private static final IdentityHashMap<Class, Class> ARRAY_CLASSES;
   static {
-    ARRAY_CLASSES = new IdentityHashMap<Class, Class>();
+    ARRAY_CLASSES = new IdentityHashMap<>();
     ARRAY_CLASSES.put(byte.class, byte[].class);
     ARRAY_CLASSES.put(char.class, char[].class);
     ARRAY_CLASSES.put(short.class, short[].class);
@@ -372,7 +376,7 @@ public class ReflectData extends SpecificData {
       Map m = (Map)datum;
       if (m.size() > 0) {
         Class keyClass = m.keySet().iterator().next().getClass();
-        if (isStringable(keyClass) || keyClass == String.class)
+        if (isStringable(keyClass) || keyClass == String.class || keyClass == Utf8.class)
           return false;
         return true;
       }
@@ -382,6 +386,12 @@ public class ReflectData extends SpecificData {
 
   @Override
   public Class getClass(Schema schema) {
+    // see if the element class will be converted and use that class
+    Conversion<?> conversion = getConversionFor(schema.getLogicalType());
+    if (conversion != null) {
+      return conversion.getConvertedType();
+    }
+
     switch (schema.getType()) {
     case ARRAY:
       Class collectionClass = getClassProp(schema, CLASS_PROP);
@@ -433,7 +443,8 @@ public class ReflectData extends SpecificData {
       keySchema, valueSchema);
     Schema elementSchema = Schema.createRecord(name, null, null, false);
     elementSchema.setFields(Arrays.asList(keyField, valueField));
-    return Schema.createArray(elementSchema);
+    Schema arraySchema = Schema.createArray(elementSchema);
+    return arraySchema;
   }
 
   /*
@@ -451,7 +462,8 @@ public class ReflectData extends SpecificData {
       Package pkg1 = keyClass.getPackage();
       Package pkg2 = valueClass.getPackage();
 
-      if (pkg1 != null && pkg2 != null && pkg1.getName().startsWith("java") && pkg2.getName().startsWith("java")) {
+      if (pkg1 != null && pkg1.getName().startsWith("java") &&
+        pkg2 != null && pkg2.getName().startsWith("java")) {
         return NS_MAP_ARRAY_RECORD +
           keyClass.getSimpleName() + valueClass.getSimpleName();
       }
@@ -556,10 +568,12 @@ public class ReflectData extends SpecificData {
       String fullName = c.getName();
       Schema schema = names.get(fullName);
       if (schema == null) {
+        AvroDoc annotatedDoc = c.getAnnotation(AvroDoc.class);    // Docstring
+        String doc = (annotatedDoc != null) ? annotatedDoc.value() : null;
         String name = c.getSimpleName();
         String space = c.getPackage() == null ? "" : c.getPackage().getName();
         if (c.getEnclosingClass() != null)                   // nested class
-          space = c.getEnclosingClass().getName() + "$";
+          space = c.getEnclosingClass().getName();
         Union union = c.getAnnotation(Union.class);
         if (union != null) {                                 // union annotated
           return getAnnotatedUnion(union, names);
@@ -573,35 +587,37 @@ public class ReflectData extends SpecificData {
           for (int i = 0; i < constants.length; i++) {
             symbols.add(constants[i].name());
           }
-          schema = Schema.createEnum(name, null /* doc */, space, symbols);
+          schema = Schema.createEnum(name, doc, space, symbols);
           consumeAvroAliasAnnotation(c, schema);
         } else if (GenericFixed.class.isAssignableFrom(c)) { // fixed
           int size = c.getAnnotation(FixedSize.class).value();
-          schema = Schema.createFixed(name, null /* doc */, space, size);
+          schema = Schema.createFixed(name, doc, space, size);
           consumeAvroAliasAnnotation(c, schema);
         } else if (IndexedRecord.class.isAssignableFrom(c)) { // specific
           return super.createSchema(type, names);
         } else {                                             // record
-          List<Schema.Field> fields = new ArrayList<Schema.Field>();
+          List<Schema.Field> fields = new ArrayList<>();
           boolean error = Throwable.class.isAssignableFrom(c);
-          schema = Schema.createRecord(name, null /* doc */, space, error);
+          schema = Schema.createRecord(name, doc, space, error);
           consumeAvroAliasAnnotation(c, schema);
           names.put(c.getName(), schema);
-          for (Field field : getCachedFields(c)) {
-            if ((field.getModifiers() & (Modifier.TRANSIENT|Modifier.STATIC)) == 0
+          for (Field field : getCachedFields(c))
+            if ((field.getModifiers()&(Modifier.TRANSIENT|Modifier.STATIC))==0
                 && !field.isAnnotationPresent(AvroIgnore.class)) {
               Schema fieldSchema = createFieldSchema(field, names);
               AvroDefault defaultAnnotation
                 = field.getAnnotation(AvroDefault.class);
-              JsonNode defaultValue = (defaultAnnotation == null)
+              Object defaultValue = (defaultAnnotation == null)
                 ? null
                 : Schema.parseJson(defaultAnnotation.value());
+              annotatedDoc = field.getAnnotation(AvroDoc.class);    // Docstring
+              doc = (annotatedDoc != null) ? annotatedDoc.value() : null;
 
               if (defaultValue == null
                   && fieldSchema.getType() == Schema.Type.UNION) {
                 Schema defaultType = fieldSchema.getTypes().get(0);
                 if (defaultType.getType() == Schema.Type.NULL) {
-                  defaultValue = NullNode.getInstance();
+                  defaultValue = JsonProperties.NULL_VALUE;
                 }
               }
               AvroName annotatedName = field.getAnnotation(AvroName.class);       // Rename fields
@@ -609,7 +625,7 @@ public class ReflectData extends SpecificData {
                 ? annotatedName.value()
                 : field.getName();
               Schema.Field recordField
-                = new Schema.Field(fieldName, fieldSchema, null, defaultValue);
+                = new Schema.Field(fieldName, fieldSchema, doc, defaultValue);
 
               AvroMeta meta = field.getAnnotation(AvroMeta.class);              // add metadata
               if (meta != null)
@@ -618,17 +634,18 @@ public class ReflectData extends SpecificData {
                 if (f.name().equals(fieldName))
                   throw new AvroTypeException("double field entry: "+ fieldName);
               }
+
+              consumeFieldAlias(field, recordField);
+
               fields.add(recordField);
             }
-        }
-          if (error)  {                            // add Throwable message
-            fields.add(new Schema.Field("detailMessage", THROWABLE_MESSAGE, null, null));
-          }
+          if (error)                              // add Throwable message
+            fields.add(new Schema.Field("detailMessage", THROWABLE_MESSAGE,
+                                        null, null));
           schema.setFields(fields);
           AvroMeta meta = c.getAnnotation(AvroMeta.class);
-          if (meta != null) {
+          if (meta != null)
               schema.addProp(meta.key(), meta.value());
-          }
         }
         names.put(fullName, schema);
       }
@@ -650,9 +667,8 @@ public class ReflectData extends SpecificData {
     if (!(element instanceof Class)) return;
     Class<?> c = (Class<?>)element;
     Union union = c.getAnnotation(Union.class);
-    if (union != null) {                       // element is annotated union
+    if (union != null)                          // element is annotated union
       schema.addProp(ELEMENT_PROP, c.getName());
-    }
   }
 
   // construct a schema from a union annotation
@@ -688,7 +704,7 @@ public class ReflectData extends SpecificData {
   }
 
   private static final Map<Class<?>,Field[]> FIELDS_CACHE =
-    new ConcurrentHashMap<Class<?>,Field[]>();
+    new ConcurrentHashMap<>();
 
   // Return of this class and its superclasses to serialize.
   private static Field[] getCachedFields(Class<?> recordClass) {
@@ -703,7 +719,7 @@ public class ReflectData extends SpecificData {
 
   private static Field[] getFields(Class<?> recordClass, boolean excludeJava) {
     Field[] fieldsList;
-    Map<String,Field> fields = new LinkedHashMap<String,Field>();
+    Map<String,Field> fields = new LinkedHashMap<>();
     Class<?> c = recordClass;
     do {
       if (excludeJava && c.getPackage() != null
@@ -734,6 +750,10 @@ public class ReflectData extends SpecificData {
     if (explicit != null)                                   // explicit schema
       return Schema.parse(explicit.value());
 
+    Union union = field.getAnnotation(Union.class);
+    if (union != null)
+      return getAnnotatedUnion(union, names);
+
     Schema schema = createSchema(field.getGenericType(), names);
     if (field.isAnnotationPresent(Stringable.class)) {      // Stringable
       schema = Schema.create(Schema.Type.STRING);
@@ -743,25 +763,26 @@ public class ReflectData extends SpecificData {
     return schema;
   }
 
-  /** Return the protocol for a Java interface.
-   * <p>Note that this requires that <a
-   * href="http://paranamer.codehaus.org/">Paranamer</a> is run over compiled
-   * interface declarations, since Java 6 reflection does not provide access to
-   * method parameter names.  See Avro's build.xml for an example. */
+  /**
+   * Return the protocol for a Java interface.
+   * <p>The correct name of the method parameters needs the <code>-parameters</code>
+   * java compiler argument. More info at https://openjdk.java.net/jeps/118
+   */
   @Override
   public Protocol getProtocol(Class iface) {
-    Protocol protocol = new Protocol(iface.getSimpleName(),
-                   iface.getPackage() == null ? "" : iface.getPackage().getName());
-    Map<String,Schema> names = new LinkedHashMap<String,Schema>();
+    Protocol protocol =
+      new Protocol(iface.getSimpleName(),
+                   iface.getPackage()==null?"":iface.getPackage().getName());
+    Map<String,Schema> names = new LinkedHashMap<>();
     Map<String,Message> messages = protocol.getMessages();
-    for (Method method : iface.getMethods()) {
+    for (Method method : iface.getMethods())
       if ((method.getModifiers() & Modifier.STATIC) == 0) {
         String name = method.getName();
         if (messages.containsKey(name))
           throw new AvroTypeException("Two methods with same name: "+name);
         messages.put(name, getMessage(method, protocol, names));
       }
-    }
+
     // reverse types, since they were defined in reference order
     List<Schema> types = new ArrayList<Schema>(names.values());
     Collections.reverse(types);
@@ -769,13 +790,21 @@ public class ReflectData extends SpecificData {
     return protocol;
   }
 
-  private final Paranamer paranamer = new CachingParanamer();
+  private String[] getParameterNames(Method m) {
+    Parameter[] parameters = m.getParameters();
+    String[] paramNames = new String[parameters.length];
+    for (int i = 0; i < parameters.length; i++) {
+      paramNames[i] = parameters[i].getName();
+    }
+    return paramNames;
+  }
 
-  private Message getMessage(Method method, Protocol protocol, Map<String,Schema> names) {
-    String[] paramNames = paranamer.lookupParameterNames(method);
+  private Message getMessage(Method method, Protocol protocol,
+                             Map<String,Schema> names) {
+    List<Schema.Field> fields = new ArrayList<>();
+    String[] paramNames = getParameterNames(method);
     Type[] paramTypes = method.getGenericParameterTypes();
     Annotation[][] annotations = method.getParameterAnnotations();
-    List<Schema.Field> fields = new ArrayList<Schema.Field>(paramTypes.length);
     for (int i = 0; i < paramTypes.length; i++) {
       Schema paramSchema = getSchema(paramTypes[i], names);
       for (int j = 0; j < annotations[i].length; j++) {
@@ -805,7 +834,7 @@ public class ReflectData extends SpecificData {
     if (explicit != null)                         // explicit schema
       response = Schema.parse(explicit.value());
 
-    List<Schema> errs = new ArrayList<Schema>();
+    List<Schema> errs = new ArrayList<>();
     errs.add(Protocol.SYSTEM_ERROR);              // every method can throw
     for (Type err : method.getGenericExceptionTypes()) {
       if (err != AvroRemoteException.class) {
@@ -820,7 +849,8 @@ public class ReflectData extends SpecificData {
     try {
       return createSchema(type, names);
     } catch (AvroTypeException e) {               // friendly exception
-      throw new AvroTypeException("Error getting schema for " + type + ": " + e.getMessage(), e);
+      throw new AvroTypeException("Error getting schema for "+type+": "
+                                  +e.getMessage(), e);
     }
   }
 
@@ -866,4 +896,43 @@ public class ReflectData extends SpecificData {
     }
   }
 
+
+  private void consumeFieldAlias(Field field, Schema.Field recordField) {
+    AvroAlias alias = field.getAnnotation(AvroAlias.class);
+    if (alias != null) {
+      if (!alias.space().equals(AvroAlias.NULL)) {
+        throw new AvroRuntimeException(
+            "Namespaces are not allowed on field aliases. " + "Offending field: " + recordField.name());
+      }
+      recordField.addAlias(alias.alias());
+    }
+  }
+
+  @Override
+  public Object createFixed(Object old, Schema schema) {
+    // SpecificData will try to instantiate the type returned by getClass, but
+    // that is the converted class and can't be constructed.
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType != null) {
+      Conversion<?> conversion = getConversionFor(schema.getLogicalType());
+      if (conversion != null) {
+        return new GenericData.Fixed(schema);
+      }
+    }
+    return super.createFixed(old, schema);
+  }
+
+  @Override
+  public Object newRecord(Object old, Schema schema) {
+    // SpecificData will try to instantiate the type returned by getClass, but
+    // that is the converted class and can't be constructed.
+    LogicalType logicalType = schema.getLogicalType();
+    if (logicalType != null) {
+      Conversion<?> conversion = getConversionFor(schema.getLogicalType());
+      if (conversion != null) {
+        return new GenericData.Record(schema);
+      }
+    }
+    return super.newRecord(old, schema);
+  }
 }

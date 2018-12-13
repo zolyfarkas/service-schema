@@ -62,6 +62,9 @@ public final class JacksonUtils {
     if (datum == null) {
       return null;
     }
+    if (datum instanceof JsonNode) {
+      return (JsonNode) datum;
+    }
     try {
       TokenBuffer generator = new TokenBuffer(MAPPER);
       toJson(datum, generator);
