@@ -119,7 +119,7 @@ public class JsonGrammarGenerator extends ValidatingGrammarGenerator {
         int n = 0;
         production[--i] = Symbol.RECORD_START;
         for (Field f : fields) {
-          production[--i] = Symbol.fieldAdjustAction(n, f.name(), f.defaultValue());
+          production[--i] = Symbol.fieldAdjustAction(n, f.name(), f.defaultValue(), f.aliases());
           production[--i] = generate(f.schema(), seen);
           production[--i] = Symbol.FIELD_END;
           n++;

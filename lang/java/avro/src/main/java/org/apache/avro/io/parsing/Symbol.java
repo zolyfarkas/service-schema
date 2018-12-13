@@ -18,11 +18,13 @@
 package org.apache.avro.io.parsing;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.apache.avro.Schema;
 import org.codehaus.jackson.JsonNode;
@@ -535,15 +537,30 @@ public abstract class Symbol {
     return new FieldAdjustAction(rindex, fname, defaultValue);
   }
 
+  public static FieldAdjustAction fieldAdjustAction(int rindex, String fname,
+        JsonNode defaultValue, Set<String> aliases) {
+     return new FieldAdjustAction(rindex, fname, defaultValue, aliases);
+  }
+
+
   public static class FieldAdjustAction extends ImplicitAction {
     public final int rindex;
     public final String fname;
     public final JsonNode defaultValue;
+    public final Set<String> aliases;
 
     @Deprecated public FieldAdjustAction(int rindex, String fname, JsonNode defaultValue) {
       this.rindex = rindex;
       this.fname = fname;
       this.defaultValue = defaultValue;
+      this.aliases = Collections.EMPTY_SET;
+    }
+
+    private FieldAdjustAction(int rindex, String fname, JsonNode defaultValue, final Set<String> aliases) {
+      this.rindex = rindex;
+      this.fname = fname;
+      this.defaultValue = defaultValue;
+      this.aliases = aliases;
     }
   }
 
