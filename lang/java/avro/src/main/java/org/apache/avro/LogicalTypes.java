@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import org.apache.avro.logicalTypes.AnyTemporalFactory;
 import org.apache.avro.logicalTypes.BigIntegerFactory;
 import org.apache.avro.logicalTypes.DecimalFactory;
+import org.apache.avro.logicalTypes.InstantLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonArrayLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonRecordLogicalTypeFactory;
 
@@ -45,6 +46,7 @@ public class LogicalTypes {
      register(new JsonRecordLogicalTypeFactory());
      register(new JsonArrayLogicalTypeFactory());
      register(new AnyTemporalFactory());
+     register(new InstantLogicalTypeFactory());
      ServiceLoader<org.apache.avro.LogicalTypeFactory> factories
              = ServiceLoader.load(org.apache.avro.LogicalTypeFactory.class);
      Iterator<org.apache.avro.LogicalTypeFactory> iterator = factories.iterator();
