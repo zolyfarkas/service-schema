@@ -35,12 +35,20 @@ import org.codehaus.jackson.node.ObjectNode;
 
 import org.apache.avro.Schema;
 import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.generic.ExtendedGenericDatumWriter;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.ExtendedJsonEncoder;
 import org.apache.avro.io.ResolvingDecoder;
+import org.apache.avro.specific.ExtendedSpecificDatumWriter;
+import org.apache.avro.specific.SpecificRecord;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.SerializerProvider;
 
 /** Utilities for reading and writing arbitrary Json data in Avro format. */
 public class Json {
@@ -269,6 +277,36 @@ public class Json {
 
   private static Object readObject(Decoder in) throws IOException {
     return JacksonUtils.toObject(read(in));
+  }
+
+  public static JsonSerializer<GenericRecord> avroJsonSerializer() {
+    return new AvroJsonSerializer();
+  }
+
+  public static class AvroJsonSerializer extends JsonSerializer<GenericRecord> {
+
+    @Override
+    public Class<GenericRecord> handledType() {
+      return GenericRecord.class;
+    }
+
+    @Override
+    public void serialize(final GenericRecord value, final JsonGenerator jgen, final SerializerProvider provider)
+            throws IOException {
+      Schema schema = value.getSchema();
+      DatumWriter writer;
+      Encoder encoder;
+      if (value instanceof SpecificRecord) {
+        writer = new ExtendedSpecificDatumWriter(value.getClass());
+        encoder = new ExtendedJsonEncoder(schema, jgen);
+
+      } else {
+        writer = new ExtendedGenericDatumWriter(schema);
+        encoder = new ExtendedJsonEncoder(schema, jgen);
+      }
+      writer.write(value, encoder);
+      encoder.flush();
+    }
   }
 
 }

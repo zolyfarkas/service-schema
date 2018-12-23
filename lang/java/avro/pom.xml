@@ -39,7 +39,7 @@
       org.xerial.snappy;resolution:=optional,
       *
     </osgi.import>
-    <osgi.export>org.apache.avro*;version="${project.version}"</osgi.export>
+    <osgi.export>META-INF.services,org.apache.avro*;version="${project.version}"</osgi.export>
   </properties>
 
   <build>
@@ -52,6 +52,24 @@
       </resource>
     </resources>
     <plugins>
+      <plugin>
+        <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
+        <artifactId>serviceloader-maven-plugin</artifactId>
+        <version>1.0.7</version>
+        <configuration>
+          <services>
+            <param>org.codehaus.jackson.map.JsonSerializer</param>
+          </services>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
