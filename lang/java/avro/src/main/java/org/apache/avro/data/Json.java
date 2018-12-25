@@ -309,4 +309,18 @@ public class Json {
     }
   }
 
+  public static class AvroSchemaSerializer extends JsonSerializer<Schema> {
+
+    @Override
+    public Class<Schema> handledType() {
+      return Schema.class;
+    }
+
+    @Override
+    public void serialize(final Schema value, final JsonGenerator jgen, final SerializerProvider provider)
+            throws IOException {
+      value.toJson(jgen);
+    }
+  }
+
 }
