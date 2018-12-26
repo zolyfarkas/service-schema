@@ -17,7 +17,7 @@
  */
 package org.apache.avro.util.internal;
 
-import com.google.common.collect.Maps;
+import org.apache.avro.util.Maps;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;

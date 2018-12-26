@@ -32,9 +32,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.InvocationTargetException;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import java.util.WeakHashMap;
 import org.apache.avro.Schema;
 import org.apache.avro.Protocol;
 import org.apache.avro.AvroRuntimeException;
@@ -233,25 +231,37 @@ public class SpecificData extends GenericData {
     return namespace + '$' + name;
   }
 
-  private final LoadingCache<java.lang.reflect.Type,Schema> schemaCache =
-      CacheBuilder.newBuilder()
-          .weakKeys()
-          .build(new CacheLoader<java.lang.reflect.Type,Schema>() {
-            public Schema load(java.lang.reflect.Type type)
-                throws AvroRuntimeException {
-              return createSchema(type, new LinkedHashMap<>());
-            }
-          });
+  // cache for schemas created from Class objects.  Use ClassValue to avoid
+  // locking classloaders and is GC and thread safe.
+  private final ClassValue<Schema> schemaClassCache = new ClassValue<Schema>() {
+    @Override
+    protected Schema computeValue(Class<?> type) {
+      return createSchema(type, new LinkedHashMap<>());
+    }
+  };
+  // for non-class objects, use a WeakHashMap, but this needs a sync block around it
+  private final Map<java.lang.reflect.Type, Schema> schemaTypeCache = new WeakHashMap<>();
 
   /** Find the schema for a Java type. */
   public Schema getSchema(java.lang.reflect.Type type) {
     try {
-      return schemaCache.get(type);
+      if (type instanceof Class) {
+        return schemaClassCache.get((Class<?>)type);
+      }
+      synchronized (schemaTypeCache) {
+        Schema s = schemaTypeCache.get(type);
+        if (s == null) {
+          s = createSchema(type, new LinkedHashMap<>());
+          schemaTypeCache.put(type, s);
+        }
+        return s;
+      }
     } catch (Exception e) {
       throw (e instanceof AvroRuntimeException) ?
-          (AvroRuntimeException)e.getCause() : new AvroRuntimeException(e);
+          (AvroRuntimeException)e : new AvroRuntimeException(e);
     }
   }
+
 
   /** Create the schema for a Java type. */
   @SuppressWarnings(value="unchecked")

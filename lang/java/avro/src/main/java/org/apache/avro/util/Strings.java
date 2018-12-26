@@ -15,7 +15,6 @@
  */
 package org.apache.avro.util;
 
-import com.google.common.base.Charsets;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -26,6 +25,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import org.slf4j.Logger;
@@ -78,7 +78,7 @@ public final class Strings {
 
     @Override
     protected CharsetDecoder initialValue() {
-      return Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
+      return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
               .onUnmappableCharacter(CodingErrorAction.REPLACE);
     }
 
@@ -88,7 +88,7 @@ public final class Strings {
 
     @Override
     protected CharsetEncoder initialValue() {
-      return Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
+      return StandardCharsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
               .onUnmappableCharacter(CodingErrorAction.REPLACE);
     }
 

@@ -17,7 +17,7 @@
  */
 package org.apache.avro;
 
-import com.google.common.collect.Maps;
+import org.apache.avro.util.Maps;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
