@@ -453,7 +453,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     toJson(new Names(), gen);
   }
 
-  void toJson(Names names, JsonGenerator gen) throws IOException {
+  public void toJson(Names names, JsonGenerator gen) throws IOException {
     if (props.size() == 0 && logicalType == null) { // no props defined
       gen.writeString(getName());                   // just write name
     } else {
@@ -730,6 +730,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
       } else if (name.name != null) {
         names.put(name, this);
       }
+      String id = names.getId(this);
+      if (id != null) {
+        gen.writeStartObject();
+        gen.writeFieldName("$ref");
+        gen.writeString(id);
+        gen.writeEndObject();
+        return true;
+      }
       return false;
     }
     public void writeName(Names names, JsonGenerator gen) throws IOException {
@@ -854,7 +862,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
-    void toJson(Names names, JsonGenerator gen) throws IOException {
+    public void toJson(Names names, JsonGenerator gen) throws IOException {
       if (writeNameRef(names, gen)) return;
       String savedSpace = names.space;            // save namespace
       gen.writeStartObject();
@@ -1101,7 +1109,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return super.computeHash() + 29 * symbols.size();
     }
 
-    void toJson(Names names, JsonGenerator gen) throws IOException {
+    public void toJson(Names names, JsonGenerator gen) throws IOException {
       if (writeNameRef(names, gen)) return;
       gen.writeStartObject();
       gen.writeStringField("type", "enum");
@@ -1136,7 +1144,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Override int computeHash() {
       return  super.computeHash() + 7 * elementType.hashCode();
     }
-    void toJson(Names names, JsonGenerator gen) throws IOException {
+
+    public void toJson(Names names, JsonGenerator gen) throws IOException {
       gen.writeStartObject();
       gen.writeStringField("type", "array");
       gen.writeFieldName("items");
@@ -1164,7 +1173,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Override int computeHash() {
       return super.computeHash() + 13 * valueType.hashCode();
     }
-    void toJson(Names names, JsonGenerator gen) throws IOException {
+
+    public void toJson(Names names, JsonGenerator gen) throws IOException {
       gen.writeStartObject();
       gen.writeStringField("type", "map");
       gen.writeFieldName("values");
@@ -1214,7 +1224,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       throw new AvroRuntimeException("Can't set properties on a union: "+this);
     }
 
-    void toJson(Names names, JsonGenerator gen) throws IOException {
+    public void toJson(Names names, JsonGenerator gen) throws IOException {
       gen.writeStartArray();
       for (Schema type : types)
         type.toJson(names, gen);
@@ -1242,7 +1252,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     @Override
-    void toJson(Names names, JsonGenerator gen) throws IOException {
+    public void toJson(Names names, JsonGenerator gen) throws IOException {
       if (writeNameRef(names, gen)) return;
       gen.writeStartObject();
       gen.writeStringField("type", "fixed");
@@ -1293,9 +1303,19 @@ public abstract class Schema extends JsonProperties implements Serializable {
    * is added to the names known to the parser so that subsequently parsed
    * schemas may refer to it by name. */
   public static class Parser {
-    private Names names = new Names();
+    private final Names names;
     private boolean validate = true;
     private boolean validateDefaults = false;
+
+    public Parser(final Names names) {
+      this.names = names;
+    }
+
+    public Parser() {
+      names = new Names();
+    }
+
+
 
     /** Adds the provided types to the set of defined, named types known to
      * this parser. */
@@ -1441,7 +1461,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     PRIMITIVES.put("null",    Type.NULL);
   }
 
-  static class Names extends LinkedHashMap<Name, Schema> {
+  public static class Names extends LinkedHashMap<Name, Schema>  implements SchemaResolver {
     private String space;                         // default namespace
 
     public Names() {
@@ -1483,6 +1503,16 @@ public abstract class Schema extends JsonProperties implements Serializable {
         throw new SchemaParseException("Can't redefine: " + name + " existing: " + result + ", with " + schema);
       }
       return result;
+    }
+
+    @Override
+    public Schema resolveSchema(String id) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getId(Schema schema) {
+      return null;
     }
   }
 
@@ -1596,6 +1626,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
         throw new SchemaParseException("Undefined name: "+schema);
       return result;
     } else if (schema.isObject()) {
+      JsonNode ref = schema.get("$ref");
+      if (ref != null) {
+        return names.resolveSchema(ref.asText());
+      }
       Schema result;
       String type = getRequiredText(schema, "type", "No type");
       Name name = null;
