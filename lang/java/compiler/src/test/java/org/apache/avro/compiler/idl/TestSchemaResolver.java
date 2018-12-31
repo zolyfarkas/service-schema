@@ -83,4 +83,18 @@ public class TestSchemaResolver {
     Schema s = SchemaBuilder.fixed("a").size(10);
     SchemaResolver.getUnresolvedSchemaName(s);
   }
+
+  @Test
+  public void testDocReader() throws ParseException, MalformedURLException, IOException {
+    File file = new File(".");
+    String currentWorkPath = file.getAbsolutePath();
+    String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"
+        + File.separator + "idl" + File.separator +  "test" + File.separator + "common.avdl";
+    Idl compiler = new Idl(new File(testIdl));
+    compiler.setIsAllowUndefinedLogicalTypes(true);
+    Protocol protocol = compiler.CompilationUnit();
+    System.out.println(protocol);
+    Assert.assertEquals("quote record comment", protocol.getType("org.spf4j.base.avro.QuoteId").getDoc());
+  }
+
 }

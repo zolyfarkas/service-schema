@@ -1163,15 +1163,16 @@ Schema EnumDeclaration():
   List<String> symbols;
   String line;
   String defaultSymbol = null;
+  String doc;
 }
 {
   "enum"
-  { line = ":" + token.beginLine + ':' + token.beginColumn; }
+  { line = ":" + token.beginLine + ':' + token.beginColumn; doc = getDoc();}
   name = Identifier()
   symbols = EnumBody()
       [ <EQUALS> defaultSymbol=Identifier() <SEMICOLON>]
   {
-    Schema s = Schema.createEnum(name, getDoc(), this.namespace, symbols, defaultSymbol);
+    Schema s = Schema.createEnum(name, doc, this.namespace, symbols, defaultSymbol);
     names.put(s.getFullName(), s);
     if (!source.isEmpty()) {
      s.addProp("sourceIdl", source + line );
