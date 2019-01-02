@@ -119,6 +119,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   static {
     FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
+    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     FACTORY.setCodec(MAPPER);
   }
 
