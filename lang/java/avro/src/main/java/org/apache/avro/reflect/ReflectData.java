@@ -627,6 +627,13 @@ public class ReflectData extends SpecificData {
               Schema.Field recordField
                 = new Schema.Field(fieldName, fieldSchema, doc, defaultValue);
 
+              AvroMetas metas = field.getAnnotation(AvroMetas.class);
+              if (metas != null) {
+                for (AvroMeta meta : metas.value()) {
+                 recordField.addProp(meta.key(), meta.value());
+                }
+              }
+
               AvroMeta meta = field.getAnnotation(AvroMeta.class);              // add metadata
               if (meta != null)
                 recordField.addProp(meta.key(), meta.value());
@@ -643,6 +650,12 @@ public class ReflectData extends SpecificData {
             fields.add(new Schema.Field("detailMessage", THROWABLE_MESSAGE,
                                         null, null));
           schema.setFields(fields);
+          AvroMetas metas = c.getAnnotation(AvroMetas.class);
+          if (metas != null) {
+            for (AvroMeta meta : metas.value()) {
+              schema.addProp(meta.key(), meta.value());
+            }
+          }
           AvroMeta meta = c.getAnnotation(AvroMeta.class);
           if (meta != null)
               schema.addProp(meta.key(), meta.value());
