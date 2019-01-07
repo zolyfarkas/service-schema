@@ -46,6 +46,7 @@ import org.apache.avro.AvroTypeException;
 import org.apache.avro.Conversion;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Protocol;
 import org.apache.avro.Protocol.Message;
 import org.apache.avro.Schema;
@@ -632,11 +633,12 @@ public class ReflectData extends SpecificData {
                 for (AvroMeta meta : metas.value()) {
                  recordField.addProp(meta.key(), meta.value());
                 }
+              } else {
+                AvroMeta meta = field.getAnnotation(AvroMeta.class);              // add metadata
+                if (meta != null) {
+                  recordField.addProp(meta.key(), meta.value());
+                }
               }
-
-              AvroMeta meta = field.getAnnotation(AvroMeta.class);              // add metadata
-              if (meta != null)
-                recordField.addProp(meta.key(), meta.value());
               for(Schema.Field f : fields) {
                 if (f.name().equals(fieldName))
                   throw new AvroTypeException("double field entry: "+ fieldName);
@@ -655,10 +657,12 @@ public class ReflectData extends SpecificData {
             for (AvroMeta meta : metas.value()) {
               schema.addProp(meta.key(), meta.value());
             }
+          } else {
+            AvroMeta meta = c.getAnnotation(AvroMeta.class);
+            if (meta != null) {
+                schema.addProp(meta.key(), meta.value());
+            }
           }
-          AvroMeta meta = c.getAnnotation(AvroMeta.class);
-          if (meta != null)
-              schema.addProp(meta.key(), meta.value());
         }
         names.put(fullName, schema);
       }
@@ -752,27 +756,43 @@ public class ReflectData extends SpecificData {
   /** Create a schema for a field. */
   protected Schema createFieldSchema(Field field, Map<String, Schema> names) {
     AvroEncode enc = field.getAnnotation(AvroEncode.class);
-    if (enc != null)
+    Schema schema;
+    if (enc != null) {
       try {
-          return enc.using().newInstance().getSchema();
+        schema = enc.using().newInstance().getSchema();
       } catch (Exception e) {
-          throw new AvroRuntimeException("Could not create schema from custom serializer for " + field.getName());
+        throw new AvroRuntimeException("Could not create schema from custom serializer for " + field.getName());
       }
-
-    AvroSchema explicit = field.getAnnotation(AvroSchema.class);
-    if (explicit != null)                                   // explicit schema
-      return Schema.parse(explicit.value());
-
-    Union union = field.getAnnotation(Union.class);
-    if (union != null)
-      return getAnnotatedUnion(union, names);
-
-    Schema schema = createSchema(field.getGenericType(), names);
-    if (field.isAnnotationPresent(Stringable.class)) {      // Stringable
-      schema = Schema.create(Schema.Type.STRING);
+    } else {
+      AvroSchema explicit = field.getAnnotation(AvroSchema.class);
+      if (explicit != null) {
+        String value = explicit.value();
+        if (value.startsWith("\"") || value.startsWith("{") || value.startsWith("[")) {
+          schema = Schema.parse(value);
+        } else {
+          schema = Schema.parse("\"" + value + "\""); // assume it is a basic type.
+        }
+      } else {
+        Union union = field.getAnnotation(Union.class);
+        if (union != null) {
+          schema = getAnnotatedUnion(union, names);
+        } else {
+          if (field.isAnnotationPresent(Stringable.class)) {      // Stringable
+            schema = Schema.create(Schema.Type.STRING);
+          } else {
+            schema = createSchema(field.getGenericType(), names);
+          }
+        }
+      }
+      if (field.isAnnotationPresent(Nullable.class)) {
+        schema = makeNullable(schema);
+      }
     }
-    if (field.isAnnotationPresent(Nullable.class))           // nullable
-      schema = makeNullable(schema);
+    org.apache.avro.reflect.LogicalType lt = field.getAnnotation(org.apache.avro.reflect.LogicalType.class);
+    if (lt != null) {
+      schema.addProp("logicalType", lt.value());
+      schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    }
     return schema;
   }
 
