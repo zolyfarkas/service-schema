@@ -77,6 +77,7 @@ public final class ExtendedJsonEncoder extends JsonEncoder
     out.writeNumber(decimal);
   }
 
+  @Override
   public void writeValue(final Object value, final Schema schema) throws IOException {
     if (value == null) {
       throw new AvroTypeException("value cannot be null, must be " + schema);
@@ -101,8 +102,9 @@ public final class ExtendedJsonEncoder extends JsonEncoder
           parser.advance(Symbol.INT);
           break;
         default:
+          parser.advanceOneFAA();
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
+          parser.skip(rootSymbol.production.length - 1);
           break;
       }
   }

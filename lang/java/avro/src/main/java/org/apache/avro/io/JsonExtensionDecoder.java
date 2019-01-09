@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.apache.avro.Schema;
+import org.codehaus.jackson.JsonNode;
 
 /**
  *
@@ -28,6 +29,7 @@ public interface JsonExtensionDecoder {
 
   <T> T readValue(final Schema schema, final Class<T> clasz) throws IOException;
 
+  JsonNode readValueAsTree(final Schema schema) throws IOException;
 
   BigInteger readBigInteger(final Schema schema) throws IOException;
 

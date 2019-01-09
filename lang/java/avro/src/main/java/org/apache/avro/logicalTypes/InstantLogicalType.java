@@ -21,16 +21,17 @@ import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.specific.SpecificRecord;
 
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
 public final class InstantLogicalType extends AbstractLogicalType<Instant> {
 
-  private final Class<?> specificType;
-
   private final Schema schema;
+
+  private final int epochSecondIdx;
+
+  private final int nanoIdx;
 
   InstantLogicalType(Schema schema) {
     super(schema.getType(), Collections.EMPTY_SET, "instant",
@@ -39,19 +40,11 @@ public final class InstantLogicalType extends AbstractLogicalType<Instant> {
        throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string, not" + type);
     }
     if (schema.getType() == Schema.Type.RECORD) {
-      Class<?> clasz;
-      try {
-        clasz = Class.forName(schema.getFullName());
-      } catch (ClassNotFoundException ex) {
-        clasz = null;
-      }
-      if (clasz != null && SpecificRecord.class.isAssignableFrom(clasz)) {
-        specificType = clasz;
-      } else {
-        specificType = null;
-      }
+      epochSecondIdx = schema.getField("epochSecond").pos();
+      nanoIdx = schema.getField("nano").pos();
     } else {
-      specificType = null;
+      epochSecondIdx = -1;
+      nanoIdx = -1;
     }
     this.schema = schema;
   }
@@ -64,7 +57,7 @@ public final class InstantLogicalType extends AbstractLogicalType<Instant> {
         return Instant.parse(strVal);
       case RECORD:
         GenericRecord rec = (GenericRecord) object;
-        return Instant.ofEpochSecond((long) rec.get("epochSecond"), (int) rec.get("nano"));
+        return Instant.ofEpochSecond((long) rec.get(epochSecondIdx), (int) rec.get(nanoIdx));
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
     }
@@ -76,18 +69,9 @@ public final class InstantLogicalType extends AbstractLogicalType<Instant> {
       case STRING:
         return temporal.toString();
       case RECORD:
-        GenericRecord rec;
-        if (specificType != null) {
-          try {
-            rec = (GenericRecord) specificType.newInstance();
-          } catch (InstantiationException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-          }
-        } else {
-          rec = new GenericData.Record(schema);
-        }
-        rec.put("epochSecond", temporal.getEpochSecond());
-        rec.put("nano", temporal.getNano());
+        GenericRecord rec = new GenericData.Record(schema);
+        rec.put(epochSecondIdx, temporal.getEpochSecond());
+        rec.put(nanoIdx, temporal.getNano());
         return rec;
       default:
         throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);

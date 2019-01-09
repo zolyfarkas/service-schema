@@ -109,6 +109,55 @@ public class Parser {
     }
   }
 
+  public final void skipTerminal(Symbol input) throws IOException {
+    for (; ;) {
+      Symbol top = stack[--pos];
+      if (top == input) {
+        return; // A common case
+      }
+      Symbol.Kind k = top.kind;
+      if (k == Symbol.Kind.TERMINAL) {
+        throw new AvroTypeException("Attempt to process a "
+                + input + " when a "
+                + top + " was expected.");
+      } else if (top.production != null) {
+        pushProduction(top);
+      }
+    }
+  }
+
+
+  public final void advanceOneFAA() throws IOException {
+    for (; ;) {
+      Symbol top = stack[--pos];
+      Symbol.Kind k = top.kind;
+      if (k == Symbol.Kind.IMPLICIT_ACTION) {
+        symbolHandler.doAction(null, top);
+        if (top instanceof Symbol.FieldAdjustAction) {
+          return;
+        }
+      } else if (k == Symbol.Kind.TERMINAL) {
+        throw new AvroTypeException("Attempt to process a field adjust action  when a "
+                + top + " was expected.");
+      } else if (top.production != null) {
+        pushProduction(top);
+      }
+    }
+  }
+
+  public final void skip(int nrToSkip) throws IOException {
+    while (nrToSkip > 0) {
+      Symbol top = stack[--pos];
+      if (top.production != null) {
+        pushProduction(top);
+      }
+      nrToSkip--;
+    }
+  }
+
+
+
+
   /**
    * Performs any implicit actions at the top the stack, expanding any
    * production (other than the root) that may be encountered.

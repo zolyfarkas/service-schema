@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.avro.data.Json;
 
 import org.apache.avro.util.internal.JacksonUtils;
 import org.codehaus.jackson.JsonFactory;
@@ -47,6 +48,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.node.DoubleNode;
 
 /** An abstract data type.
@@ -120,6 +122,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
   static {
     FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
     FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+    SimpleModule module = new SimpleModule("avro",
+            new org.codehaus.jackson.Version(1, 0, 0, ""));
+    module.addSerializer(new Json.AvroSchemaSerializer());
+    module.addSerializer(new Json.AvroJsonSerializer());
+    MAPPER.registerModule(module);
     FACTORY.setCodec(MAPPER);
   }
 
@@ -1620,7 +1627,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   /** @see #parse(String) */
-  static Schema parse(JsonNode schema, Names names, final boolean allowUndefinedLogicalTypes) {
+  public static Schema parse(JsonNode schema, Names names, final boolean allowUndefinedLogicalTypes) {
     if (schema.isTextual()) {                     // name
       Schema result = names.get(schema.getTextValue());
       if (result == null)

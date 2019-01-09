@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import org.apache.avro.Schema;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Symbol;
+import org.codehaus.jackson.JsonNode;
 
 /**
  *
@@ -73,7 +74,12 @@ implements JsonExtensionDecoder {
           break;
         default:
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          parser.advance(rootSymbol.production[rootSymbol.production.length - 1]);
+          for (int i = rootSymbol.production.length - 1; i > 0; i--) {
+              Symbol s = rootSymbol.production[i];
+              if (s.kind == Symbol.Kind.TERMINAL) {
+                parser.skipTerminal(s);
+              }
+          }
           break;
       }
   }
@@ -82,6 +88,12 @@ implements JsonExtensionDecoder {
   public ValidatingDecoder configure(Decoder in) throws IOException {
     extDec = (JsonExtensionDecoder) in;
     return super.configure(in);
+  }
+
+  @Override
+  public JsonNode readValueAsTree(Schema schema) throws IOException {
+    advanceBy(schema);
+    return extDec.readValueAsTree(schema);
   }
 
 

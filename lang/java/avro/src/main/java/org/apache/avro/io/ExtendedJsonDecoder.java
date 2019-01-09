@@ -391,10 +391,19 @@ public final class ExtendedJsonDecoder extends JsonDecoder
           advance(Symbol.INT);
           break;
         default:
+          parser.advanceOneFAA();
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          advance(rootSymbol.production[rootSymbol.production.length - 1]);
+          parser.skip(rootSymbol.production.length - 1);
           break;
       }
+  }
+
+  @Override
+  public JsonNode readValueAsTree(final Schema schema) throws IOException {
+    advanceBy(schema);
+    JsonNode result = in.readValueAsTree();
+    in.nextToken();
+    return result;
   }
 
 }

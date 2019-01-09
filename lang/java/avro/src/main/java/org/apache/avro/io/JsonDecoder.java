@@ -922,7 +922,7 @@ public class JsonDecoder extends ParsingDecoder
     return result;
   }
 
-  JsonParser makeParser(final List<JsonElement> elements, final ObjectCodec codec) throws IOException {
+  public static JsonParser makeParser(final List<JsonElement> elements, final ObjectCodec codec) throws IOException {
     return new JsonParser() {
       int pos = 0;
 

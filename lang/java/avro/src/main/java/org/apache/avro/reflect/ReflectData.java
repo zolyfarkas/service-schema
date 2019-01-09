@@ -675,12 +675,12 @@ public class ReflectData extends SpecificData {
     return c.isAnnotationPresent(Stringable.class) || super.isStringable(c);
   }
 
-  private static final Schema THROWABLE_MESSAGE =
+  static final Schema THROWABLE_MESSAGE =
     makeNullable(Schema.create(Schema.Type.STRING));
 
   // if array element type is a class with a union annotation, note it
   // this is required because we cannot set a property on the union itself
-  private void setElement(Schema schema, Type element) {
+  protected void setElement(Schema schema, Type element) {
     if (!(element instanceof Class)) return;
     Class<?> c = (Class<?>)element;
     Union union = c.getAnnotation(Union.class);
@@ -689,7 +689,7 @@ public class ReflectData extends SpecificData {
   }
 
   // construct a schema from a union annotation
-  private Schema getAnnotatedUnion(Union union, Map<String,Schema> names) {
+  protected Schema getAnnotatedUnion(Union union, Map<String,Schema> names) {
     Class[] value = union.value();
     List<Schema> branches = new ArrayList<Schema>(value.length);
     for (Class branch : value) {
@@ -724,7 +724,7 @@ public class ReflectData extends SpecificData {
     new ConcurrentHashMap<>();
 
   // Return of this class and its superclasses to serialize.
-  private static Field[] getCachedFields(Class<?> recordClass) {
+  protected static Field[] getCachedFields(Class<?> recordClass) {
     Field[] fieldsList = FIELDS_CACHE.get(recordClass);
     if (fieldsList != null) {
       return fieldsList;
@@ -919,7 +919,7 @@ public class ReflectData extends SpecificData {
     return getFieldAccessors(record.getClass(), schema);
   }
 
-  private void consumeAvroAliasAnnotation(Class<?> c, Schema schema) {
+  protected void consumeAvroAliasAnnotation(Class<?> c, Schema schema) {
     AvroAlias alias = c.getAnnotation(AvroAlias.class);
     if (alias != null) {
       String space = alias.space();
@@ -930,7 +930,7 @@ public class ReflectData extends SpecificData {
   }
 
 
-  private void consumeFieldAlias(Field field, Schema.Field recordField) {
+  protected void consumeFieldAlias(Field field, Schema.Field recordField) {
     AvroAlias alias = field.getAnnotation(AvroAlias.class);
     if (alias != null) {
       if (!alias.space().equals(AvroAlias.NULL)) {
