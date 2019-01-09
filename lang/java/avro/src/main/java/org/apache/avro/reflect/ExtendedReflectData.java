@@ -127,7 +127,6 @@ public class ExtendedReflectData extends ReflectData {
             schema = Schema.createMap(Schema.create(Schema.Type.NULL));
           } else {
             Map.Entry next = (Map.Entry) map.entrySet().iterator().next();
-
             schema = createNonStringMapSchema(next.getKey().getClass(), next.getKey().getClass(), names);
           }
           schema.addProp(SpecificData.CLASS_PROP, raw.getName());
@@ -192,6 +191,24 @@ public class ExtendedReflectData extends ReflectData {
           return Schema.createArray(createSchema(next.getClass(), next, names));
         } else {
           return Schema.createArray(Schema.create(Schema.Type.NULL));
+        }
+      }
+      if (Map.class.isAssignableFrom(c)) {
+        Map map = (Map) object;
+        if (map.isEmpty()) {
+          return Schema.createMap(Schema.create(Schema.Type.NULL));
+        }
+        Map.Entry elem = (Map.Entry) map.entrySet().iterator().next();
+        Class key = elem.getKey().getClass();
+        if (isStringable(key) || CharSequence.class.isAssignableFrom(key)) {   // Stringable key
+          Schema schema = Schema.createMap(createSchema(elem.getValue().getClass(), elem.getValue(), names));
+          if (key != String.class) {
+            schema.addProp(SpecificData.CLASS_PROP, key.getName());
+          }
+          return schema;
+        } else if (key != String.class) {
+          Schema schema = createNonStringMapSchema(elem.getKey().getClass(), elem.getValue().getClass(), names);
+          return schema;
         }
       }
       String fullName = c.getName();
