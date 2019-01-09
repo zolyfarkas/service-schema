@@ -165,6 +165,14 @@ public final class AvroUtils {
     reader.read(res, decoder);
   }
 
+  public static Object readAvroBin(final InputStream input, final Schema writerSchema)
+          throws IOException {
+    DatumReader reader = new GenericDatumReader(writerSchema);
+    DecoderFactory decoderFactory = DecoderFactory.get();
+    Decoder decoder = decoderFactory.binaryDecoder(input, null);
+    return reader.read(null, decoder);
+  }
+
   public static byte[] writeAvroJson(final SpecificRecord req) {
     ByteArrayOutputStream bos = new ByteArrayOutputStream(128);
     try {
@@ -273,6 +281,15 @@ public final class AvroUtils {
           throws IOException {
     @SuppressWarnings("unchecked")
     DatumWriter<T> writer = new SpecificDatumWriter<T>((Class<T>) req.getClass());
+    Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
+    writer.write(req, encoder);
+    encoder.flush();
+  }
+
+  public static void writeAvroBin(final OutputStream out, final GenericRecord req)
+          throws IOException {
+    @SuppressWarnings("unchecked")
+    DatumWriter writer = new GenericDatumWriter(req.getSchema());
     Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
     writer.write(req, encoder);
     encoder.flush();

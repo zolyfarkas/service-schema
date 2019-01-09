@@ -19,11 +19,13 @@ import java.util.Map;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.Schema;
+import org.apache.avro.SchemaResolvers;
 
 /**
  * @author zfarkas
  */
 public class AnyAvroLogicalTypeFactory implements LogicalTypeFactory {
+
 
   @Override
   public String getLogicalTypeName() {
@@ -32,7 +34,7 @@ public class AnyAvroLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType fromSchema(final Schema schema) {
-    return new AnyAvroLogicalType(schema);
+    return new AnyAvroLogicalType(schema, SchemaResolvers.get(schema.getProp("resolver")));
   }
 
   @Override

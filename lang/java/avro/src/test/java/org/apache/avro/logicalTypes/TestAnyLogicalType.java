@@ -15,8 +15,12 @@
  */
 package org.apache.avro.logicalTypes;
 
+import com.google.common.io.ByteArrayDataOutput;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
@@ -67,7 +71,17 @@ public class TestAnyLogicalType {
     System.out.println(writeAvroExtendedJson);
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), record.getSchema());
     Assert.assertEquals(record.toString(), back.toString());
+  }
 
+  @Test
+  public void testJsonRecord3() throws IOException {
+    GenericData.Record record = createTestRecord();
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    AvroUtils.writeAvroBin(bos,  record);
+    System.out.println(new String(bos.toByteArray(), StandardCharsets.UTF_8));
+    GenericRecord back = (GenericRecord) AvroUtils.readAvroBin(new ByteArrayInputStream(bos.toByteArray()),
+            record.getSchema());
+    Assert.assertEquals(record.toString(), back.toString());
   }
 
   public static GenericData.Record createTestRecord() {

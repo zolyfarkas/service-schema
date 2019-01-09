@@ -43,6 +43,7 @@ import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.JsonExtensionEncoder;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.reflect.ExtendedReflectDatumWriter;
+import org.apache.avro.util.CharSequenceReader;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 
@@ -52,17 +53,7 @@ import org.codehaus.jackson.JsonNode;
 public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
 
 
-  private static volatile SchemaResolver resolver = new SchemaResolver() {
-    @Override
-    public Schema resolveSchema(String id) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getId(Schema schema) {
-      return null;
-    }
-  };
+  private final SchemaResolver resolver;
 
   private final Schema uSchema;
 
@@ -70,7 +61,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
 
   private final int contentIdx;
 
-  AnyAvroLogicalType(Schema schema) {
+  AnyAvroLogicalType(Schema schema, final SchemaResolver resolver) {
     super(schema.getType(), Collections.EMPTY_SET, "any",
             Collections.EMPTY_MAP, Object.class);
     if (type != Schema.Type.RECORD) {
@@ -90,17 +81,20 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
     contentIdx = cField.pos();
     schemaIdx = sField.pos();
     this.uSchema = schema;
-  }
-
-  public static void setResolver(SchemaResolver resolver) {
-    AnyAvroLogicalType.resolver = resolver;
+    this.resolver = resolver;
   }
 
   @Override
   public Object deserialize(Object object) {
     GenericRecord rec = (GenericRecord) object;
-    String schema = (String) rec.get(schemaIdx);
-    Schema sch = new Schema.Parser(new AvroNamesRefResolver(resolver)).parse(schema);
+    CharSequence schema = (CharSequence) rec.get(schemaIdx);
+    Schema sch;
+    try {
+      sch = new Schema.Parser(new AvroNamesRefResolver(resolver)).parse(
+              Schema.FACTORY.createJsonParser(new CharSequenceReader(schema)));
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
     ByteBuffer bb = (ByteBuffer) rec.get(contentIdx);
     DatumReader reader = new GenericDatumReader(sch, sch);
     int arrayOffset = bb.arrayOffset();
@@ -117,7 +111,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
   public Object serialize(Object toSer) {
       Schema schema = ExtendedReflectData.get().getSchema(toSer.getClass());
       if (schema == null) {
-        ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
+        schema = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
       }
       StringWriter sw = new StringWriter();
       try {

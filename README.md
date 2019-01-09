@@ -29,10 +29,9 @@ the ExtendedJsonEncoder will serialize:
 ```
 @symbolAliases({"DIAMONDS" : ["Bling Bling", "ROCKS"]}) // you can correct bad names backward compatibly.
 @stringSymbols({"SPADES" : "S P A D E S"}) //you can have stringValues (toString()) that are not restricted to identifiers
-@fallbackSymbol("UNKNOWN") // necessary for evolution. @default is also supported according to avro spec.
  enum Suit {
   UNKNOWN, SPADES, DIAMONDS, CLUBS, HEARTS
-}
+} = "UNKNOWN";
 ```
 
 ### 3) Generated java classes are annotated with @Nullable or @Nonnull as appropriate. As such compiling in conjuction with tools like spotbugs or google error-prone will result in better quality code.
@@ -71,9 +70,38 @@ the ExtendedJsonEncoder will serialize:
 "field" : {"field" : "value"}
 ```
 
-### 8) @deprecated support for record and fields. You can use @deprecated to deprecate avro records.
+### 8) any type support. implemented via logicalTypes, with clean Json image.
 
-### 9) @beta @deprecated schema annotations support for your data model lifecycle.
+```
+@logicalType("any")
+record AnyType {
+  string avsc;
+  bytes content;
+}
+```
+
+using this type like:
+
+```
+...
+ AnyType field;
+...
+```
+
+will serialize in json to:
+
+```
+"field" :  {
+  "avsc" : ... { the avro  schema } ...
+  "content" : ... { the json image } ...
+}
+```
+
+### 9) @deprecated support for record and fields. You can use @deprecated to deprecate avro records.
+
+### 10) @beta @deprecated schema annotations support for your data model lifecycle.
+
+### 11) Improved generated javadoc. (unions list all supported types)
 
 ## Getting started:
 
