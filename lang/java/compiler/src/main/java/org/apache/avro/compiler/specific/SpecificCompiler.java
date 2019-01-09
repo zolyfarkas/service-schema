@@ -991,5 +991,28 @@ public class SpecificCompiler {
   public void setOutputCharacterEncoding(String outputCharacterEncoding) {
     this.outputCharacterEncoding = outputCharacterEncoding;
   }
+
+  public String extraFieldDoc(final Field field) {
+    Schema schema = field.schema();
+    if (schema.getType() == Schema.Type.UNION
+            && "java.lang.Object".equals(javaUnbox(schema))) {
+      StringBuilder sb = new StringBuilder(80);
+      sb.append("<p>The following types are supported:</p>\n");
+      sb.append("   * <ul>\n");
+      for (Schema us : schema.getTypes()) {
+         if (us.getType() == Schema.Type.NULL) {
+           continue;
+         }
+         sb.append("   * <li>@see ");
+         sb.append(javaUnbox(us));
+         sb.append("</li>\n");
+      }
+      sb.append("   * </ul>");
+      return sb.toString();
+    } else {
+      return null;
+    }
+  }
+
 }
 

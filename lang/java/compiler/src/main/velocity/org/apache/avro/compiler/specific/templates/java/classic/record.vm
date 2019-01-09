@@ -35,9 +35,14 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse(${this.javaSplit($schema.toString())});
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 #foreach ($field in $schema.getFields())
- #if ($field.doc())
-  /** $field.doc() */
- #end
+#if ($field.doc() || $this.extraFieldDoc($field))
+  /**
+#if ($field.doc())   * $field.doc()
+#end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#end
+   */
+#end
  #foreach ($annotation in $this.javaAnnotations($field))
   @$annotation
  #end
@@ -121,6 +126,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
    * Gets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())   * $field.doc()
 #end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#end
    */
   ${this.nullableAnnotation($field.schema())}
   public ${this.javaUnbox($field.schema())} ${this.generateGetMethod($schema, $field)}() {
@@ -131,6 +138,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
   /**
    * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())   * $field.doc()
+#end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
    * @param value the value to set.
    */
@@ -236,6 +245,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       * Gets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * $field.doc()
 #end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#end
       */
     public ${this.javaUnbox($field.schema())} ${this.generateGetMethod($schema, $field)}() {
       return ${this.mangle($field.name(), $schema.isError())};
@@ -244,6 +255,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     /**
       * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * $field.doc()
+#end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
       * @param value the value to set.
       */
@@ -261,6 +274,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       * Checks whether the '${this.mangle($field.name(), $schema.isError())}' field has been set.
 #if ($field.doc())      * $field.doc()
 #end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#end
       */
     public boolean ${this.generateHasMethod($schema, $field)}() {
       return fieldSetFlags()[$field.pos()];
@@ -270,6 +285,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     /**
      * Gets the Builder instance for the '${this.mangle($field.name(), $schema.isError())}' field and creates one if it doesn't exist yet.
 #if ($field.doc())     * $field.doc()
+#end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
      */
     public ${this.javaType($field.schema())}.Builder ${this.generateGetBuilderMethod($schema, $field)}() {
@@ -287,6 +304,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
      * Sets the Builder instance for the '${this.mangle($field.name(), $schema.isError())}' field
 #if ($field.doc())     * $field.doc()
 #end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#end
      */
     public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetBuilderMethod($schema, $field)}(${this.javaUnbox($field.schema())}.Builder value) {
       ${this.generateClearMethod($schema, $field)}();
@@ -298,6 +317,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
      * Checks whether the '${this.mangle($field.name(), $schema.isError())}' field has an active Builder instance
 #if ($field.doc())     * $field.doc()
 #end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#end
      */
     public boolean ${this.generateHasBuilderMethod($schema, $field)}() {
       return ${this.mangle($field.name(), $schema.isError())}Builder != null;
@@ -307,6 +328,8 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     /**
       * Clears the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * $field.doc()
+#end
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
       */
     public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateClearMethod($schema, $field)}() {

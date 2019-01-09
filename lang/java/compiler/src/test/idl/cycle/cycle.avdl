@@ -1,6 +1,7 @@
 @namespace("org.apache.avro.gen")
 protocol Cycle {
 
+    @MarkerProperty
     record SampleNode {
       int count = 0;
       array<SamplePair> subNodes;
@@ -13,7 +14,8 @@ protocol Cycle {
 
     record SamplePair {
       Method method;
-      SampleNode node;
+      /** a node and stuff */
+      union {null, string, SampleNode} node;
     }
 
     record SelfRef {
