@@ -62,6 +62,15 @@ public class TestAnyLogicalType {
 
  @Test
   public void testJsonRecord2() throws IOException {
+    GenericData.Record record = createTestRecord();
+    String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), record.getSchema());
+    Assert.assertEquals(record.toString(), back.toString());
+
+  }
+
+  public static GenericData.Record createTestRecord() {
     Schema anyRecord = SchemaBuilder.record("test")
             .fields()
             .requiredString("avsc")
@@ -70,7 +79,6 @@ public class TestAnyLogicalType {
     anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "any");
     LogicalType lt = LogicalTypes.fromSchema(anyRecord);
     anyRecord.setLogicalType(lt);
-
     Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
             .name("someCrap").type(Schema.create(Schema.Type.BOOLEAN)).withDefault(true)
             .name("anyField").type(anyRecord).noDefault()
@@ -80,11 +88,7 @@ public class TestAnyLogicalType {
     record.put("someCrap", true);
     record.put("anyField", Arrays.asList("someString"));
     record.put("otherCrap", "false");
-      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
-    System.out.println(writeAvroExtendedJson);
-    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
-    Assert.assertEquals(record.toString(), back.toString());
-
+    return record;
   }
 
 
