@@ -905,9 +905,10 @@ public class GenericData {
     if (logicalType != null) {
       return logicalType.computehashCode(o);
     }
-    int hashCode = 1;
+    int hashCode;
     switch (s.getType()) {
     case RECORD:
+      hashCode = 1;
         for (Field f : s.getFields()) {
           if (f.order() == Field.Order.IGNORE)
             continue;
@@ -916,6 +917,7 @@ public class GenericData {
         }
       return hashCode;
     case ARRAY:
+      hashCode = 1;
       Collection<?> a = (Collection<?>)o;
       Schema elementType = s.getElementType();
       for (Object e : a)

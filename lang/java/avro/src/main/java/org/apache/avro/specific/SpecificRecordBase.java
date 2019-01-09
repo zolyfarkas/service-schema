@@ -47,7 +47,6 @@ public abstract class SpecificRecordBase
   @Override
   public boolean equals(Object that) {
     if (that == this) return true;                        // identical object
-    if (!(that instanceof SpecificRecord)) return false;  // not a record
     if (this.getClass() != that.getClass()) return false; // not same schema
     return SpecificData.get().compare(this, that, this.getSchema(), true) == 0;
   }
