@@ -23,22 +23,22 @@ import org.apache.avro.Schema;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class InstantStringLogicalType extends AbstractLogicalType<Instant> {
+public final class InstantLongLogicalType extends AbstractLogicalType<Instant> {
 
-  InstantStringLogicalType(Schema schema) {
+  InstantLongLogicalType(Schema schema) {
     super(schema.getType(), Collections.EMPTY_SET, "instant",
             Collections.EMPTY_MAP, Instant.class);
   }
 
   @Override
   public Instant deserialize(Object object) {
-    CharSequence strVal = (CharSequence) object;
-    return Instant.parse(strVal);
+    long strVal = ((Number) object).longValue();
+    return Instant.ofEpochMilli(strVal);
   }
 
   @Override
   public Object serialize(Instant temporal) {
-    return temporal.toString();
+    return temporal.toEpochMilli();
   }
 
 }

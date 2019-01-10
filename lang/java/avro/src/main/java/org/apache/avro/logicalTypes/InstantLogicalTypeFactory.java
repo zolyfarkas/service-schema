@@ -36,6 +36,8 @@ public class InstantLogicalTypeFactory implements LogicalTypeFactory {
     switch (type) {
       case STRING:
         return new InstantStringLogicalType(schema);
+      case LONG:
+        return new InstantLongLogicalType(schema);
       case RECORD:
         if (schema.getField("millis") != null) {
           return new InstantMillisRecordLogicalType(schema);
@@ -43,7 +45,7 @@ public class InstantLogicalTypeFactory implements LogicalTypeFactory {
           return new InstantNanoRecordLogicalType(schema);
         }
       default:
-        throw new IllegalArgumentException("Unsupported schema for isntant " + schema);
+        throw new IllegalArgumentException("Unsupported schema for instant " + schema);
     }
   }
 

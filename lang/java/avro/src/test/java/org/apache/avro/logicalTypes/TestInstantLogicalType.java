@@ -103,6 +103,25 @@ public class TestInstantLogicalType {
 
   }
 
+  @Test
+  public void testInstantRecord4() throws IOException {
+    Schema anyRecord = Schema.create(Schema.Type.LONG);
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "instant");
+    LogicalType lt = LogicalTypes.fromSchema(anyRecord);
+    anyRecord.setLogicalType(lt);
+
+    Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
+            .name("instant").type(anyRecord)
+            .noDefault()
+            .endRecord();
+    GenericData.Record record = new GenericData.Record(testSchema);
+    record.put("instant", Instant.now());
+      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
+    Assert.assertEquals(record.toString(), back.toString());
+
+  }
 
 
 
