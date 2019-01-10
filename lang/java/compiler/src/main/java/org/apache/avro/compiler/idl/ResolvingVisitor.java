@@ -121,7 +121,6 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
           // create a fieldless clone. Fields will be added in afterVisitNonTerminal.
           Schema newSchema = Schema.createRecord(nt.getName(), nt.getDoc(), nt.getNamespace(), nt.isError());
           copyAllProperties(nt, newSchema);
-          materializeLogicalType(newSchema);
           replace.put(nt, newSchema);
         }
     }
@@ -149,6 +148,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
              newFields.add(newField);
             }
             newSchema.setFields(newFields);
+            materializeLogicalType(newSchema);
          }
          return SchemaVisitorAction.CONTINUE;
        case UNION:
@@ -178,6 +178,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
          throw new IllegalStateException("Illegal type " + type + ", schema " + nt);
      }
      copyAllProperties(nt, newSchema);
+     materializeLogicalType(newSchema);
      replace.put(nt, newSchema);
 
      return SchemaVisitorAction.CONTINUE;
