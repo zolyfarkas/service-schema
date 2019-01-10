@@ -25,7 +25,7 @@ import org.apache.avro.generic.GenericRecord;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class InstantLogicalType extends AbstractLogicalType<Instant> {
+public final class InstantNanoRecordLogicalType extends AbstractLogicalType<Instant> {
 
   private final Schema schema;
 
@@ -33,49 +33,34 @@ public final class InstantLogicalType extends AbstractLogicalType<Instant> {
 
   private final int nanoIdx;
 
-  InstantLogicalType(Schema schema) {
+  InstantNanoRecordLogicalType(Schema schema) {
     super(schema.getType(), Collections.EMPTY_SET, "instant",
             Collections.EMPTY_MAP, Instant.class);
-    if (type != Schema.Type.STRING && type != Schema.Type.RECORD) {
-       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string, not" + type);
+    Schema.Field esField = schema.getField("epochSecond");
+    if (esField == null) {
+      throw new IllegalArgumentException("Missing field epochSecond in " + schema);
     }
-    if (schema.getType() == Schema.Type.RECORD) {
-      epochSecondIdx = schema.getField("epochSecond").pos();
-      nanoIdx = schema.getField("nano").pos();
-    } else {
-      epochSecondIdx = -1;
-      nanoIdx = -1;
+    epochSecondIdx = esField.pos();
+    Schema.Field nField = schema.getField("nano");
+    if (esField == null) {
+      throw new IllegalArgumentException("Missing field nano in " + schema);
     }
+    nanoIdx = nField.pos();
     this.schema = schema;
   }
 
   @Override
   public Instant deserialize(Object object) {
-    switch (type) {
-      case STRING:
-        CharSequence strVal = (CharSequence) object;
-        return Instant.parse(strVal);
-      case RECORD:
-        GenericRecord rec = (GenericRecord) object;
-        return Instant.ofEpochSecond((long) rec.get(epochSecondIdx), (int) rec.get(nanoIdx));
-      default:
-        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
-    }
+    GenericRecord rec = (GenericRecord) object;
+    return Instant.ofEpochSecond((long) rec.get(epochSecondIdx), (int) rec.get(nanoIdx));
   }
 
   @Override
   public Object serialize(Instant temporal) {
-    switch (type) {
-      case STRING:
-        return temporal.toString();
-      case RECORD:
-        GenericRecord rec = new GenericData.Record(schema);
-        rec.put(epochSecondIdx, temporal.getEpochSecond());
-        rec.put(nanoIdx, temporal.getNano());
-        return rec;
-      default:
-        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
-    }
+    GenericRecord rec = new GenericData.Record(schema);
+    rec.put(epochSecondIdx, temporal.getEpochSecond());
+    rec.put(nanoIdx, temporal.getNano());
+    return rec;
   }
 
 }

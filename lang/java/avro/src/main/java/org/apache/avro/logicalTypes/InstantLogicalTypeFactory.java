@@ -32,7 +32,19 @@ public class InstantLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType fromSchema(final Schema schema) {
-    return new InstantLogicalType(schema);
+    Schema.Type type = schema.getType();
+    switch (type) {
+      case STRING:
+        return new InstantStringLogicalType(schema);
+      case RECORD:
+        if (schema.getField("millis") != null) {
+          return new InstantMillisRecordLogicalType(schema);
+        } else {
+          return new InstantNanoRecordLogicalType(schema);
+        }
+      default:
+        throw new IllegalArgumentException("Unsupported schema for isntant " + schema);
+    }
   }
 
   @Override

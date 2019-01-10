@@ -15,12 +15,9 @@
  */
 package org.apache.avro.logicalTypes;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.time.Instant;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
@@ -35,26 +32,26 @@ import org.junit.Test;
  *
  * @author Zoltan Farkas
  */
-public class TestAnyLogicalType {
+public class TestInstantLogicalType {
 
 
   @Test
-  public void testJsonRecord() throws IOException {
-    Schema anyRecord = SchemaBuilder.record("test")
+  public void testInstantRecord() throws IOException {
+    Schema anyRecord = SchemaBuilder.record("Instant")
             .fields()
-            .requiredString("avsc")
-            .requiredBytes("content")
+            .requiredLong("epochSecond")
+            .requiredInt("nano")
             .endRecord();
-    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "any");
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "instant");
     LogicalType lt = LogicalTypes.fromSchema(anyRecord);
     anyRecord.setLogicalType(lt);
 
     Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
-            .name("anyField").type(anyRecord)
+            .name("instant").type(anyRecord)
             .noDefault()
             .endRecord();
     GenericData.Record record = new GenericData.Record(testSchema);
-    record.put("anyField", "someString");
+    record.put("instant", Instant.now());
       String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
     System.out.println(writeAvroExtendedJson);
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
@@ -63,46 +60,49 @@ public class TestAnyLogicalType {
   }
 
 
- @Test
-  public void testJsonRecord2() throws IOException {
-    GenericData.Record record = createTestRecord();
-    String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
-    System.out.println(writeAvroExtendedJson);
-    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), record.getSchema());
-    Assert.assertEquals(record.toString(), back.toString());
-  }
-
-  @Test
-  public void testJsonRecord3() throws IOException {
-    GenericData.Record record = createTestRecord();
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    AvroUtils.writeAvroBin(bos,  record);
-    System.out.println(new String(bos.toByteArray(), StandardCharsets.UTF_8));
-    GenericRecord back = (GenericRecord) AvroUtils.readAvroBin(new ByteArrayInputStream(bos.toByteArray()),
-            record.getSchema());
-    Assert.assertEquals(record.toString(), back.toString());
-  }
-
-  public static GenericData.Record createTestRecord() {
-    Schema anyRecord = SchemaBuilder.record("test")
+@Test
+  public void testInstantRecord2() throws IOException {
+    Schema anyRecord = SchemaBuilder.record("Instant")
             .fields()
-            .requiredString("avsc")
-            .requiredBytes("content")
+            .requiredLong("millis")
             .endRecord();
-    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "any");
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "instant");
     LogicalType lt = LogicalTypes.fromSchema(anyRecord);
     anyRecord.setLogicalType(lt);
+
     Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
-            .name("someCrap").type(Schema.create(Schema.Type.BOOLEAN)).withDefault(true)
-            .name("anyField").type(anyRecord).noDefault()
-            .name("otherCrap").type(Schema.create(Schema.Type.STRING)).withDefault("bubu")
+            .name("instant").type(anyRecord)
+            .noDefault()
             .endRecord();
     GenericData.Record record = new GenericData.Record(testSchema);
-    record.put("someCrap", true);
-    record.put("anyField", Arrays.asList("someString"));
-    record.put("otherCrap", "false");
-    return record;
+    record.put("instant", Instant.now());
+      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
+    Assert.assertEquals(record.toString(), back.toString());
+
   }
+
+@Test
+  public void testInstantRecord3() throws IOException {
+    Schema anyRecord = Schema.create(Schema.Type.STRING);
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "instant");
+    LogicalType lt = LogicalTypes.fromSchema(anyRecord);
+    anyRecord.setLogicalType(lt);
+
+    Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
+            .name("instant").type(anyRecord)
+            .noDefault()
+            .endRecord();
+    GenericData.Record record = new GenericData.Record(testSchema);
+    record.put("instant", Instant.now());
+      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
+    Assert.assertEquals(record.toString(), back.toString());
+
+  }
+
 
 
 
