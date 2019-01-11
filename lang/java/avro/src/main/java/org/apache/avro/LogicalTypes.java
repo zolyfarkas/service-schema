@@ -86,9 +86,10 @@ public class LogicalTypes {
   }
 
   public static void register(@Nonnull org.apache.avro.LogicalTypeFactory factory) {
-    LogicalTypeFactory ex = REGISTERED_TYPES.putIfAbsent(factory.getLogicalTypeName(), factory);
+    LogicalTypeFactory ex = REGISTERED_TYPES.put(factory.getLogicalTypeName(), factory);
     if (ex != null) {
-      throw new IllegalArgumentException("Already registered " + ex + ", cannot register " + factory);
+      Logger.getLogger(LogicalTypes.class.getName())
+              .log(Level.INFO, "Logical Type {0} is being overwritten with {1}", new Object [] {ex, factory});
     }
   }
 
