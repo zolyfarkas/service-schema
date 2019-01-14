@@ -193,6 +193,8 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
 
   private Symbol resolveUnion(Schema writer, Schema reader,
       Map<LitS, Symbol> seen) throws IOException {
+    boolean needsAdj = ! unionEquiv(writer, reader, new HashMap<>());
+    List<Schema> alts2 = (!needsAdj ? reader.getTypes() : null);
     List<Schema> alts = writer.getTypes();
     final int size = alts.size();
     Symbol[] symbols = new Symbol[size];
@@ -204,13 +206,102 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
      */
     int i = 0;
     for (Schema w : alts) {
-      symbols[i] = generate(w, reader, seen);
+      //symbols[i] = generate(w, reader, seen);
+      symbols[i] = generate(w, (needsAdj ? reader : alts2.get(i)), seen);
       labels[i] = w.getFullName();
       i++;
     }
-    return Symbol.seq(Symbol.alt(symbols, labels),
-                      Symbol.writerUnionAction());
+    if (!needsAdj) {
+      return Symbol.seq(Symbol.alt(symbols, labels), Symbol.UNION);
+    }
+    return Symbol.seq(Symbol.alt(symbols, labels), Symbol.WRITER_UNION_ACTION);
   }
+
+  private static boolean unionEquiv(Schema w, Schema r, Map<LitS, Boolean> seen) {
+    Schema.Type wt = w.getType();
+    if (wt != r.getType()) {
+      return false;
+    }
+    if ((wt == Schema.Type.RECORD || wt == Schema.Type.FIXED || wt == Schema.Type.ENUM)
+            && !(w.getFullName() == null || w.getFullName().equals(r.getFullName()))) {
+      return false;
+    }
+
+    switch (w.getType()) {
+      case NULL:
+      case BOOLEAN:
+      case INT:
+      case LONG:
+      case FLOAT:
+      case DOUBLE:
+      case STRING:
+      case BYTES:
+        return true;
+
+      case ARRAY:
+        return unionEquiv(w.getElementType(), r.getElementType(), seen);
+      case MAP:
+        return unionEquiv(w.getValueType(), r.getValueType(), seen);
+
+      case FIXED:
+        return w.getFixedSize() == r.getFixedSize();
+
+      case ENUM: {
+        List<String> ws = w.getEnumSymbols();
+        List<String> rs = r.getEnumSymbols();
+        if (ws.size() != rs.size()) {
+          return false;
+        }
+        int i = 0;
+        for (i = 0; i < ws.size(); i++) {
+          if (!ws.get(i).equals(rs.get(i))) {
+            break;
+          }
+        }
+        return i == ws.size();
+      }
+
+      case UNION: {
+        List<Schema> wb = w.getTypes();
+        List<Schema> rb = r.getTypes();
+        if (wb.size() != rb.size()) {
+          return false;
+        }
+        int i = 0;
+        for (i = 0; i < wb.size(); i++) {
+          if (!unionEquiv(wb.get(i), rb.get(i), seen)) {
+            break;
+          }
+        }
+        return i == wb.size();
+      }
+
+      case RECORD: {
+        LitS wsc = new LitS2(w, r);
+        if (!seen.containsKey(wsc)) {
+          seen.put(wsc, true); // Be optimistic, but we may change our minds
+          List<Field> wb = w.getFields();
+          List<Field> rb = r.getFields();
+          if (wb.size() != rb.size()) {
+            seen.put(wsc, false);
+          } else {
+            int i = 0;
+            for (i = 0; i < wb.size(); i++) {
+              if (!unionEquiv(wb.get(i).schema(), rb.get(i).schema(), seen)) {
+                break;
+              }
+            }
+            seen.put(wsc, (i == wb.size()));
+          }
+        }
+        return seen.get(wsc);
+      }
+      default:
+        throw new IllegalArgumentException("Unknown schema type: " + w.getType());
+    }
+  }
+
+
 
   private Symbol resolveRecords(Schema writer, Schema reader,
       Map<LitS, Symbol> seen) throws IOException {

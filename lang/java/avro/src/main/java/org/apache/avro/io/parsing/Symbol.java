@@ -482,12 +482,29 @@ public abstract class Symbol {
   }
 
   public static class EnumAdjustAction extends IntCheckAction {
+
+    public final boolean noAdjustments;
     public final Object[] adjustments;
-    @Deprecated public EnumAdjustAction(int rsymCount, Object[] adjustments) {
+
+    @Deprecated
+    public EnumAdjustAction(int rsymCount, Object[] adjustments) {
       super(rsymCount);
       this.adjustments = adjustments;
+      boolean noAdj = true;
+      if (adjustments != null) {
+        int count = Math.min(rsymCount, adjustments.length);
+        noAdj = (adjustments.length <= rsymCount);
+        for (int i = 0; noAdj && i < count; i++) {
+          noAdj &= ((adjustments[i] instanceof Integer)
+                  && i == (Integer) adjustments[i]);
+        }
+      }
+      this.noAdjustments = noAdj;
+
     }
   }
+
+  public static final WriterUnionAction WRITER_UNION_ACTION = writerUnionAction();
 
   public static WriterUnionAction writerUnionAction() {
     return new WriterUnionAction();
@@ -569,9 +586,18 @@ public abstract class Symbol {
   }
 
   public static final class FieldOrderAction extends ImplicitAction {
+
+    public final boolean noReorder;
     public final Schema.Field[] fields;
-    @Deprecated public FieldOrderAction(Schema.Field[] fields) {
+
+    @Deprecated
+    public FieldOrderAction(Schema.Field[] fields) {
       this.fields = fields;
+      boolean noReorder = true;
+      for (int i = 0; noReorder && i < fields.length; i++) {
+        noReorder &= (i == fields[i].pos());
+      }
+      this.noReorder = noReorder;
     }
   }
 
