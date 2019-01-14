@@ -77,7 +77,7 @@ public class JsonDecoder extends ParsingDecoder
     this(JsonGrammarGenerator.getRootSymbol(schema), in);
   }
 
-  JsonDecoder(Schema schema, JsonParser in) throws IOException {
+  public JsonDecoder(Schema schema, JsonParser in) throws IOException {
     super(JsonGrammarGenerator.getRootSymbol(schema));
     parser.reset();
     this.in = in;

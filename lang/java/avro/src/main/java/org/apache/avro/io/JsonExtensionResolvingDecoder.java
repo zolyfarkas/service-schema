@@ -73,6 +73,11 @@ implements JsonExtensionDecoder {
           parser.advance(Symbol.INT);
           break;
         default:
+//          Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+//          Parser p = new Parser(rootSymbol, null);
+//          while (p.countToFirstTerminal() >= 0) {
+//            parser.skipTerminal(p.lastSymbol());
+//          }
           // hack, works for my use cases...
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
           for (int i = rootSymbol.production.length - 1; i > 0; i--) {

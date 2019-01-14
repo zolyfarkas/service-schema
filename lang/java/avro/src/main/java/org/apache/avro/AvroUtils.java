@@ -41,6 +41,7 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.ExtendedJsonEncoder;
+import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.specific.ExtendedSpecificDatumWriter;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -126,6 +127,14 @@ public final class AvroUtils {
     return (GenericRecord) reader.read(null, decoder);
   }
 
+
+  public static GenericRecord readAvroJson(final Reader input, final Schema schema)
+          throws IOException {
+    @SuppressWarnings("unchecked")
+    DatumReader reader = new GenericDatumReader(schema);
+    Decoder decoder = new JsonDecoder(schema, Schema.FACTORY.createJsonParser(input));
+    return (GenericRecord) reader.read(null, decoder);
+  }
 
   public static <T extends SpecificRecord> T readAvroBin(final byte[] bin, final Class<T> clasz,
           final Schema writerSchema) {

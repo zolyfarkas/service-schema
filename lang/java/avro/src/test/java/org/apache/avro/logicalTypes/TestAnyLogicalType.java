@@ -137,6 +137,15 @@ public class TestAnyLogicalType {
   }
 
   @Test
+  public void testJsonRecord2OJson() throws IOException {
+    GenericData.Record record = createTestRecord2();
+    String writeAvroExtendedJson = AvroUtils.writeAvroJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroJson(new StringReader(writeAvroExtendedJson), record.getSchema());
+    Assert.assertEquals(record.toString(), back.toString());
+  }
+
+  @Test
   public void testJsonRecord2Bin() throws IOException {
     GenericData.Record record = createTestRecord2();
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -146,6 +155,7 @@ public class TestAnyLogicalType {
             record.getSchema());
     Assert.assertEquals(record.toString(), back.toString());
   }
+
 
 
 

@@ -46,7 +46,7 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
     switch (type) {
       case STRING:
         try {
-          return Schema.MAPPER.readValue((String) object, getLogicalJavaType());
+          return Schema.MAPPER.readValue(((CharSequence) object).toString(), getLogicalJavaType());
         } catch (IOException ex) {
           throw new UncheckedIOException("Cannot deserialize " + object, ex);
         }
@@ -80,7 +80,7 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
     switch (type) {
       case STRING:
         try {
-          Schema.MAPPER.writeValueAsString(json);
+          return Schema.MAPPER.writeValueAsString(json);
         } catch (IOException ex) {
           throw new UncheckedIOException("Cannot serialize " + json, ex);
         }
