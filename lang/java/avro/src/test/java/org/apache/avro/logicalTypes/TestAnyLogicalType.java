@@ -105,5 +105,48 @@ public class TestAnyLogicalType {
   }
 
 
+  public static GenericData.Record createTestRecord2() {
+    Schema anyRecord = SchemaBuilder.record("test")
+            .fields()
+            .requiredString("avsc")
+            .requiredBytes("content")
+            .endRecord();
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "any");
+    LogicalType lt = LogicalTypes.fromSchema(anyRecord);
+    anyRecord.setLogicalType(lt);
+    Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
+            .name("someCrap").type(Schema.create(Schema.Type.BOOLEAN)).withDefault(true)
+            .name("anyField").type(Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.NULL), anyRecord)))
+            .noDefault()
+            .name("otherCrap").type(Schema.create(Schema.Type.STRING)).withDefault("bubu")
+            .endRecord();
+    GenericData.Record record = new GenericData.Record(testSchema);
+    record.put("someCrap", true);
+    record.put("anyField", Arrays.asList("someString"));
+    record.put("otherCrap", "false");
+    return record;
+  }
+
+  @Test
+  public void testJsonRecord2Json() throws IOException {
+    GenericData.Record record = createTestRecord2();
+    String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), record.getSchema());
+    Assert.assertEquals(record.toString(), back.toString());
+  }
+
+  @Test
+  public void testJsonRecord2Bin() throws IOException {
+    GenericData.Record record = createTestRecord2();
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    AvroUtils.writeAvroBin(bos,  record);
+    System.out.println(new String(bos.toByteArray(), StandardCharsets.UTF_8));
+    GenericRecord back = (GenericRecord) AvroUtils.readAvroBin(new ByteArrayInputStream(bos.toByteArray()),
+            record.getSchema());
+    Assert.assertEquals(record.toString(), back.toString());
+  }
+
+
 
 }

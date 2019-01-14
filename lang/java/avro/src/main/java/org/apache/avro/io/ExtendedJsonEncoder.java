@@ -102,9 +102,24 @@ public final class ExtendedJsonEncoder extends JsonEncoder
           parser.advance(Symbol.INT);
           break;
         default:
-          parser.advanceOneFAA();
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          parser.skip(rootSymbol.production.length - 1);
+          Parser p = new Parser(rootSymbol, null);
+          int countToFirstTerminal = p.countToFirstTerminal();
+          Symbol theTerminal = p.lastSymbol();
+          int sleft = p.countToEnd();
+          int countToFirstTerminal2 = parser.countToFirstTerminal();
+          Symbol theTerminal2 = parser.lastSymbol();
+          if (theTerminal != theTerminal2) {
+            throw new IllegalStateException("expected " +  theTerminal + " got " + theTerminal2);
+          }
+          parser.goBack(countToFirstTerminal2);
+          int advance = countToFirstTerminal2 - countToFirstTerminal;
+          parser.advance(advance);
+          if (advance >= 0) {
+            parser.skip(sleft + countToFirstTerminal - 1);
+          } else {
+            parser.skip(sleft + countToFirstTerminal2 - 1);
+          }
           break;
       }
   }

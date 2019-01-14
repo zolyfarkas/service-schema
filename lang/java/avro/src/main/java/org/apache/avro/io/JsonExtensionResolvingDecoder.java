@@ -73,6 +73,7 @@ implements JsonExtensionDecoder {
           parser.advance(Symbol.INT);
           break;
         default:
+          // hack, works for my use cases...
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
           for (int i = rootSymbol.production.length - 1; i > 0; i--) {
               Symbol s = rootSymbol.production[i];
@@ -80,7 +81,6 @@ implements JsonExtensionDecoder {
                 parser.skipTerminal(s);
               }
           }
-          break;
       }
   }
 

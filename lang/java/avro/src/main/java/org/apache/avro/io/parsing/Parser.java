@@ -127,20 +127,54 @@ public class Parser {
   }
 
 
-  public final void advanceOneFAA() throws IOException {
-    for (; ;) {
+  public final int countToFirstTerminal() throws IOException {
+    int i = 1;
+    while (true) {
       Symbol top = stack[--pos];
-      Symbol.Kind k = top.kind;
-      if (k == Symbol.Kind.IMPLICIT_ACTION) {
-        symbolHandler.doAction(null, top);
-        if (top instanceof Symbol.FieldAdjustAction) {
-          return;
-        }
-      } else if (k == Symbol.Kind.TERMINAL) {
-        throw new AvroTypeException("Attempt to process a field adjust action  when a "
-                + top + " was expected.");
+      if (top.kind == Symbol.Kind.TERMINAL)  {
+        return i;
       } else if (top.production != null) {
         pushProduction(top);
+      } else {
+        i++;
+      }
+    }
+  }
+
+  public final int countToEnd() throws IOException {
+    if (pos <= 0) {
+      return 0;
+    }
+    int i = 1;
+    while (pos > 0) {
+      Symbol top = stack[--pos];
+      if (top.kind == Symbol.Kind.ROOT) {
+        break;
+      }
+      if (top.production != null) {
+        pushProduction(top);
+      } else {
+        i++;
+      }
+    }
+    return i;
+  }
+
+  public final void goBack(final int count) {
+    pos += count;
+  }
+
+
+  public final void advance(int nrToAdvance)  throws IOException {
+    while (nrToAdvance > 0) {
+      Symbol top = stack[--pos];
+      if (top.kind == Symbol.Kind.IMPLICIT_ACTION) {
+        symbolHandler.doAction(null, top);
+        nrToAdvance--;
+      } else if (top.production != null) {
+        pushProduction(top);
+      } else {
+        nrToAdvance--;
       }
     }
   }
@@ -150,12 +184,11 @@ public class Parser {
       Symbol top = stack[--pos];
       if (top.production != null) {
         pushProduction(top);
+      } else {
+        nrToSkip--;
       }
-      nrToSkip--;
     }
   }
-
-
 
 
   /**
@@ -221,6 +254,10 @@ public class Parser {
    */
   public Symbol topSymbol() {
     return stack[pos - 1];
+  }
+
+  public Symbol lastSymbol() {
+    return stack[pos];
   }
 
   /**
