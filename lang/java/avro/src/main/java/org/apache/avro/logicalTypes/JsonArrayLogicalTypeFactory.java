@@ -28,9 +28,9 @@ public class JsonArrayLogicalTypeFactory implements LogicalTypeFactory {
 
   private final String logicalTypeName = "json_array";
 
-  private final JsonLogicalType blt = new JsonLogicalType(Schema.Type.BYTES, logicalTypeName, List.class);
+  private final JsonLogicalTypeBytes blt = new JsonLogicalTypeBytes(Schema.Type.BYTES, logicalTypeName, List.class);
 
-  private final JsonLogicalType slt = new JsonLogicalType(Schema.Type.STRING, logicalTypeName, List.class);
+  private final JsonLogicalTypeString slt = new JsonLogicalTypeString(Schema.Type.STRING, logicalTypeName, List.class);
 
   @Override
   public String getLogicalTypeName() {

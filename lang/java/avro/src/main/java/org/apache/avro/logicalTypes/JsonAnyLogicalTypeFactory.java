@@ -21,17 +21,15 @@ import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.Schema;
 
 /**
- *
  * @author zfarkas
  */
-public class JsonRecordLogicalTypeFactory implements LogicalTypeFactory {
+public class JsonAnyLogicalTypeFactory implements LogicalTypeFactory {
 
-  private final String logicalTypeName = "json_record";
+  private final String logicalTypeName = "json_any";
 
-  private final JsonLogicalTypeBytes blt = new JsonLogicalTypeBytes(Schema.Type.BYTES, logicalTypeName, Map.class);
+  private final JsonLogicalTypeBytes blt = new JsonLogicalTypeBytes(Schema.Type.BYTES, logicalTypeName, Object.class);
 
-  private final JsonLogicalTypeString slt = new JsonLogicalTypeString(Schema.Type.STRING, logicalTypeName, Map.class);
-
+  private final JsonLogicalTypeString slt = new JsonLogicalTypeString(Schema.Type.STRING, logicalTypeName, Object.class);
 
   @Override
   public String getLogicalTypeName() {
@@ -41,12 +39,12 @@ public class JsonRecordLogicalTypeFactory implements LogicalTypeFactory {
   @Override
   public LogicalType create(Schema.Type type, Map<String, Object> attributes) {
     switch (type) {
-      case BYTES:
-        return blt;
       case STRING:
         return slt;
+      case BYTES:
+        return blt;
       default:
-      throw new IllegalArgumentException(this.getLogicalTypeName() + " must be backed by string or bytes, not" + type);
+     throw new IllegalArgumentException(this.getLogicalTypeName() + " must be backed by string or bytes, not" + type);
     }
   }
 

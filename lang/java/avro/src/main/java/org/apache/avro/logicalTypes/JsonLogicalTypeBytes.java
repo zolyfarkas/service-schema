@@ -31,11 +31,11 @@ import org.apache.avro.io.JsonExtensionEncoder;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
+public final class JsonLogicalTypeBytes<T> extends AbstractLogicalType<T> {
 
-  JsonLogicalType(final Schema.Type type, final String logicalTypeName, final Class<T> clasz) {
+  JsonLogicalTypeBytes(final Schema.Type type, final String logicalTypeName, final Class<T> clasz) {
     super(type, Collections.EMPTY_SET, logicalTypeName, Collections.EMPTY_MAP , clasz);
-    if (type != Schema.Type.BYTES && type != Schema.Type.STRING) {
+    if (type != Schema.Type.BYTES) {
        throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
     }
   }
@@ -43,27 +43,16 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
 
   @Override
   public T deserialize(Object object) {
-    switch (type) {
-      case STRING:
-        try {
-          return Schema.MAPPER.readValue(((CharSequence) object).toString(), getLogicalJavaType());
-        } catch (IOException ex) {
-          throw new UncheckedIOException("Cannot deserialize " + object, ex);
-        }
-      case BYTES:
-        byte[] unscaled;
-        if (object instanceof ByteBuffer) {
-          unscaled = readByteBuffer((ByteBuffer) object);
-        } else {
-          unscaled = (byte[]) object;
-        }
-        try {
-          return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), getLogicalJavaType());
-        } catch (IOException ex) {
-          throw new UncheckedIOException("Cannot deserialize " + object, ex);
-        }
-      default:
-        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+    byte[] unscaled;
+    if (object instanceof ByteBuffer) {
+      unscaled = readByteBuffer((ByteBuffer) object);
+    } else {
+      unscaled = (byte[]) object;
+    }
+    try {
+      return Schema.MAPPER.readValue(new ByteArrayInputStream(unscaled), getLogicalJavaType());
+    } catch (IOException ex) {
+      throw new UncheckedIOException("Cannot deserialize " + object, ex);
     }
 
   }
@@ -77,24 +66,13 @@ public final class JsonLogicalType<T> extends AbstractLogicalType<T> {
 
   @Override
   public Object serialize(T json) {
-    switch (type) {
-      case STRING:
-        try {
-          return Schema.MAPPER.writeValueAsString(json);
-        } catch (IOException ex) {
-          throw new UncheckedIOException("Cannot serialize " + json, ex);
-        }
-      case BYTES:
-        ByteArrayOutputStream bab = new ByteArrayOutputStream();
-        try {
-          Schema.MAPPER.writeValue(bab, json);
-        } catch (IOException ex) {
-          throw new UncheckedIOException("Cannot serialize " + json, ex);
-        }
-        return ByteBuffer.wrap(bab.toByteArray());
-      default:
-        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+    ByteArrayOutputStream bab = new ByteArrayOutputStream();
+    try {
+      Schema.MAPPER.writeValue(bab, json);
+    } catch (IOException ex) {
+      throw new UncheckedIOException("Cannot serialize " + json, ex);
     }
+    return ByteBuffer.wrap(bab.toByteArray());
   }
 
   @Override

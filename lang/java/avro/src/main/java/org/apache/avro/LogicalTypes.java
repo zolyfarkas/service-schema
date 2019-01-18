@@ -31,6 +31,7 @@ import org.apache.avro.logicalTypes.AnyTemporalFactory;
 import org.apache.avro.logicalTypes.BigIntegerFactory;
 import org.apache.avro.logicalTypes.DecimalFactory;
 import org.apache.avro.logicalTypes.InstantLogicalTypeFactory;
+import org.apache.avro.logicalTypes.JsonAnyLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonArrayLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonRecordLogicalTypeFactory;
 
@@ -46,6 +47,7 @@ public class LogicalTypes {
      register(new BigIntegerFactory());
      register(new JsonRecordLogicalTypeFactory());
      register(new JsonArrayLogicalTypeFactory());
+     register(new JsonAnyLogicalTypeFactory());
      register(new AnyAvroLogicalTypeFactory());
      register(new AnyTemporalFactory());
      register(new InstantLogicalTypeFactory());
