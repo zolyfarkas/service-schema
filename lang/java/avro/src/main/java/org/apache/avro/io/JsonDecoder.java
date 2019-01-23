@@ -330,7 +330,6 @@ public class JsonDecoder extends ParsingDecoder
     advance(Symbol.ENUM);
     Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();
     if (in.getCurrentToken() == JsonToken.VALUE_STRING) {
-      in.getText();
       int n = top.findLabel(in.getText());
       if (n >= 0) {
         in.nextToken();
