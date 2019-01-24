@@ -140,18 +140,29 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     throws IOException {
     Schema element = schema.getElementType();
     long size = getArraySize(datum);
-    long actualSize = 0;
-    out.writeArrayStart();
-    out.setItemCount(size);
-    for (Iterator<? extends Object> it = getArrayElements(datum); it.hasNext();) {
-      out.startItem();
-      write(element, it.next(), out);
-      actualSize++;
-    }
-    out.writeArrayEnd();
-    if (actualSize != size) {
-      throw new ConcurrentModificationException("Size of array written was " +
-          size + ", but number of elements written was " + actualSize + ". ");
+    if (size >= 0) {
+      long actualSize = 0;
+      out.writeArrayStart();
+      out.setItemCount(size);
+      for (Iterator<? extends Object> it = getArrayElements(datum); it.hasNext();) {
+        out.startItem();
+        write(element, it.next(), out);
+        actualSize++;
+      }
+      out.writeArrayEnd();
+      if (actualSize != size) {
+        throw new ConcurrentModificationException("Size of array written was " +
+            size + ", but number of elements written was " + actualSize + ". ");
+      }
+    } else {
+      out.writeArrayStart();
+      for (Iterator<? extends Object> it = getArrayElements(datum); it.hasNext();) {
+        out.setItemCount(1);
+        out.startItem();
+        write(element, it.next(), out);
+      }
+      out.setItemCount(0);
+      out.writeArrayEnd();
     }
   }
 
@@ -165,14 +176,18 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
    * size of an array.  The default implementation is for {@link Collection}.*/
   @SuppressWarnings("unchecked")
   protected long getArraySize(Object array) {
-    return ((Collection) array).size();
+    if (array instanceof Collection) {
+      return ((Collection) array).size();
+    } else {
+      return -1L;
+    }
   }
 
   /** Called by the default implementation of {@link #writeArray} to enumerate
    * array elements.  The default implementation is for {@link Collection}.*/
   @SuppressWarnings("unchecked")
   protected Iterator<? extends Object> getArrayElements(Object array) {
-    return ((Collection) array).iterator();
+    return ((Iterable) array).iterator();
   }
 
   /** Called to write a map.  May be overridden for alternate map
