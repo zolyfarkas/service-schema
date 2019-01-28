@@ -35,6 +35,7 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.ExtendedJsonDecoder;
 
 /** Reads new-line delimited JSON records and writers an Avro data file. */
 public class DataFileWriteTool implements Tool {
@@ -64,6 +65,10 @@ public class DataFileWriteTool implements Tool {
         p.accepts("schema", "Schema")
         .withOptionalArg()
         .ofType(String.class);
+    OptionSpec<Boolean> xJsonFormat =
+        p.accepts("xjson", "use Extended Json decoder")
+        .withOptionalArg()
+        .ofType(Boolean.class);
     OptionSet opts = p.parse(args.toArray(new String[0]));
 
     List<String> nargs = (List<String>)opts.nonOptionArguments();
@@ -92,7 +97,13 @@ public class DataFileWriteTool implements Tool {
         new DataFileWriter<Object>(new GenericDatumWriter<Object>());
       writer.setCodec(Util.codecFactory(opts, codec, level, DataFileConstants.NULL_CODEC));
       writer.create(schema, out);
-      Decoder decoder = DecoderFactory.get().jsonDecoder(schema, din);
+      Decoder decoder;
+      Boolean isXJson = xJsonFormat.value(opts);
+      if (isXJson != null && isXJson) {
+        decoder = new ExtendedJsonDecoder(schema, din, true);
+      } else {
+        decoder = DecoderFactory.get().jsonDecoder(schema, din);
+      }
       Object datum;
       while (true) {
         try {
