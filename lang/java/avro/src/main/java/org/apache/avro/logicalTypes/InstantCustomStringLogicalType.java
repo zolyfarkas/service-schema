@@ -16,6 +16,7 @@
 package org.apache.avro.logicalTypes;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
@@ -26,26 +27,28 @@ import org.apache.avro.Schema;
  */
 public final class InstantCustomStringLogicalType extends AbstractLogicalType<Instant> {
 
-  private final DateTimeFormatter formatter;
+  private final DateTimeFormatter parseFormatter;
+  private final DateTimeFormatter outputFormatter;
   private final String format;
 
   InstantCustomStringLogicalType(Schema schema, String format) {
     super(schema.getType(), Collections.EMPTY_SET, "instant",
             Collections.EMPTY_MAP, Instant.class);
-    this.formatter = DateTimeFormatter.ofPattern(format);
+    this.parseFormatter = DateTimeFormatter.ofPattern(format);
+    this.outputFormatter = parseFormatter.withZone(ZoneId.of("Z"));
     this.format = format;
   }
 
   @Override
   public Instant deserialize(Object object) {
     CharSequence strVal = (CharSequence) object;
-    return formatter.parse(strVal, Instant::from);
+    return parseFormatter.parse(strVal, Instant::from);
   }
 
   @Override
   public Object serialize(Instant temporal) {
-    StringBuilder builder = new StringBuilder(format.length() + 2);
-    formatter.formatTo(temporal, builder);
+    StringBuilder builder = new StringBuilder(format.length());
+    outputFormatter.formatTo(temporal, builder);
     return builder.toString();
   }
 
