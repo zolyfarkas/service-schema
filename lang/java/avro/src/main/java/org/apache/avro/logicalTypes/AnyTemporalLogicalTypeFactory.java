@@ -24,7 +24,7 @@ import org.apache.avro.Schema;
  *
  * @author zfarkas
  */
-public class AnyTemporalFactory implements LogicalTypeFactory {
+public class AnyTemporalLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public String getLogicalTypeName() {
@@ -34,7 +34,7 @@ public class AnyTemporalFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new AnyTemporal(schemaType);
+    return new AnyTemporalLogicalType(schemaType);
   }
 
 }

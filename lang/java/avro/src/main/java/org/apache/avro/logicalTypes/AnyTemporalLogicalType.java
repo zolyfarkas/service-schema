@@ -28,10 +28,10 @@ import org.apache.avro.Schema;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class AnyTemporal extends AbstractLogicalType<Temporal> {
+public final class AnyTemporalLogicalType extends AbstractLogicalType<Temporal> {
 
 
-  AnyTemporal(Schema.Type type) {
+  AnyTemporalLogicalType(Schema.Type type) {
     super(type, Collections.EMPTY_SET, "any_temporal",
             Collections.EMPTY_MAP, Temporal.class);
     if (type != Schema.Type.STRING) {
