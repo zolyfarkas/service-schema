@@ -17,6 +17,7 @@ package org.apache.avro.logicalTypes;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
@@ -57,6 +58,24 @@ public class TestInstantLogicalType {
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
     Assert.assertEquals(record.toString(), back.toString());
 
+  }
+
+  //"2017-06-20 08:31:15-05"
+  @Test
+  public void testInstantWithoutSeconds() throws IOException {
+    Schema strType = Schema.create(Schema.Type.STRING);
+    strType.addProp(LogicalType.LOGICAL_TYPE_PROP, "instant");
+    strType.addProp("format", "yyyy-MM-dd HH:mm:ssX");
+    LogicalType lt = LogicalTypes.fromSchema(strType);
+    strType.setLogicalType(lt);
+    Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
+            .name("instant").type(strType)
+            .noDefault()
+            .endRecord();
+   GenericRecord rec = AvroUtils.readAvroExtendedJson(
+           new StringReader("{ \"instant\":\"2017-06-20 08:31:15-05\"}"), testSchema);
+   System.out.println(rec);
+   Assert.assertTrue(rec.get("instant") instanceof Instant);
   }
 
 
