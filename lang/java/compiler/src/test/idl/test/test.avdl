@@ -28,7 +28,6 @@ protocol Test {
 
 
   /** A TestRecord. */
-  @logicalType("date")
   record TestRecord {
     org.apache.avro.test.LocalDate  field1;
     union { null, org.apache.avro.test.LocalDate }  field2;
