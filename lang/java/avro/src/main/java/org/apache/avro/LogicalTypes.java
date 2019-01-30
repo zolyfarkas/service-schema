@@ -35,6 +35,7 @@ import org.apache.avro.logicalTypes.InstantLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonAnyLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonArrayLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonRecordLogicalTypeFactory;
+import org.apache.avro.logicalTypes.UuidLogicalTypeFactory;
 
 
 public class LogicalTypes {
@@ -53,6 +54,7 @@ public class LogicalTypes {
      register(new AnyTemporalLogicalTypeFactory());
      register(new DateLogicalTypeFactory());
      register(new InstantLogicalTypeFactory());
+     register(new UuidLogicalTypeFactory());
      ServiceLoader<org.apache.avro.LogicalTypeFactory> factories
              = ServiceLoader.load(org.apache.avro.LogicalTypeFactory.class);
      Iterator<org.apache.avro.LogicalTypeFactory> iterator = factories.iterator();
