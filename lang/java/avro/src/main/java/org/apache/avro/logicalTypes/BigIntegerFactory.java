@@ -15,6 +15,8 @@
  */
 package org.apache.avro.logicalTypes;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypeFactory;
@@ -31,9 +33,36 @@ public class BigIntegerFactory implements LogicalTypeFactory {
     return "bigint";
   }
 
+  static Integer getPrecision(final Map<String, Object> attributes) {
+    Object prec = attributes.get("precision");
+    if (prec == null) {
+      return null;
+    } else {
+      return ((Number) prec).intValue();
+    }
+  }
+
+  static Map<String, Object> toAttributes(final Integer precision) {
+    if (precision == null) {
+      return Collections.EMPTY_MAP;
+    } else {
+      Map<String, Object> res = new HashMap<>(2);
+      res.put("precision", precision);
+      return res;
+    }
+  }
+
+
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return new BigInteger(schemaType);
+    switch (schemaType) {
+      case STRING:
+        return new BigIntegerString(schemaType, getPrecision(attributes));
+      case BYTES:
+        return new BigIntegerBytes(schemaType, getPrecision(attributes));
+      default:
+        throw new IllegalArgumentException("Invalid type for bigint: " + schemaType);
+    }
   }
 
 }

@@ -289,7 +289,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       case VALUE_NUMBER_INT:
         BigInteger bigIntegerValue = in.getBigIntegerValue();
         in.nextToken();
-        return org.apache.avro.logicalTypes.BigInteger.toBytes(bigIntegerValue);
+        return ByteBuffer.wrap(bigIntegerValue.toByteArray());
       case VALUE_NUMBER_FLOAT:
         BigDecimal decimalValue = in.getDecimalValue();
         in.nextToken();

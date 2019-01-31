@@ -16,7 +16,9 @@
 package org.apache.avro.logicalTypes;
 
 import com.google.common.collect.ImmutableMap;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.LogicalType;
@@ -38,9 +40,36 @@ public class TestBigInteger {
     serializeDeserialize(type,  new java.math.BigInteger("0"));
   }
 
-  private void serializeDeserialize(LogicalType type, java.math.BigInteger nr) {
-    ByteBuffer buf = (ByteBuffer) type.serialize(nr);
-    java.math.BigInteger nr2 = (java.math.BigInteger) type.deserialize(buf);
+  @Test
+  public void testBigInteger2() {
+    LogicalType type = new BigIntegerFactory()
+            .create(Schema.Type.STRING, (Map) ImmutableMap.of("precision", 10));
+    serializeDeserialize(type,  new java.math.BigInteger("3"));
+    serializeDeserialize(type,  new java.math.BigInteger("-3"));
+    serializeDeserialize(type,  new java.math.BigInteger("0"));
+  }
+
+  @Test
+  public void testBigInteger3() {
+    LogicalType type = new BigIntegerFactory()
+            .create(Schema.Type.STRING, Collections.EMPTY_MAP);
+    serializeDeserialize(type,  new java.math.BigInteger("3"));
+    serializeDeserialize(type,  new java.math.BigInteger("-3"));
+    serializeDeserialize(type,  new java.math.BigInteger("0"));
+  }
+
+  @Test
+  public void testBigInteger4() {
+    LogicalType type = new BigIntegerFactory()
+            .create(Schema.Type.BYTES, Collections.EMPTY_MAP);
+    serializeDeserialize(type,  new java.math.BigInteger("3"));
+    serializeDeserialize(type,  new java.math.BigInteger("-3"));
+    serializeDeserialize(type,  new java.math.BigInteger("0"));
+  }
+
+  private void serializeDeserialize(LogicalType<BigInteger> type, java.math.BigInteger nr) {
+    Object buf =type.serialize(nr);
+    java.math.BigInteger nr2 = type.deserialize(buf);
     System.out.println("NR " + nr2);
     Assert.assertEquals(nr, nr2);
   }

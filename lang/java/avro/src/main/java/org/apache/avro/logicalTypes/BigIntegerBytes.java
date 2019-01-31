@@ -18,8 +18,9 @@ package org.apache.avro.logicalTypes;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import javax.annotation.Nullable;
 import org.apache.avro.AbstractLogicalType;
-import org.apache.avro.LogicalType;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
@@ -29,48 +30,38 @@ import org.apache.avro.io.JsonExtensionEncoder;
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
  */
-public final class BigInteger extends AbstractLogicalType<java.math.BigInteger> {
+public final class BigIntegerBytes extends AbstractLogicalType<java.math.BigInteger> {
 
-  BigInteger(Schema.Type type) {
-    super(type, Collections.EMPTY_SET, "bigint", Collections.EMPTY_MAP, java.math.BigInteger.class);
-    if (type != Schema.Type.BYTES
-            && type != Schema.Type.STRING) {
+  @Nullable
+  private final Integer precision;
+
+  BigIntegerBytes(Schema.Type type, @Nullable Integer precision) {
+    super(type, Collections.EMPTY_SET, "bigint", BigIntegerFactory.toAttributes(precision),
+            java.math.BigInteger.class);
+    if (type != Schema.Type.BYTES) {
       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
     }
+    this.precision = precision;
   }
 
   @Override
   public java.math.BigInteger deserialize(Object object) {
-    switch (type) {
-      case STRING:
-        return new java.math.BigInteger(object.toString());
-      case BYTES:
-        //ByteBuffer buf = ByteBuffer.wrap((byte []) object);
-        ByteBuffer buf = (ByteBuffer) object;
-        buf.rewind();
-        int scale = Decimal.readInt(buf);
-        if (scale != 0) {
-          throw new RuntimeException("Scale must be zero and not " + scale);
-        }
-        byte[] unscaled = new byte[buf.remaining()];
-        buf.get(unscaled);
-        return new java.math.BigInteger(unscaled);
-      default:
-        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
-    }
-
+    ByteBuffer buf = (ByteBuffer) object;
+    buf.rewind();
+    byte[] unscaled = new byte[buf.remaining()];
+    buf.get(unscaled);
+    return new java.math.BigInteger(unscaled);
   }
 
   @Override
   public Object serialize(java.math.BigInteger object) {
-    switch (type) {
-      case STRING:
-        return object.toString();
-      case BYTES:
-        return toBytes(object);
-      default:
-        throw new UnsupportedOperationException("Unsupported type " + type + " for " + this);
+    byte[] toByteArray = object.toByteArray();
+    if (precision != null) {
+      if (toByteArray.length > precision) {
+        throw new AvroRuntimeException("unable to serialize due to precision limitation " + precision + ", nr " + object);
+      }
     }
+    return ByteBuffer.wrap(toByteArray);
   }
 
   @Override
@@ -93,26 +84,4 @@ public final class BigInteger extends AbstractLogicalType<java.math.BigInteger> 
     }
   }
 
-
-  public static ByteBuffer toBytes(java.math.BigInteger integer) {
-    byte[] unscaledValue = integer.toByteArray();
-    ByteBuffer buf = ByteBuffer.allocate(1 + unscaledValue.length);
-    buf.put((byte) 0);
-    buf.put(unscaledValue);
-    buf.rewind();
-    return buf;
-  }
-
-  public static boolean is(final Schema schema) {
-    Schema.Type type1 = schema.getType();
-    // validate the type
-    if (type1 != Schema.Type.BYTES && type1 != Schema.Type.STRING) {
-      return false;
-    }
-    LogicalType logicalType = schema.getLogicalType();
-    if (logicalType == null) {
-      return false;
-    }
-    return logicalType.getClass() == BigInteger.class;
-  }
 }
