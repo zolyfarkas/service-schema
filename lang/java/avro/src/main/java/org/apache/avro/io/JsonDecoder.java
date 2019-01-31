@@ -996,7 +996,7 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public JsonLocation getCurrentLocation() {
-        throw new UnsupportedOperationException();
+        return new JsonLocation(elements.toString(), elements.size(), pos, 0);
       }
 
       @Override
