@@ -22,7 +22,7 @@ package $schema.getNamespace();
 #if ($schema.getDoc())
 /** $schema.getDoc() */
 #end
-#foreach ($annotation in $this.javaAnnotations($schema))
+#foreach ($annotation in $this.javaAnnotations($schema, $GenEntity_CLASS))
 @$annotation
 #end
 @org.apache.avro.specific.FixedSize($schema.getFixedSize())

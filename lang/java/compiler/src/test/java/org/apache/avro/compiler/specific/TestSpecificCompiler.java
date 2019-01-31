@@ -31,9 +31,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.avro.AvroTestUtil;
 import org.apache.avro.Schema;
@@ -48,6 +51,7 @@ import org.junit.runners.JUnit4;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import org.junit.Assert;
 
 @RunWith(JUnit4.class)
 public class TestSpecificCompiler {
@@ -171,7 +175,7 @@ public class TestSpecificCompiler {
     assertCompilesWithJavaCompiler(new SpecificCompiler(validSchema1).compile());
 
     Schema validSchema2 = createSampleRecordSchema(SpecificCompiler.MAX_FIELD_PARAMETER_UNIT_COUNT - 2, 1);
-    assertCompilesWithJavaCompiler(new SpecificCompiler(validSchema1).compile());
+    assertCompilesWithJavaCompiler(new SpecificCompiler(validSchema2).compile());
   }
 
   @Test
@@ -214,18 +218,11 @@ public class TestSpecificCompiler {
     assertFalse(compiler.privateFields());
     compiler.compileToDestination(this.src, this.outputDir);
     assertTrue(this.outputFile.exists());
-    BufferedReader reader = new BufferedReader(new FileReader(this.outputFile));
-    try {
-    String line = null;
-    while ((line = reader.readLine()) != null) {
-      // No line, once trimmed, should start with a public field declaration
-      line = line.trim();
-      assertFalse("Line started with a public field declaration: " + line,
-        line.startsWith("public int value"));
-    }
-    } finally {
-      reader.close();
-  }
+    String content = new String(Files.readAllBytes(this.outputFile.toPath()), StandardCharsets.UTF_8);
+    System.out.println(content);
+    Pattern p = Pattern.compile(".*java.lang.Deprecated([\\r]|[\\n]|[\\r][\\n]|[ ])+public int value.*",
+            Pattern.DOTALL);
+    Assert.assertTrue(content, p.matcher(content).matches());
   }
 
   @Test

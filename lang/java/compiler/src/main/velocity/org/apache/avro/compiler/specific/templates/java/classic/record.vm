@@ -26,7 +26,7 @@ import org.apache.avro.specific.SpecificData;
 #if ($schema.getDoc())
 /** $schema.getDoc() */
 #end
-#foreach ($annotation in $this.javaAnnotations($schema))
+#foreach ($annotation in $this.javaAnnotations($schema, $GenEntity_CLASS))
 @$annotation
 #end
 @org.apache.avro.specific.AvroGenerated
@@ -43,10 +43,10 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
    */
 #end
- #foreach ($annotation in $this.javaAnnotations($field))
-  @$annotation
- #end
-  #if (${this.deprecatedFields()})@Deprecated#end #if (${this.publicFields()})public#elseif (${this.privateFields()})private#end ${this.javaUnbox($field.schema())} ${this.mangle($field.name(), $schema.isError())};
+   #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_FIELD))
+   @$annotation
+   #end
+   #if (${this.publicFields()})public#elseif (${this.privateFields()})private#end ${this.javaUnbox($field.schema())} ${this.mangle($field.name(), $schema.isError())};
 #end
 #if ($schema.isError())
 
@@ -84,7 +84,14 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
 #end
    */
-  public ${this.mangle($schema.getName())}(#foreach($field in $schema.getFields())${this.nullableAnnotation($field.schema())} ${this.javaUnbox($field.schema())} ${this.mangle($field.name())}#if($velocityCount < $schema.getFields().size()), #end#end) {
+  public ${this.mangle($schema.getName())}(
+    #foreach($field in $schema.getFields())
+        #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_CONSTRUCTOR_ARG))
+         @$annotation
+        #end
+        ${this.javaUnbox($field.schema())} ${this.mangle($field.name())}
+        #if($velocityCount < $schema.getFields().size()),#end
+    #end) {
 #foreach ($field in $schema.getFields())
     this.${this.mangle($field.name())} = ${this.mangle($field.name())};
 #end
@@ -133,7 +140,9 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
    */
-  ${this.nullableAnnotation($field.schema())}
+  #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_GETTER))
+         @$annotation
+  #end
   public ${this.javaUnbox($field.schema())} ${this.generateGetMethod($schema, $field)}() {
     return ${this.mangle($field.name(), $schema.isError())};
   }
@@ -147,7 +156,10 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
    * @param value the value to set.
    */
-  public void ${this.generateSetMethod($schema, $field)}(${this.nullableAnnotation($field.schema())} ${this.javaUnbox($field.schema())} value) {
+  #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER))
+         @$annotation
+  #end
+  public void ${this.generateSetMethod($schema, $field)}(#foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER_ARG)) @$annotation #end ${this.javaUnbox($field.schema())} value) {
     this.${this.mangle($field.name(), $schema.isError())} = value;
   }
 #end
@@ -261,6 +273,9 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
       */
+    #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_GETTER))
+    @$annotation
+    #end
     public ${this.javaUnbox($field.schema())} ${this.generateGetMethod($schema, $field)}() {
       return ${this.mangle($field.name(), $schema.isError())};
     }
@@ -274,7 +289,10 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       * @param value the value to set.
       * @return the builder instance.
       */
-    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(${this.nullableAnnotation($field.schema())} ${this.javaUnbox($field.schema())} value) {
+    #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER))
+    @$annotation
+    #end
+    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(#foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER)) @$annotation #end ${this.javaUnbox($field.schema())} value) {
       validate(fields()[$field.pos()], value);
 #if (${this.hasBuilder($field.schema())})
       this.${this.mangle($field.name(), $schema.isError())}Builder = null;
@@ -292,6 +310,9 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
       * @return true if field is set, false otherwise.
       */
+    #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_BUILDER_HAS_FIELD))
+    @$annotation
+    #end
     public boolean ${this.generateHasMethod($schema, $field)}() {
       return fieldSetFlags()[$field.pos()];
     }

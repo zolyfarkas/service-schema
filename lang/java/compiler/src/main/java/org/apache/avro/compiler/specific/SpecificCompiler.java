@@ -42,7 +42,6 @@ import org.apache.avro.SchemaNormalization;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.StringType;
-import org.apache.avro.specific.Beta;
 import org.apache.avro.specific.SpecificData;
 import org.apache.commons.compress.utils.Charsets;
 import org.apache.velocity.Template;
@@ -368,6 +367,9 @@ public class SpecificCompiler {
     VelocityContext context = new VelocityContext();
     context.put("protocol", protocol);
     context.put("this", this);
+    for (GenEntity ent : GenEntity.values()) {
+      context.put( GenEntity.class.getSimpleName() + "_" + ent.toString(), ent);
+    }
     String out = renderTemplate(templateDir+"protocol.vm", context);
 
     OutputFile outputFile = new OutputFile();
@@ -460,7 +462,9 @@ public class SpecificCompiler {
     VelocityContext context = new VelocityContext();
     context.put("this", this);
     context.put("schema", schema);
-
+    for (GenEntity ent : GenEntity.values()) {
+      context.put( GenEntity.class.getSimpleName() + "_" + ent.toString(), ent);
+    }
     switch (schema.getType()) {
     case RECORD:
       validateRecordForCompilation(schema);
@@ -654,38 +658,10 @@ public class SpecificCompiler {
   "long", "float", "double", "boolean"
   ));
 
-  public String nullableAnnotation(Schema schema) {
-    if (schema.getType() == Schema.Type.UNION
-            && schema.getTypes().contains(Schema.create(Schema.Type.NULL))) {
-      return "@javax.annotation.Nullable";
-    } else if (!PRIMITIVES.contains(javaUnbox(schema))) {
-      return "@javax.annotation.Nonnull";
-    } else {
-      return "";
-    }
-  }
 
-  /** Utility for template use.  Returns the java annotations for a schema. */
-  public String[] javaAnnotations(JsonProperties props) {
-    Set<String> annotations = new HashSet<>(4);
-    JsonNode value = props.getJsonProp("javaAnnotation");
-    if (value != null) {
-      if (value.isTextual()) {
-        annotations.add(value.getTextValue());
-      }
-      if (value.isArray()) {
-        for (JsonNode v : value) {
-          annotations.add(v.getTextValue());
-        }
-      }
-    }
-    if (props.getProp("deprecated") != null && (!(props instanceof Field) || !this.deprecatedFields())) {
-      annotations.add(Deprecated.class.getName());
-    }
-    if (props.getProp("beta") != null) {
-      annotations.add(Beta.class.getName());
-    }
-    return annotations.toArray(new String[annotations.size()]);
+  /** Utility for template use.  Returns the java annotations for a schema element. */
+  public Set<String> javaAnnotations(JsonProperties props, GenEntity entity) {
+    return JavaAnnotations.generate(this, entity, props);
   }
 
   // maximum size for string constants, to avoid javac limits
