@@ -35,7 +35,7 @@ public class CustomJavaAnnotationsGenerator implements JavaAnnotationsGenerator 
   @Override
   public Set<String> generate(SpecificCompiler compiler, GenEntity entity, JsonProperties props,
           final Schema schema, @Nullable final Schema outSchema) {
-    if (entity != GenEntity.CLASS && entity != GenEntity.FIELD) {
+    if (entity != GenEntity.CLASS && entity != GenEntity.FIELD && entity != GenEntity.MESSAGE) {
       return Collections.EMPTY_SET;
     }
     JsonNode value = props.getJsonProp("javaAnnotation");
