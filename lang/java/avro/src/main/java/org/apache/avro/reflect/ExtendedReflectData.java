@@ -9,8 +9,8 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -132,10 +132,11 @@ public class ExtendedReflectData extends ReflectData {
           schema.addProp(SpecificData.CLASS_PROP, raw.getName());
           return schema;
         }
-      } else if (Collection.class.isAssignableFrom(raw)) {   // Collection
-        Collection col = (Collection) object;
-        if (col.size() > 0) {
-          Schema schema = Schema.createArray(createSchema(params[0], col.iterator().next(), names));
+      } else if (Iterable.class.isAssignableFrom(raw)) {   // Collection
+        Iterable col = (Iterable) object;
+        Iterator iterator = col.iterator();
+        if (iterator.hasNext()) {
+          Schema schema = Schema.createArray(createSchema(params[0], iterator.next(), names));
           schema.addProp(SpecificData.CLASS_PROP, raw.getName());
           return schema;
         } else {
@@ -184,10 +185,11 @@ public class ExtendedReflectData extends ReflectData {
         return Schema.create(Schema.Type.STRING);
       if (ByteBuffer.class.isAssignableFrom(c))              // bytes
         return Schema.create(Schema.Type.BYTES);
-      if (Collection.class.isAssignableFrom(c))  {
-        Collection col = (Collection) object;
-        if (col.size() > 0) {
-          Object next = col.iterator().next();
+      if (Iterable.class.isAssignableFrom(c))  {
+        Iterable col = (Iterable) object;
+        Iterator iterator = col.iterator();
+        if (iterator.hasNext()) {
+          Object next = iterator.next();
           return Schema.createArray(createSchema(next.getClass(), next, names));
         } else {
           return Schema.createArray(Schema.create(Schema.Type.NULL));

@@ -172,7 +172,7 @@ public class ReflectData extends SpecificData {
   protected boolean isRecord(Object datum) {
     if (datum == null) return false;
     if (super.isRecord(datum)) return true;
-    if (datum instanceof Collection) return false;
+    if (datum instanceof Iterable) return false;
     if (datum instanceof Map) return false;
     if (datum instanceof GenericFixed) return false;
     return getSchema(datum.getClass()).getType() == Schema.Type.RECORD;
@@ -517,7 +517,7 @@ public class ReflectData extends SpecificData {
           schema.addProp(CLASS_PROP, raw.getName());
           return schema;
         }
-      } else if (Collection.class.isAssignableFrom(raw)) {   // Collection
+      } else if (Iterable.class.isAssignableFrom(raw)) {   // Collection
         if (params.length != 1)
           throw new AvroTypeException("No array type specified.");
         Schema schema = Schema.createArray(createSchema(params[0], names));
@@ -564,8 +564,8 @@ public class ReflectData extends SpecificData {
         return Schema.create(Schema.Type.STRING);
       if (ByteBuffer.class.isAssignableFrom(c))              // bytes
         return Schema.create(Schema.Type.BYTES);
-      if (Collection.class.isAssignableFrom(c))              // array
-        throw new AvroRuntimeException("Can't find element type of Collection");
+      if (Iterable.class.isAssignableFrom(c))              // array
+        throw new AvroRuntimeException("Can't find element type of Iterable");
       String fullName = c.getName();
       Schema schema = names.get(fullName);
       if (schema == null) {
