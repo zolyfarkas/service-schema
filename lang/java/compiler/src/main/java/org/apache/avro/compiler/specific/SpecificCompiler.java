@@ -661,7 +661,7 @@ public class SpecificCompiler {
 
   /** Utility for template use.  Returns the java annotations for a schema element. */
   public Set<String> javaAnnotations(JsonProperties props, GenEntity entity) {
-    return JavaAnnotations.generate(this, entity, props);
+    return CompilerExtensions.generate(this, entity, props);
   }
 
   // maximum size for string constants, to avoid javac limits

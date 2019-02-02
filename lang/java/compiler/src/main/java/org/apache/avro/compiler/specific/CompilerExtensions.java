@@ -34,7 +34,7 @@ import org.apache.avro.compiler.specific.annotGenerators.NullableAnnotationsGene
 /**
  * @author Zoltan Farkas
  */
-public final class JavaAnnotations {
+public final class CompilerExtensions {
 
   private static final List<JavaAnnotationsGenerator> GENERATORS;
 
