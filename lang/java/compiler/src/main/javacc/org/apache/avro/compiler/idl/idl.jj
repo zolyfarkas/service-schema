@@ -1382,8 +1382,13 @@ void FieldDeclaration(List<Field> fields):
 {
 (( ("mixin") mixinType = ReferenceType() {
   for (Field field : mixinType.getFields()) {
-    fields.add(new Field(field.name(), field.schema(), field.doc(), field.defaultValue(),
-             !SchemaResolver.isUnresolvedSchema(field.schema()), field.order()));
+    Field nField = new Field(field.name(), field.schema(), field.doc(), field.defaultValue(),
+             !SchemaResolver.isUnresolvedSchema(field.schema()), field.order());
+    Map<String, Object> objectProps = field.getObjectProps();
+    for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
+      nField.addProp(entry.getKey(), entry.getValue());
+    }
+    fields.add(nField);
   }
 }) |
   (( SchemaProperty(props) )*
