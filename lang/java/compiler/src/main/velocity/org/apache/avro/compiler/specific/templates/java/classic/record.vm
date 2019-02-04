@@ -291,7 +291,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER))
     @$annotation
 #end
-    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(#foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER)) @$annotation #end ${this.javaUnbox($field.schema())} value) {
+    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetMethod($schema, $field)}(#foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER_ARG)) @$annotation #end ${this.javaUnbox($field.schema())} value) {
       validate(fields()[$field.pos()], value);
 #if (${this.hasBuilder($field.schema())})
       this.${this.mangle($field.name(), $schema.isError())}Builder = null;
