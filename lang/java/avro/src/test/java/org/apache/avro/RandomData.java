@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 import org.apache.avro.file.CodecFactory;
@@ -48,20 +49,23 @@ public class RandomData implements Iterable<Object> {
     this.seed = seed;
     this.count = count;
   }
-  
+
   public Iterator<Object> iterator() {
     return new Iterator<Object>() {
       private int n;
       private Random random = new Random(seed);
       public boolean hasNext() { return n < count; }
       public Object next() {
+        if (n >= count) {
+          throw new NoSuchElementException();
+        }
         n++;
         return generate(root, random, 0);
       }
       public void remove() { throw new UnsupportedOperationException(); }
     };
   }
-  
+
   @SuppressWarnings(value="unchecked")
   private static Object generate(Schema schema, Random random, int d) {
     switch (schema.getType()) {

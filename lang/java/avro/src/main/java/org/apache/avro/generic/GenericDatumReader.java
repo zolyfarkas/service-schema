@@ -486,9 +486,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
       for (Field field : schema.getFields())
         skip(field.schema(), in);
       break;
-    case ENUM:
-      in.readInt();
-      break;
     case ARRAY:
       Schema elementType = schema.getElementType();
       for (long l = in.skipArray(); l > 0; l = in.skipArray()) {
@@ -518,6 +515,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     case BYTES:
       in.skipBytes();
       break;
+    case ENUM:
     case INT:     in.readInt();           break;
     case LONG:    in.readLong();          break;
     case FLOAT:   in.readFloat();         break;

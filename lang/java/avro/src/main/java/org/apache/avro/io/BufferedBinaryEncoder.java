@@ -133,13 +133,15 @@ public class BufferedBinaryEncoder extends BinaryEncoder {
   @Override
   public void writeFloat(float f) throws IOException {
     ensureBounds(4);
-    pos += BinaryData.encodeFloat(f, buf, pos);
+    BinaryData.encodeFloat(f, buf, pos);
+    pos += 4;
   }
 
   @Override
   public void writeDouble(double d) throws IOException {
     ensureBounds(8);
-    pos += BinaryData.encodeDouble(d, buf, pos);
+    BinaryData.encodeDouble(d, buf, pos);
+    pos += 8;
   }
 
   @Override

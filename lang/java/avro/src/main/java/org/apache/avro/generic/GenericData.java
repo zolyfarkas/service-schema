@@ -107,14 +107,12 @@ public class GenericData {
   public void addLogicalTypeConversion(Conversion<?> conversion) {
     conversions.put(conversion.getLogicalTypeName(), conversion);
     Class<?> type = conversion.getConvertedType();
-    if (conversionsByClass.containsKey(type)) {
-      conversionsByClass.get(type).put(
-          conversion.getLogicalTypeName(), conversion);
-    } else {
-      Map<String, Conversion<?>> conversions = new LinkedHashMap<>();
-      conversions.put(conversion.getLogicalTypeName(), conversion);
+    Map<String, Conversion<?>> conversions = conversionsByClass.get(type);
+    if (conversions == null) {
+      conversions = new LinkedHashMap<>();
       conversionsByClass.put(type, conversions);
     }
+    conversions.put(conversion.getLogicalTypeName(), conversion);
   }
 
   /**
@@ -179,11 +177,11 @@ public class GenericData {
     }
     public Record(Record other, boolean deepCopy) {
       schema = other.schema;
-      values = new Object[schema.getFields().size()];
+      List<Field> fields = schema.getFields();
+      values = new Object[fields.size()];
       if (deepCopy) {
         for (int ii = 0; ii < values.length; ii++) {
-          values[ii] = INSTANCE.deepCopy(
-              schema.getFields().get(ii).schema(), other.values[ii]);
+          values[ii] = INSTANCE.deepCopy(fields.get(ii).schema(), other.values[ii]);
         }
       }
       else {
@@ -235,14 +233,14 @@ public class GenericData {
     private int size;
     private Object[] elements = EMPTY;
     public Array(int capacity, Schema schema) {
-      if (schema == null || !Type.ARRAY.equals(schema.getType()))
+      if (schema == null || Type.ARRAY != schema.getType())
         throw new AvroRuntimeException("Not an array schema: "+schema);
       this.schema = schema;
       if (capacity != 0)
         elements = new Object[capacity];
     }
     public Array(Schema schema, Collection<T> c) {
-      if (schema == null || !Type.ARRAY.equals(schema.getType()))
+      if (schema == null || Type.ARRAY != schema.getType())
         throw new AvroRuntimeException("Not an array schema: "+schema);
       this.schema = schema;
       if (c != null) {
@@ -518,11 +516,12 @@ public class GenericData {
       buffer.append('{');
       int count = 0;
       Schema schema = getRecordSchema(datum);
-      for (Field f : schema.getFields()) {
+      List<Field> fields = schema.getFields();
+      for (Field f : fields) {
         toString(f.name(), buffer, seenObjects);
         buffer.append(": ");
         toString(getField(datum, f.name(), f.pos()), buffer, seenObjects);
-        if (++count < schema.getFields().size())
+        if (++count < fields.size())
           buffer.append(", ");
       }
       buffer.append('}');
@@ -561,7 +560,7 @@ public class GenericData {
         if (++count < map.size())
           buffer.append(", ");
       }
-      buffer.append("}");
+      buffer.append('}');
       seenObjects.remove(datum);
     } else if (isString(datum)|| isEnum(datum)) {
       buffer.append('\"');

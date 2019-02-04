@@ -104,14 +104,14 @@ public class DirectBinaryEncoder extends BinaryEncoder {
 
   @Override
   public void writeFloat(float f) throws IOException {
-    int len = BinaryData.encodeFloat(f, buf, 0);
-    out.write(buf, 0, len);
+    BinaryData.encodeFloat(f, buf, 0);
+    out.write(buf, 0, 4);
   }
 
   @Override
   public void writeDouble(double d) throws IOException {
-    int len = BinaryData.encodeDouble(d, buf, 0);
-    out.write(buf, 0, len);
+    BinaryData.encodeDouble(d, buf, 0);
+    out.write(buf, 0, 8);
   }
 
   @Override

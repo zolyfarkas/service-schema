@@ -282,7 +282,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   public void setLogicalType(LogicalType<?> logicalType) {
     if (this.logicalType != null) {
       throw new IllegalArgumentException(
-          "Cannot replace existing logical type");
+          "Cannot replace existing logical type in " + this + " with " + logicalType);
     }
     this.logicalType = logicalType;
     for (Map.Entry<String, Object> prop : logicalType.getProperties().entrySet()) {
@@ -462,7 +462,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   public void toJson(Names names, JsonGenerator gen) throws IOException {
-    if (props.size() == 0 && logicalType == null) { // no props defined
+    if (logicalType == null && props.isEmpty()) { // no props defined
       gen.writeString(getName());                   // just write name
     } else {
       gen.writeStartObject();
@@ -759,7 +759,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return name.hashCode();
     }
     public void aliasesToJson(JsonGenerator gen) throws IOException {
-      if (aliases == null || aliases.size() == 0) return;
+      if (aliases == null || aliases.isEmpty()) return;
       gen.writeFieldName("aliases");
       gen.writeStartArray();
       for (Name alias : aliases)
@@ -816,14 +816,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Override
     public Field getField(@Nonnull String fieldname) {
       if (fields == null)
-        throw new AvroRuntimeException("Schema fields not set yet");
+        throw new AvroRuntimeException("Schema fields not set yet for " + this + ", cannot get " + fieldname);
       return fieldMap.get(fieldname);
     }
 
     @Override
     public List<Field> getFields() {
       if (fields == null)
-        throw new AvroRuntimeException("Schema fields not set yet");
+        throw new AvroRuntimeException("Schema fields not set yet for " + this);
       return fields;
     }
 
@@ -898,15 +898,18 @@ public abstract class Schema extends JsonProperties implements Serializable {
         gen.writeStringField("name", f.name());
         gen.writeFieldName("type");
         f.schema().toJson(names, gen);
-        if (f.doc() != null)
-          gen.writeStringField("doc", f.doc());
-        if (f.defaultValue() != null) {
+        String doc1 = f.doc();
+        if (doc1 != null) {
+          gen.writeStringField("doc", doc1);
+        }
+        JsonNode defaultValue = f.defaultValue();
+        if (defaultValue != null) {
           gen.writeFieldName("default");
-          gen.writeTree(f.defaultValue());
+          gen.writeTree(defaultValue);
         }
         if (f.order() != Field.Order.ASCENDING)
           gen.writeStringField("order", f.order().name);
-        if (f.aliases != null && f.aliases.size() != 0) {
+        if (f.aliases != null && !f.aliases.isEmpty()) {
           gen.writeFieldName("aliases");
           gen.writeStartArray();
           for (String alias : f.aliases)
@@ -970,7 +973,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       if (sa == null) {
         aliases = Collections.EMPTY_MAP;
       } else {
-        Map<String, Set<String>> result = new HashMap<>(sa.size());
+        Map<String, Set<String>> result = Maps.newHashMapWithExpectedSize(sa.size());
         for (Map.Entry<String, List<String>> entry : sa.entrySet()) {
           String symbol = entry.getKey();
           if (!symbols.contains(symbol)) {
@@ -1031,7 +1034,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       }
     }
 
-    private void setFalbackSymbol(String textValue) throws AvroTypeException {
+    private void setFalbackSymbol(String textValue) {
       if (!symbols.contains(textValue)) {
         throw new AvroTypeException("Enum fallbackSymbol " + textValue + " must be one of " + symbols);
       }
@@ -1122,11 +1125,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
       gen.writeStartObject();
       gen.writeStringField("type", "enum");
       writeName(names, gen);
-      if (getDoc() != null)
-        gen.writeStringField("doc", getDoc());
+      String doc = getDoc();
+      if (doc != null) {
+        gen.writeStringField("doc", doc);
+      }
       gen.writeArrayFieldStart("symbols");
-      for (String symbol : symbols)
+      for (String symbol : symbols) {
         gen.writeString(symbol);
+      }
       gen.writeEndArray();
       writeProps(gen);
       aliasesToJson(gen);
@@ -1335,9 +1341,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
     /** Returns the set of defined, named types known to this parser. */
     public Map<String,Schema> getTypes() {
-      Map<String,Schema> result = new LinkedHashMap<String,Schema>();
-      for (Schema s : names.values())
+      Collection<Schema> values = names.values();
+      Map<String,Schema> result = Maps.newLinkedHashMapWithExpectedSize(values.size());
+      for (Schema s : values) {
         result.put(s.getFullName(), s);
+      }
       return result;
     }
 
@@ -1527,7 +1535,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   private static ThreadLocal<Boolean> validateNames
     = new ThreadLocal<Boolean>() {
     @Override protected Boolean initialValue() {
-      return true;
+      return Boolean.TRUE;
     }
   };
 
@@ -1685,7 +1693,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
             order = Field.Order.valueOf(orderNode.getTextValue().toUpperCase(Locale.ENGLISH));
           JsonNode defaultValue = field.get("default");
           Type fieldType = fieldSchema.getType();
-          if (defaultValue != null && (Type.FLOAT.equals(fieldType) || Type.DOUBLE.equals(fieldType))
+          if (defaultValue != null && (Type.FLOAT == fieldType || Type.DOUBLE == fieldType)
               && defaultValue.isTextual())
             defaultValue =
               new DoubleNode(Double.valueOf(defaultValue.getTextValue()));
@@ -1834,10 +1842,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
     Map<Schema,Schema> seen = new IdentityHashMap<Schema,Schema>(1);
     Map<Name,Name> aliases = new HashMap<Name, Name>(1);
     Map<Name,Map<String,String>> fieldAliases =
-      new HashMap<Name, Map<String,String>>(1);
+      new HashMap<Name, Map<String,String>>(2);
     getAliases(reader, seen, aliases, fieldAliases);
 
-    if (aliases.size() == 0 && fieldAliases.size() == 0)
+    if (aliases.isEmpty() && fieldAliases.isEmpty())
       return writer;                              // no aliases
 
     seen.clear();
@@ -1880,13 +1888,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
       break;
 
     case ARRAY:
-      Schema e = applyAliases(s.getElementType(), seen, aliases, fieldAliases);
-      if (e != s.getElementType())
+      Schema elementType = s.getElementType();
+      Schema e = applyAliases(elementType, seen, aliases, fieldAliases);
+      if (e != elementType)
         result = Schema.createArray(e);
       break;
     case MAP:
-      Schema v = applyAliases(s.getValueType(), seen, aliases, fieldAliases);
-      if (v != s.getValueType())
+      Schema valueType = s.getValueType();
+      Schema v = applyAliases(valueType, seen, aliases, fieldAliases);
+      if (v != valueType)
         result = Schema.createMap(v);
       break;
     case UNION:

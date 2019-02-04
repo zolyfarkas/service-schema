@@ -391,9 +391,8 @@ public class BinaryData {
   /** Encode a float to the byte array at the given position. Will throw
    * IndexOutOfBounds if it overflows. Users should ensure that there are at
    * least 4 bytes left in the buffer before calling this method.
-   * @return Returns the number of bytes written to the buffer, 4.
    */
-  public static int encodeFloat(float f, byte[] buf, int pos) {
+  public static void encodeFloat(float f, byte[] buf, int pos) {
     int len = 1;
     int bits = Float.floatToRawIntBits(f);
     // hotspot compiler works well with this variant
@@ -401,15 +400,13 @@ public class BinaryData {
     buf[pos + len++] = (byte)((bits >>>  8) & 0xFF);
     buf[pos + len++] = (byte)((bits >>> 16) & 0xFF);
     buf[pos + len++] = (byte)((bits >>> 24) & 0xFF);
-    return 4;
   }
 
   /** Encode a double to the byte array at the given position. Will throw
    * IndexOutOfBounds if it overflows. Users should ensure that there are at
    * least 8 bytes left in the buffer before calling this method.
-   * @return Returns the number of bytes written to the buffer, 8.
    */
-  public static int encodeDouble(double d, byte[] buf, int pos) {
+  public static void encodeDouble(double d, byte[] buf, int pos) {
     long bits = Double.doubleToRawLongBits(d);
     int first = (int)(bits & 0xFFFFFFFF);
     int second = (int)((bits >>> 32) & 0xFFFFFFFF);
@@ -423,7 +420,6 @@ public class BinaryData {
     buf[pos + 6] = (byte)((second >>> 16) & 0xFF);
     buf[pos + 7] = (byte)((second >>> 24) & 0xFF);
     buf[pos + 3] = (byte)((first >>>  24) & 0xFF);
-    return 8;
   }
 
 }
