@@ -44,8 +44,7 @@ public class NullableAnnotationsGenerator implements JavaAnnotationsGenerator {
       case SETTER_ARG:
       case GETTER:
       case FIELD:
-        if (schema.getType() == Schema.Type.UNION
-            && schema.getTypes().contains(Schema.create(Schema.Type.NULL))) {
+        if (isNullable(schema)) {
           return Collections.singleton("javax.annotation.Nullable");
         } else {
           return Collections.EMPTY_SET;
@@ -53,6 +52,18 @@ public class NullableAnnotationsGenerator implements JavaAnnotationsGenerator {
       default:
         return Collections.EMPTY_SET;
     }
+  }
+
+  private static boolean isNullable(final Schema schema) {
+    if (schema.getType() != Schema.Type.UNION) {
+      return false;
+    }
+    for (Schema subType : schema.getTypes()) {
+      if (subType.getType() == Schema.Type.NULL) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }
