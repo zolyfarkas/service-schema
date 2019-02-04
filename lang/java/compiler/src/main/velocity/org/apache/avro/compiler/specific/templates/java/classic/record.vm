@@ -345,7 +345,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
      * @param value the builder instance to set.
      * @return the instance of this Builder.
      */
-    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetBuilderMethod($schema, $field)}(${this.javaUnbox($field.schema())}.Builder value) {
+    public #if ($schema.getNamespace())$schema.getNamespace().#end${this.mangle($schema.getName())}.Builder ${this.generateSetBuilderMethod($schema, $field)}(#foreach ($annotation in $this.javaAnnotations($field, $GenEntity_SETTER_ARG)) @$annotation #end ${this.javaUnbox($field.schema())}.Builder value) {
       ${this.generateClearMethod($schema, $field)}();
       ${this.mangle($field.name(), $schema.isError())}Builder = value;
       return this;
