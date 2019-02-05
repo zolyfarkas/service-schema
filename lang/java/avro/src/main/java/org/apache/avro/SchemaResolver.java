@@ -14,4 +14,17 @@ public interface SchemaResolver {
   @Nullable
   String getId(Schema schema);
 
+  SchemaResolver NONE = new SchemaResolver() {
+    @Override
+    public Schema resolveSchema(final String id) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getId(final Schema schema) {
+      return null;
+    }
+  };
+
+
 }
