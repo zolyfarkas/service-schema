@@ -29,6 +29,7 @@ import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.AvroNamesRefResolver;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaResolver;
+import org.apache.avro.data.RawJsonString;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
@@ -113,15 +114,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
       if (schema == null) {
         schema = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
       }
-      StringWriter sw = new StringWriter();
-      try {
-        JsonGenerator jgen = Schema.FACTORY.createJsonGenerator(sw);
-        schema.toJson(new AvroNamesRefResolver(resolver), jgen);
-        jgen.flush();
-       } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-      String strSchema = sw.toString();
+      String strSchema = toString(schema);
       GenericRecord result = new GenericData.Record(uSchema);
       result.put(schemaIdx, strSchema);
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -136,6 +129,19 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
       result.put(contentIdx, ByteBuffer.wrap(bos.toByteArray()));
       return result;
     }
+
+  public String toString(Schema schema) throws UncheckedIOException {
+    StringWriter sw = new StringWriter();
+    try {
+      JsonGenerator jgen = Schema.FACTORY.createJsonGenerator(sw);
+      schema.toJson(new AvroNamesRefResolver(resolver), jgen);
+      jgen.flush();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    String strSchema = sw.toString();
+    return strSchema;
+  }
 
   @Override
   public Object tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
@@ -162,7 +168,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
         avsc = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
       }
       Map record = new HashMap(4);
-      record.put("avsc", avsc);
+      record.put("avsc", new RawJsonString(toString(avsc)));
       record.put("content", toSer);
       ((JsonExtensionEncoder) enc).writeValue(record, schema);
       return true;

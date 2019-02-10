@@ -40,6 +40,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.data.Json;
+import org.apache.avro.data.RawJsonString;
 
 import org.apache.avro.util.internal.JacksonUtils;
 import org.codehaus.jackson.JsonFactory;
@@ -49,6 +50,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.map.ser.std.RawSerializer;
 import org.codehaus.jackson.node.DoubleNode;
 
 /** An abstract data type.
@@ -109,6 +111,18 @@ public abstract class Schema extends JsonProperties implements Serializable {
   public static final JsonFactory FACTORY = new JsonFactory();
   public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
 
+  static {
+    FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
+    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+    SimpleModule module = new SimpleModule("avro",
+            new org.codehaus.jackson.Version(1, 0, 0, ""));
+    module.addSerializer(new Json.AvroSchemaSerializer(SchemaResolvers.getDefault()));
+    module.addSerializer(new Json.AvroJsonSerializer());
+    module.addSerializer(new RawSerializer(RawJsonString.class));
+    MAPPER.registerModule(module);
+    FACTORY.setCodec(MAPPER);
+  }
+
   private static final int NO_HASHCODE = Integer.MIN_VALUE;
 
   public static final Schema fromString(final String schemaJson) {
@@ -119,16 +133,6 @@ public abstract class Schema extends JsonProperties implements Serializable {
     return new Schema.Parser().parse(schemaJson, more);
   }
 
-  static {
-    FACTORY.enable(JsonParser.Feature.ALLOW_COMMENTS);
-    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-    SimpleModule module = new SimpleModule("avro",
-            new org.codehaus.jackson.Version(1, 0, 0, ""));
-    module.addSerializer(new Json.AvroSchemaSerializer());
-    module.addSerializer(new Json.AvroJsonSerializer());
-    MAPPER.registerModule(module);
-    FACTORY.setCodec(MAPPER);
-  }
 
   /** The type of a schema. */
   public enum Type {

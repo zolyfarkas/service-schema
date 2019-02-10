@@ -20,6 +20,7 @@ package org.apache.avro.data;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
+import org.apache.avro.AvroNamesRefResolver;
 
 import org.apache.avro.util.internal.JacksonUtils;
 import org.codehaus.jackson.JsonNode;
@@ -35,6 +36,7 @@ import org.codehaus.jackson.node.ObjectNode;
 
 import org.apache.avro.Schema;
 import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.SchemaResolver;
 import org.apache.avro.generic.ExtendedGenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
@@ -311,15 +313,22 @@ public class Json {
 
   public static class AvroSchemaSerializer extends JsonSerializer<Schema> {
 
+    private final SchemaResolver resolver;
+
+    public AvroSchemaSerializer(SchemaResolver resolver) {
+      this.resolver = resolver;
+    }
+
     @Override
     public Class<Schema> handledType() {
       return Schema.class;
     }
 
     @Override
-    public void serialize(final Schema value, final JsonGenerator jgen, final SerializerProvider provider)
+    public void serialize(final Schema value,
+            final JsonGenerator jgen, final SerializerProvider provider)
             throws IOException {
-      value.toJson(jgen);
+      value.toJson(new AvroNamesRefResolver(resolver), jgen);
     }
   }
 
