@@ -43,13 +43,26 @@ public final class SchemaResolvers {
 
   public static  SchemaResolver get(@Nullable final String name) {
     if (name == null) {
-      return NO_RESOLVER;
+      return getDefault();
     }
     return REGISTERED_RESOLVERS.get(name);
   }
 
   public static  SchemaResolver register(@Nonnull final String name, final SchemaResolver resolver) {
     return REGISTERED_RESOLVERS.put(name, resolver);
+  }
+
+  public static  SchemaResolver registerDefault(final SchemaResolver resolver) {
+    return REGISTERED_RESOLVERS.put("def", resolver);
+  }
+
+  @Nonnull
+  public static SchemaResolver getDefault() {
+    SchemaResolver res = REGISTERED_RESOLVERS.get("def");
+    if (res == null) {
+      return NO_RESOLVER;
+    }
+    return res;
   }
 
   private SchemaResolvers() { }
