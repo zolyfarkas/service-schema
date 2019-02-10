@@ -40,7 +40,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.data.Json;
-import org.apache.avro.data.RawJsonString;
+import org.apache.avro.data.Json.RawJsonStringSerialize;
 
 import org.apache.avro.util.internal.JacksonUtils;
 import org.codehaus.jackson.JsonFactory;
@@ -50,7 +50,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.map.ser.std.RawSerializer;
 import org.codehaus.jackson.node.DoubleNode;
 
 /** An abstract data type.
@@ -116,9 +115,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
     FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
     SimpleModule module = new SimpleModule("avro",
             new org.codehaus.jackson.Version(1, 0, 0, ""));
-    module.addSerializer(new Json.AvroSchemaSerializer(SchemaResolvers.getDefault()));
+    module.addSerializer(new Json.AvroSchemaSerializer());
     module.addSerializer(new Json.AvroJsonSerializer());
-    module.addSerializer(new RawSerializer(RawJsonString.class));
+    module.addSerializer(new RawJsonStringSerialize());
     MAPPER.registerModule(module);
     FACTORY.setCodec(MAPPER);
   }

@@ -25,19 +25,6 @@ import javax.annotation.Nullable;
  */
 public final class SchemaResolvers {
 
-  private static final  SchemaResolver NO_RESOLVER = new SchemaResolver() {
-    @Override
-    public Schema resolveSchema(String id) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getId(Schema schema) {
-      return null;
-    }
-  };
-
-
   private static final Map<String, SchemaResolver> REGISTERED_RESOLVERS=
       new ConcurrentHashMap<>();
 
@@ -60,7 +47,7 @@ public final class SchemaResolvers {
   public static SchemaResolver getDefault() {
     SchemaResolver res = REGISTERED_RESOLVERS.get("def");
     if (res == null) {
-      return NO_RESOLVER;
+      return SchemaResolver.NONE;
     }
     return res;
   }

@@ -37,6 +37,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.apache.avro.Schema;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.SchemaResolver;
+import org.apache.avro.SchemaResolvers;
 import org.apache.avro.generic.ExtendedGenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
@@ -51,6 +52,7 @@ import org.apache.avro.specific.SpecificRecord;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.ser.std.RawSerializer;
 
 /** Utilities for reading and writing arbitrary Json data in Avro format. */
 public class Json {
@@ -319,6 +321,10 @@ public class Json {
       this.resolver = resolver;
     }
 
+    public AvroSchemaSerializer() {
+      this(SchemaResolvers.getDefault());
+    }
+
     @Override
     public Class<Schema> handledType() {
       return Schema.class;
@@ -330,6 +336,14 @@ public class Json {
             throws IOException {
       value.toJson(new AvroNamesRefResolver(resolver), jgen);
     }
+  }
+
+  public static class RawJsonStringSerialize extends RawSerializer<RawJsonString> {
+
+    public RawJsonStringSerialize() {
+      super(RawJsonString.class);
+    }
+
   }
 
 }
