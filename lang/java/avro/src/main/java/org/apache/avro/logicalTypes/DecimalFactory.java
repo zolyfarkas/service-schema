@@ -57,12 +57,22 @@ public class DecimalFactory implements LogicalTypeFactory {
       return new AvroDecimal(scale, schema);
     } else {
       Number precision = (Number) attributes.get("precision");
-      return new Decimal(precision, scale, schema.getType(), getRoundingMode(attributes, "serRounding"),
-            getRoundingMode(attributes, "deserRounding"));
+      Schema.Type type = schema.getType();
+      switch (type) {
+        case STRING:
+          return new DecimalStringLogicalType(precision, scale, type, getRoundingMode(attributes, "serRounding"),
+                  getRoundingMode(attributes, "deserRounding"));
+        case BYTES:
+          return new DecimalBytesLogicalType(precision, scale, type, getRoundingMode(attributes, "serRounding"),
+                  getRoundingMode(attributes, "deserRounding"));
+        case RECORD:
+          return new DecimalRecordLogicalType(precision, scale, schema, getRoundingMode(attributes, "serRounding"),
+                  getRoundingMode(attributes, "deserRounding"));
+        default:
+          throw new IllegalArgumentException(schema + " must be backed by string or bytes or record");
+      }
     }
   }
-
-
 
   @Override
   public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {

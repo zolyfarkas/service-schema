@@ -100,7 +100,7 @@ public class TestLogicalType {
       try {
         LogicalTypes.fromSchema(schema);
         Assert.fail("should not be able to create " + schema);
-      } catch (IllegalArgumentException ex) {
+      } catch (RuntimeException ex) {
         // expected
       }
 

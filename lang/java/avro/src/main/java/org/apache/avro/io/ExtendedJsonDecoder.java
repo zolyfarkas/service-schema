@@ -32,7 +32,7 @@ import java.util.List;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
-import org.apache.avro.logicalTypes.Decimal;
+import org.apache.avro.logicalTypes.DecimalBytesLogicalType;
 
 /**
  * This class extends the JsonDecoder to work with the ExtendedGenericDatumReader class to write the more
@@ -293,7 +293,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       case VALUE_NUMBER_FLOAT:
         BigDecimal decimalValue = in.getDecimalValue();
         in.nextToken();
-        return Decimal.toBytes(decimalValue);
+        return DecimalBytesLogicalType.toBytes(decimalValue);
       default:
         throw error("bytes");
     }
