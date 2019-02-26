@@ -17,6 +17,7 @@
  */
 package org.apache.avro.compiler.specific;
 
+import com.google.common.html.HtmlEscapers;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -968,22 +969,35 @@ public class SpecificCompiler {
     this.outputCharacterEncoding = outputCharacterEncoding;
   }
 
+  private static final void indent(StringBuilder builder, int indentation) {
+    for (int i = 0; i < indentation; i++) {
+      builder.append(' ');
+    }
+  }
+
   public String extraFieldDoc(final Field field) {
+    return extraFieldDoc(field, 3);
+  }
+
+  public String extraFieldDoc(final Field field, final int indentation) {
     Schema schema = field.schema();
     if (schema.getType() == Schema.Type.UNION
             && "java.lang.Object".equals(javaUnbox(schema))) {
       StringBuilder sb = new StringBuilder(80);
       sb.append("<p>The following types are supported:</p>\n");
-      sb.append("   * <ul>\n");
+      indent(sb, indentation);
+      sb.append("* <ul>\n");
       for (Schema us : schema.getTypes()) {
          if (us.getType() == Schema.Type.NULL) {
            continue;
          }
-         sb.append("   * <li>@see ");
-         sb.append(javaUnbox(us));
+         indent(sb, indentation);
+         sb.append("* <li>@see ");
+         sb.append(HtmlEscapers.htmlEscaper().escape(javaUnbox(us)));
          sb.append("</li>\n");
       }
-      sb.append("   * </ul>");
+      indent(sb, indentation);
+      sb.append("* </ul>");
       return sb.toString();
     } else {
       return null;

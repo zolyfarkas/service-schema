@@ -22,6 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.MapMaker;
+import com.google.common.html.HtmlEscapers;
 import com.google.common.primitives.Bytes;
 
 class GuavaClasses {
@@ -35,5 +36,6 @@ class GuavaClasses {
     LoadingCache.class.getName();
     CacheBuilder.class.getName();
     CacheLoader.class.getName();
+    HtmlEscapers.class.getName();
   }
 }

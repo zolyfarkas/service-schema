@@ -269,7 +269,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       * Gets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * @return $field.doc()
 #end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field, 6)
 #end
       */
 #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_GETTER))
@@ -283,7 +283,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
       * Sets the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * $field.doc()
 #end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field, 6)
 #end
       * @param value the value to set.
       * @return the builder instance.
@@ -317,7 +317,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
      * Gets the Builder instance for the '${this.mangle($field.name(), $schema.isError())}' field and creates one if it doesn't exist yet.
 #if ($field.doc())     * $field.doc()
 #end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field, 6)
 #end
      * @return Builder for this field.
      */
@@ -336,7 +336,7 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
      * Sets the Builder instance for the '${this.mangle($field.name(), $schema.isError())}' field
 #if ($field.doc())     * $field.doc()
 #end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
+#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field, 6)
 #end
      * @param value the builder instance to set.
      * @return the instance of this Builder.
@@ -351,8 +351,6 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
      * Checks whether the '${this.mangle($field.name(), $schema.isError())}' field has an active Builder instance
 #if ($field.doc())     * $field.doc()
 #end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
-#end
      * @return true if it has a builder, false otherwise.
      */
     public boolean ${this.generateHasBuilderMethod($schema, $field)}() {
@@ -363,8 +361,6 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
     /**
       * Clears the value of the '${this.mangle($field.name(), $schema.isError())}' field.
 #if ($field.doc())      * $field.doc()
-#end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
 #end
       * @return the instance of this Builder.
       */
