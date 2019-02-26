@@ -303,10 +303,6 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 
     /**
       * Checks whether the '${this.mangle($field.name(), $schema.isError())}' field has been set.
-#if ($field.doc())      * $field.doc()
-#end
-#if ($this.extraFieldDoc($field))   * $this.extraFieldDoc($field)
-#end
       * @return true if field is set, false otherwise.
       */
 #foreach ($annotation in $this.javaAnnotations($field, $GenEntity_BUILDER_HAS_FIELD))
