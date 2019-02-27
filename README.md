@@ -6,6 +6,44 @@ Learn more about Avro, please visit our website at:
 
 Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j-avro.png)](https://gitter.im/spf4j-avro/Lobby)
 
+## Getting started:
+
+ [ ![Download latest](https://api.bintray.com/packages/zolyfarkas/core/avro/images/download.svg) ](https://bintray.com/zolyfarkas/core/avro/_latestVersion)
+
+This fork is published to bintray, and you can use it by adding the repositories:
+
+            <repositories>
+                <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bintray-zolyfarkas-core</id>
+                    <name>bintray</name>
+                    <url>https://dl.bintray.com/zolyfarkas/core</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>bintray-zolyfarkas-core</id>
+                    <name>bintray-plugins</name>
+                    <url>https://dl.bintray.com/zolyfarkas/core</url>
+                </pluginRepository>
+            </pluginRepositories>
+
+ and reference the avro lib as:
+
+
+            <dependency>
+              <groupId>org.apache.avro</groupId>
+              <artifactId>avro</artifactId>
+              <version>1.8.1.48p</version>
+              <type>pom</type>
+            </dependency>
+
+
 ## Features implemented in this fork on the java side:
 
 ### 1) ExtendedJsonDecoder/Encoder -  encodes unions of null and a single type as a more normal key=value rather than key={type=value}.
@@ -55,7 +93,7 @@ the ExtendedJsonEncoder will serialize:
 "field" : 123.45
 ```
 
-### 7) json_record and json_array logical type support.
+### 7) json_record, json_array, json_any logical type support.
  
 for
 ```
@@ -103,42 +141,17 @@ will serialize in json to:
 
 ### 11) Improved generated javadoc. (unions list all supported types)
 
-## Getting started:
+### 12) url and uri logical type support.
 
- [ ![Download latest](https://api.bintray.com/packages/zolyfarkas/core/avro/images/download.svg) ](https://bintray.com/zolyfarkas/core/avro/_latestVersion)
+### 13) bigint, uuid, date, instant logical types support.
 
-This fork is published to bintray, and you can use it by adding the repositories:
+### 14) mixin support in AVDL.
 
-            <repositories>
-                <repository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-zolyfarkas-core</id>
-                    <name>bintray</name>
-                    <url>https://dl.bintray.com/zolyfarkas/core</url>
-                </repository>
-            </repositories>
-            <pluginRepositories>
-                <pluginRepository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-zolyfarkas-core</id>
-                    <name>bintray-plugins</name>
-                    <url>https://dl.bintray.com/zolyfarkas/core</url>
-                </pluginRepository>
-            </pluginRepositories>
+## Examples for above  in action:
 
- and reference the avro lib as:
-
-
-            <dependency>
-              <groupId>org.apache.avro</groupId>
-              <artifactId>avro</artifactId>
-              <version>1.8.1.24p</version>
-              <type>pom</type>
-            </dependency>
+ * [fred-schema](https://github.com/zolyfarkas/fred-schema)
+ * [core-schema](https://github.com/zolyfarkas/core-schema)
+ * [generic examples](https://github.com/zolyfarkas/avro-schema-examples)
 
  for more info see: https://bintray.com/zolyfarkas/core/avro
 
