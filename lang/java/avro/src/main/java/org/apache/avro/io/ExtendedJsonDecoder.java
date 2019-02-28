@@ -180,13 +180,16 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                     }
                 } else {
                   if (lenient && top == Symbol.RECORD_END) {
-                    while (in.nextToken() != JsonToken.END_OBJECT) {
-                      // just skip tokens
+                    int level = 1;
+                    while (level > 0){
+                      JsonToken nextToken = in.nextToken();
+                      if (nextToken == JsonToken.START_OBJECT) {
+                        level++;
+                      } else if (nextToken == JsonToken.END_OBJECT) {
+                        level--;
+                      }
                     }
                     in.nextToken();
-                    if (currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
-                      throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
-                    }
                     currentReorderBuffer = reorderBuffers.pop();
                   } else {
                     throw error(top == Symbol.RECORD_END ? "record-end" : "union-end");

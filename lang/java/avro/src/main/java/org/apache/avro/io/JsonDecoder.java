@@ -486,13 +486,19 @@ public class JsonDecoder extends ParsingDecoder
         throw error("record-start");
       }
     } else if (top == Symbol.RECORD_END || top == Symbol.UNION_END) {
-      while(in.getCurrentToken() != JsonToken.END_OBJECT){
-         in.nextToken();
-       }
+      int level = 1;
+      while (level > 0){
+        JsonToken nextToken = in.nextToken();
+        if (nextToken == JsonToken.START_OBJECT) {
+          level++;
+        } else if (nextToken == JsonToken.END_OBJECT) {
+          level--;
+        }
+      }
       if (in.getCurrentToken() == JsonToken.END_OBJECT) {
         in.nextToken();
         if (top == Symbol.RECORD_END) {
-          if (currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
+          if (!lenient && currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
             throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
           }
           currentReorderBuffer = reorderBuffers.pop();
@@ -505,6 +511,8 @@ public class JsonDecoder extends ParsingDecoder
     }
     return null;
   }
+
+  private static final boolean lenient = Boolean.parseBoolean(System.getProperty("avro.ignoreUnusedJsonFields", "false"));
 
   static interface JsonElement {
 
