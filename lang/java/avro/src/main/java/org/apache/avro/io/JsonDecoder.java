@@ -498,7 +498,7 @@ public class JsonDecoder extends ParsingDecoder
       if (in.getCurrentToken() == JsonToken.END_OBJECT) {
         in.nextToken();
         if (top == Symbol.RECORD_END) {
-          if (!lenient && currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
+          if (!LENIENT && currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
             throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
           }
           currentReorderBuffer = reorderBuffers.pop();
@@ -512,7 +512,8 @@ public class JsonDecoder extends ParsingDecoder
     return null;
   }
 
-  private static final boolean lenient = Boolean.parseBoolean(System.getProperty("avro.ignoreUnusedJsonFields", "false"));
+  private static final boolean LENIENT = Boolean.parseBoolean(
+          System.getProperty("avro.jsonDecoder.ignoreUnusedFields", "false"));
 
   static interface JsonElement {
 
