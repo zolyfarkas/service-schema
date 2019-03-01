@@ -486,13 +486,17 @@ public class JsonDecoder extends ParsingDecoder
         throw error("record-start");
       }
     } else if (top == Symbol.RECORD_END || top == Symbol.UNION_END) {
-      int level = 1;
-      while (level > 0){
-        JsonToken nextToken = in.nextToken();
-        if (nextToken == JsonToken.START_OBJECT) {
-          level++;
-        } else if (nextToken == JsonToken.END_OBJECT) {
-          level--;
+      if (in.getCurrentToken() != JsonToken.END_OBJECT) {
+        int level = 1;
+        while (level > 0) {
+          JsonToken nextToken = in.nextToken();
+          if (nextToken == null) {
+            break;
+          } else if (nextToken == JsonToken.START_OBJECT) {
+            level++;
+          } else if (nextToken == JsonToken.END_OBJECT) {
+            level--;
+          }
         }
       }
       if (in.getCurrentToken() == JsonToken.END_OBJECT) {
