@@ -62,7 +62,9 @@ public class JsonDecoderTest {
 
   private static final String testData = "{ \"items\": [\n" +
 "\n" +
-"{ \"name\": \"dallas\", \"state\": \"TX\", \"country\":\"USA\" }\n" +
+"{ \"name\": \"dallas\", \"state\": \"TX\", \"country\": {\n" +
+"                \"string\": \"USA\"\n" +
+"            }}\n" +
 "\n" +
 "], \"firstname\":\"fname\", \"lastname\":\"lname\" }";
 
