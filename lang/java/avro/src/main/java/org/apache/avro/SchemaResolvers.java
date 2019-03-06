@@ -28,6 +28,9 @@ public final class SchemaResolvers {
   private static final Map<String, SchemaResolver> REGISTERED_RESOLVERS=
       new ConcurrentHashMap<>();
 
+
+  private static volatile SchemaResolver defaultResolver = null;
+
   public static  SchemaResolver get(@Nullable final String name) {
     if (name == null) {
       return getDefault();
@@ -35,17 +38,23 @@ public final class SchemaResolvers {
     return REGISTERED_RESOLVERS.get(name);
   }
 
-  public static  SchemaResolver register(@Nonnull final String name, final SchemaResolver resolver) {
-    return REGISTERED_RESOLVERS.put(name, resolver);
+  public static  SchemaResolver register(@Nullable final String name, final SchemaResolver resolver) {
+    if (name == null) {
+      SchemaResolver result = defaultResolver;
+      defaultResolver = resolver;
+      return result;
+    } else {
+      return REGISTERED_RESOLVERS.put(name, resolver);
+    }
   }
 
   public static  SchemaResolver registerDefault(final SchemaResolver resolver) {
-    return REGISTERED_RESOLVERS.put("def", resolver);
+    return defaultResolver = resolver;
   }
 
   @Nonnull
   public static SchemaResolver getDefault() {
-    SchemaResolver res = REGISTERED_RESOLVERS.get("def");
+    SchemaResolver res = defaultResolver;
     if (res == null) {
       return SchemaResolver.NONE;
     }

@@ -1329,10 +1329,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     public Parser() {
-      names = new Names();
+      SchemaResolver resolver = SchemaResolvers.getDefault();
+      names = new AvroNamesRefResolver(resolver);
     }
-
-
 
     /** Adds the provided types to the set of defined, named types known to
      * this parser. */
