@@ -16,7 +16,10 @@
 package org.apache.avro;
 
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -30,6 +33,19 @@ public final class SchemaResolvers {
 
 
   private static volatile SchemaResolver defaultResolver = null;
+
+  static {
+    ServiceLoader<SchemaResolverRegistration> regs = ServiceLoader.load(SchemaResolverRegistration.class);
+    for (SchemaResolverRegistration reg : regs) {
+      SchemaResolver ex = register(reg.getName(), reg.getResolver());
+      if (ex == null) {
+        Logger.getLogger(SchemaResolvers.class.getName())
+                .log(Level.WARNING, "Overwriting schema resolver {0} with {1}", new Object [] {ex, reg.getResolver()});
+      }
+    }
+  }
+
+
 
   public static  SchemaResolver get(@Nullable final String name) {
     if (name == null) {
