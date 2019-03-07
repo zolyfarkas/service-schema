@@ -23,16 +23,16 @@ import java.util.Iterator;
 import org.apache.avro.AvroNamesRefResolver;
 
 import org.apache.avro.util.internal.JacksonUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.LongNode;
-import org.codehaus.jackson.node.DoubleNode;
-import org.codehaus.jackson.node.TextNode;
-import org.codehaus.jackson.node.BooleanNode;
-import org.codehaus.jackson.node.NullNode;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.apache.avro.Schema;
 import org.apache.avro.AvroRuntimeException;
@@ -49,10 +49,10 @@ import org.apache.avro.io.ExtendedJsonEncoder;
 import org.apache.avro.io.ResolvingDecoder;
 import org.apache.avro.specific.ExtendedSpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.std.RawSerializer;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.RawSerializer;
 
 /** Utilities for reading and writing arbitrary Json data in Avro format. */
 public class Json {
@@ -190,15 +190,15 @@ public class Json {
     switch(node.asToken()) {
     case VALUE_NUMBER_INT:
       out.writeIndex(JsonType.LONG.ordinal());
-      out.writeLong(node.getLongValue());
+      out.writeLong(node.longValue());
       break;
     case VALUE_NUMBER_FLOAT:
       out.writeIndex(JsonType.DOUBLE.ordinal());
-      out.writeDouble(node.getDoubleValue());
+      out.writeDouble(node.doubleValue());
       break;
     case VALUE_STRING:
       out.writeIndex(JsonType.STRING.ordinal());
-      out.writeString(node.getTextValue());
+      out.writeString(node.textValue());
       break;
     case VALUE_TRUE:
       out.writeIndex(JsonType.BOOLEAN.ordinal());
@@ -226,7 +226,7 @@ public class Json {
       out.writeIndex(JsonType.OBJECT.ordinal());
       out.writeMapStart();
       out.setItemCount(node.size());
-      Iterator<String> i = node.getFieldNames();
+      Iterator<String> i = node.fieldNames();
       while (i.hasNext()) {
         out.startItem();
         String name = i.next();

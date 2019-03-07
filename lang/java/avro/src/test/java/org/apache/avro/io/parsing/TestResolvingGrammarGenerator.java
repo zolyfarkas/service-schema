@@ -17,6 +17,9 @@
  */
 package org.apache.avro.io.parsing;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,9 +38,6 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +47,7 @@ import org.junit.runners.Parameterized;
 public class TestResolvingGrammarGenerator {
   private final Schema schema;
   private final JsonNode data;
-  
+
   public TestResolvingGrammarGenerator(String jsonSchema, String jsonData)
     throws IOException {
     this.schema = Schema.parse(jsonSchema);
@@ -61,9 +61,9 @@ public class TestResolvingGrammarGenerator {
   public void test() throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     EncoderFactory factory = EncoderFactory.get();
-    Encoder e = factory.validatingEncoder(schema, 
+    Encoder e = factory.validatingEncoder(schema,
         factory.binaryEncoder(baos, null));
-    
+
     ResolvingGrammarGenerator.encode(e, schema, data);
     e.flush();
   }
@@ -91,7 +91,7 @@ public class TestResolvingGrammarGenerator {
           "Found ns.MyRecord, expecting ns.MyRecord, missing required field field2", typeException.getMessage());
     }
   }
-  
+
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     Collection<Object[]> ret = Arrays.asList(

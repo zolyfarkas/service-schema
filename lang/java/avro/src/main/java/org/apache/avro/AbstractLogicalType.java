@@ -1,12 +1,12 @@
 package org.apache.avro;
 
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.apache.avro.util.internal.JacksonUtils;
-import org.codehaus.jackson.node.TextNode;
 
 public abstract class AbstractLogicalType<T> extends JsonProperties implements LogicalType<T> {
 

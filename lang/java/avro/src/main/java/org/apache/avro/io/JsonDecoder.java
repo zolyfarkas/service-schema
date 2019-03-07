@@ -37,12 +37,13 @@ import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.io.parsing.Symbol;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.Base64Variant;
-import org.codehaus.jackson.JsonLocation;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonStreamContext;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.ObjectCodec;
+import com.fasterxml.jackson.core.Base64Variant;
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.Version;
 
 /** A {@link Decoder} for Avro's JSON data encoding.
  * </p>
@@ -999,12 +1000,12 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public JsonStreamContext getParsingContext() {
-        throw new UnsupportedOperationException();
+        return null;
       }
 
       @Override
       public JsonLocation getTokenLocation() {
-        throw new UnsupportedOperationException();
+        return getCurrentLocation();
       }
 
       @Override
@@ -1029,7 +1030,7 @@ public class JsonDecoder extends ParsingDecoder
 
       @Override
       public int getTextOffset() throws IOException {
-        throw new UnsupportedOperationException();
+        return 0;
       }
 
       @Override
@@ -1097,6 +1098,61 @@ public class JsonDecoder extends ParsingDecoder
       @Override
       public JsonToken getCurrentToken() {
         return currElement.getToken();
+      }
+
+      @Override
+      public Version version() {
+        return new Version(1, 0, 0, null, "org.apache.avro", "avro");
+      }
+
+      @Override
+      public JsonToken nextValue() throws IOException {
+        return nextToken();
+      }
+
+      @Override
+      public int getCurrentTokenId() {
+        return currentToken().id();
+      }
+
+      @Override
+      public boolean hasCurrentToken() {
+        return currElement != null && currElement != JsonElement.NONE;
+      }
+
+      @Override
+      public boolean hasTokenId(int id) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public boolean hasToken(JsonToken t) {
+        return currElement.getToken() == t;
+      }
+
+      @Override
+      public void clearCurrentToken() {
+        currElement = JsonElement.NONE;
+      }
+
+      @Override
+      public JsonToken getLastClearedToken() {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public void overrideCurrentName(String name) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public boolean hasTextCharacters() {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public String getValueAsString(String def) throws IOException {
+         throw new UnsupportedOperationException();
       }
     };
   }

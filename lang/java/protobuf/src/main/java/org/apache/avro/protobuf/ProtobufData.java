@@ -17,6 +17,10 @@
  */
 package org.apache.avro.protobuf;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -46,10 +50,6 @@ import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DescriptorProtos.FileOptions;
 
 import org.apache.avro.util.ClassUtils;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.JsonNodeFactory;
 
 /** Utilities for serializing Protobuf data in Avro format. */
 public class ProtobufData extends GenericData {
@@ -319,7 +319,7 @@ public class ProtobufData extends GenericData {
       }
       String json = toString(value);
       try {
-        return MAPPER.readTree(FACTORY.createJsonParser(json));
+        return MAPPER.readTree(FACTORY.createParser(json));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

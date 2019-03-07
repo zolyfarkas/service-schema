@@ -269,7 +269,7 @@ public final class AvroUtils {
           throws IOException {
     Schema schema = req.getSchema();
     DatumWriter writer = new ExtendedGenericDatumWriter(schema);
-    Encoder encoder = new ExtendedJsonEncoder(schema, Schema.FACTORY.createJsonGenerator(out));
+    Encoder encoder = new ExtendedJsonEncoder(schema, Schema.FACTORY.createGenerator(out));
     writer.write(req, encoder);
     encoder.flush();
   }

@@ -17,6 +17,7 @@
  */
 package org.apache.avro.io.parsing;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.avro.Schema;
-import org.codehaus.jackson.JsonNode;
 
 /**
  * Symbol is the base of all symbols (terminals and non-terminals) of

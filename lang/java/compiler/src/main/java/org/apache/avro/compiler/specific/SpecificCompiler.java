@@ -17,6 +17,7 @@
  */
 package org.apache.avro.compiler.specific;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.html.HtmlEscapers;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,17 +46,15 @@ import org.apache.avro.JsonProperties;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.StringType;
 import org.apache.avro.specific.SpecificData;
-import org.apache.commons.compress.utils.Charsets;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.log.LogChute;
-import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import static org.apache.avro.specific.SpecificData.RESERVED_WORDS;
+
 
 /**
  * Generate specific Java interfaces and classes for protocols and schemas.
@@ -417,7 +417,7 @@ public class SpecificCompiler {
           }
           try {
             Writer writer = new OutputStreamWriter(new FileOutputStream(destFile),
-                    Charsets.UTF_8);
+                    StandardCharsets.UTF_8);
             try {
               writer.append(schema.toString());
             } finally {
@@ -592,7 +592,7 @@ public class SpecificCompiler {
 
   private String getStringType(JsonNode overrideClassProperty) {
     if (overrideClassProperty != null)
-      return overrideClassProperty.getTextValue();
+      return overrideClassProperty.textValue();
     switch (stringType) {
     case String:        return "java.lang.String";
     case Utf8:          return "org.apache.avro.util.Utf8";

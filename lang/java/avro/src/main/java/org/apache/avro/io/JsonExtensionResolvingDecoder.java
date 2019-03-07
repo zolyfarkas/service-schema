@@ -15,13 +15,13 @@
  */
 package org.apache.avro.io;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.apache.avro.Schema;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Symbol;
-import org.codehaus.jackson.JsonNode;
 
 /**
  *

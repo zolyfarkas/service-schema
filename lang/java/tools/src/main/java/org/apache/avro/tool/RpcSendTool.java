@@ -17,6 +17,9 @@
  */
 package org.apache.avro.tool;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -37,9 +40,6 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.ipc.Ipc;
 import org.apache.avro.ipc.generic.GenericRequestor;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
 
 /**
  * Sends a single RPC message.
@@ -107,7 +107,7 @@ public class RpcSendTool implements Tool {
   throws IOException {
     DatumWriter<Object> writer = new GenericDatumWriter<Object>(schema);
     JsonGenerator g =
-      new JsonFactory().createJsonGenerator(out, JsonEncoding.UTF8);
+      new JsonFactory().createGenerator(out, JsonEncoding.UTF8);
     g.useDefaultPrettyPrinter();
     writer.write(datum, EncoderFactory.get().jsonEncoder(schema, g));
     g.flush();

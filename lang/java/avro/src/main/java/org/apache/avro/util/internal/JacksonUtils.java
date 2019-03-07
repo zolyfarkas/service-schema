@@ -43,10 +43,10 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.util.TokenBuffer;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 
 public final class JacksonUtils {
 
@@ -66,7 +66,7 @@ public final class JacksonUtils {
       return (JsonNode) datum;
     }
     try {
-      TokenBuffer generator = new TokenBuffer(MAPPER);
+      TokenBuffer generator = new TokenBuffer(MAPPER, false);
       toJson(datum, generator);
       return MAPPER.readTree(generator.asParser());
     } catch (IOException e) {
@@ -172,9 +172,9 @@ public final class JacksonUtils {
         } else if (logicalJavaType == Long.class) {
           return jsonNode.asLong();
         } else if  (logicalJavaType == BigDecimal.class) {
-          return jsonNode.getDecimalValue();
+          return jsonNode.decimalValue();
         } else if  (logicalJavaType == BigInteger.class) {
-          return jsonNode.getBigIntegerValue();
+          return jsonNode.bigIntegerValue();
         }  else if  (logicalJavaType == Double.class) {
           return jsonNode.asDouble();
         } else if  (logicalJavaType == Float.class) {
@@ -207,9 +207,9 @@ public final class JacksonUtils {
           schema.getType() == Schema.Type.ENUM) {
         return jsonNode.asText();
       } else if (schema.getType() == Schema.Type.BYTES) {
-        return jsonNode.getTextValue().getBytes(BYTES_CHARSET);
+        return jsonNode.textValue().getBytes(BYTES_CHARSET);
       } else if (schema.getType() == Schema.Type.FIXED) {
-        return new Fixed(schema, jsonNode.getTextValue().getBytes(BYTES_CHARSET));
+        return new Fixed(schema, jsonNode.textValue().getBytes(BYTES_CHARSET));
       }
     } else if (jsonNode.isArray()) {
       List l = new ArrayList(jsonNode.size());
@@ -219,7 +219,7 @@ public final class JacksonUtils {
       return l;
     } else if (jsonNode.isObject()) {
       Map m = Maps.newLinkedHashMapWithExpectedSize(jsonNode.size());
-      for (Iterator<String> it = jsonNode.getFieldNames(); it.hasNext(); ) {
+      for (Iterator<String> it = jsonNode.fieldNames(); it.hasNext(); ) {
         String key = it.next();
         Schema s = null;
         if (schema == null) {

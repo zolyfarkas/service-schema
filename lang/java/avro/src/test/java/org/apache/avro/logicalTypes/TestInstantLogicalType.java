@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
@@ -94,8 +96,9 @@ public class TestInstantLogicalType {
             .noDefault()
             .endRecord();
     GenericData.Record record = new GenericData.Record(testSchema);
-    record.put("instant", Instant.now());
-      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    Instant now = Instant.now();
+    record.put("instant", now.truncatedTo(ChronoUnit.MILLIS));
+    String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
     System.out.println(writeAvroExtendedJson);
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
     Assert.assertEquals(record.toString(), back.toString());
@@ -134,7 +137,7 @@ public class TestInstantLogicalType {
             .noDefault()
             .endRecord();
     GenericData.Record record = new GenericData.Record(testSchema);
-    record.put("instant", Instant.now());
+    record.put("instant", Instant.now().truncatedTo(ChronoUnit.MILLIS));
       String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
     System.out.println(writeAvroExtendedJson);
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);

@@ -15,10 +15,10 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.io.StringWriter;
 import org.junit.Assert;
-import org.codehaus.jackson.JsonGenerator;
 import org.junit.Test;
 
 /**
@@ -37,7 +37,7 @@ public class SchemaSupplierTest {
     Schema schema = SchemaBuilder.array()
             .items(recSchema);
     StringWriter stringWriter = new StringWriter();
-    JsonGenerator jgen = Schema.FACTORY.createJsonGenerator(stringWriter);
+    JsonGenerator jgen = Schema.FACTORY.createGenerator(stringWriter);
     schema.toJson(new TestResolver(recSchema), jgen);
     jgen.flush();
     System.out.println(stringWriter.toString());

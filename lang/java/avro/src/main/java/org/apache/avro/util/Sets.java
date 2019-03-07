@@ -16,6 +16,7 @@
 package org.apache.avro.util;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 /**
  *
@@ -26,5 +27,10 @@ public class Sets {
   public static <E> HashSet<E> newHashSetWithExpectedSize(int expectedSize) {
     return new HashSet<E>(Maps.capacity(expectedSize));
   }
+
+  public static <E> HashSet<E> newLinkedHashSetWithExpectedSize(int expectedSize) {
+    return new LinkedHashSet<E>(Maps.capacity(expectedSize));
+  }
+
 
 }

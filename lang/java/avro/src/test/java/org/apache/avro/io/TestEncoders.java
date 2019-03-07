@@ -17,6 +17,9 @@
  */
 package org.apache.avro.io;
 
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,9 +29,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -74,7 +74,7 @@ public class TestEncoders {
     OutputStream out = new ByteArrayOutputStream();
     factory.jsonEncoder(s, out);
     JsonEncoder enc = factory.jsonEncoder(s,
-        new JsonFactory().createJsonGenerator(out, JsonEncoding.UTF8));
+        new JsonFactory().createGenerator(out, JsonEncoding.UTF8));
     enc.configure(out);
   }
 

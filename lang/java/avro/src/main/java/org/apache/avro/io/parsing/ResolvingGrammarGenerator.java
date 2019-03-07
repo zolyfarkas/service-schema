@@ -17,6 +17,7 @@
  */
 package org.apache.avro.io.parsing;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,7 +32,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
-import org.codehaus.jackson.JsonNode;
 
 /**
  * The class that generates a resolving grammar to resolve between two
@@ -429,7 +429,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       }
       break;
     case ENUM:
-      e.writeEnum(s.getEnumOrdinal(n.getTextValue()));
+      e.writeEnum(s.getEnumOrdinal(n.asText()));
       break;
     case ARRAY:
       e.writeArrayStart();
@@ -445,7 +445,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       e.writeMapStart();
       e.setItemCount(n.size());
       Schema v = s.getValueType();
-      for (Iterator<String> it = n.getFieldNames(); it.hasNext();) {
+      for (Iterator<String> it = n.fieldNames(); it.hasNext();) {
         e.startItem();
         String key = it.next();
         e.writeString(key);
@@ -460,7 +460,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
     case FIXED:
       if (!n.isTextual())
         throw new AvroTypeException("Non-string default value for fixed: "+n);
-      byte[] bb = n.getTextValue().getBytes("ISO-8859-1");
+      byte[] bb = n.textValue().getBytes("ISO-8859-1");
       if (bb.length != s.getFixedSize()) {
         bb = Arrays.copyOf(bb, s.getFixedSize());
       }
@@ -469,37 +469,37 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
     case STRING:
       if (!n.isTextual())
         throw new AvroTypeException("Non-string default value for string: "+n);
-      e.writeString(n.getTextValue());
+      e.writeString(n.textValue());
       break;
     case BYTES:
       if (!n.isTextual())
         throw new AvroTypeException("Non-string default value for bytes: "+n);
-      e.writeBytes(n.getTextValue().getBytes("ISO-8859-1"));
+      e.writeBytes(n.textValue().getBytes("ISO-8859-1"));
       break;
     case INT:
       if (!n.isNumber())
         throw new AvroTypeException("Non-numeric default value for int: "+n);
-      e.writeInt(n.getIntValue());
+      e.writeInt(n.asInt());
       break;
     case LONG:
       if (!n.isNumber())
         throw new AvroTypeException("Non-numeric default value for long: "+n);
-      e.writeLong(n.getLongValue());
+      e.writeLong(n.asLong());
       break;
     case FLOAT:
       if (!n.isNumber())
         throw new AvroTypeException("Non-numeric default value for float: "+n);
-      e.writeFloat((float) n.getDoubleValue());
+      e.writeFloat((float) n.asDouble());
       break;
     case DOUBLE:
       if (!n.isNumber())
         throw new AvroTypeException("Non-numeric default value for double: "+n);
-      e.writeDouble(n.getDoubleValue());
+      e.writeDouble(n.asDouble());
       break;
     case BOOLEAN:
       if (!n.isBoolean())
         throw new AvroTypeException("Non-boolean default for boolean: "+n);
-      e.writeBoolean(n.getBooleanValue());
+      e.writeBoolean(n.asBoolean());
       break;
     case NULL:
       if (!n.isNull())

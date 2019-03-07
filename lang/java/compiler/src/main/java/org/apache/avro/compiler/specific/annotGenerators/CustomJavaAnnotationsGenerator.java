@@ -15,6 +15,7 @@
  */
 package org.apache.avro.compiler.specific.annotGenerators;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.compiler.specific.GenEntity;
 import org.apache.avro.compiler.specific.JavaAnnotationsGenerator;
 import org.apache.avro.compiler.specific.SpecificCompiler;
-import org.codehaus.jackson.JsonNode;
 
 /**
  *
@@ -42,11 +42,11 @@ public class CustomJavaAnnotationsGenerator implements JavaAnnotationsGenerator 
     if (value != null) {
       Set<String> annotations = new HashSet<>(4);
       if (value.isTextual()) {
-        annotations.add(value.getTextValue());
+        annotations.add(value.textValue());
       }
       if (value.isArray()) {
         for (JsonNode v : value) {
-          annotations.add(v.getTextValue());
+          annotations.add(v.textValue());
         }
       }
       return annotations;

@@ -17,6 +17,8 @@
  */
 package org.apache.avro.generic;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,9 +43,6 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import org.junit.Test;
 
@@ -312,11 +311,10 @@ public class TestGenericData {
     r.put(enumField.name(), new GenericData.EnumSymbol(enumField.schema(),"a"));
 
     String json = r.toString();
-    JsonParser parser = Schema.FACTORY.createJsonParser(json);
-    ObjectMapper mapper = new ObjectMapper();
+    JsonParser parser = Schema.FACTORY.createParser(json);
 
     // will throw exception if string is not parsable json
-    mapper.readTree(parser);
+    Schema.MAPPER.readTree(parser);
   }
 
   @Test public void testToStringEscapesControlCharsInBytes() throws Exception {

@@ -17,6 +17,9 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.core.util.BufferRecyclers;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -33,10 +36,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Fixed;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.internal.JacksonUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.io.JsonStringEncoder;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.TextNode;
+
 
 /**
  * <p>
@@ -2596,16 +2596,16 @@ public class SchemaBuilder {
         bytes.get(data);
         bytes.reset(); // put the buffer back the way we got it
         s = new String(data, "ISO-8859-1");
-        char[] quoted = JsonStringEncoder.getInstance().quoteAsString(s);
+        char[] quoted = BufferRecyclers.getJsonStringEncoder().quoteAsString(s);
         s = "\"" + new String(quoted) + "\"";
       } else if (o instanceof byte[]) {
         s = new String((byte[]) o, "ISO-8859-1");
-        char[] quoted = JsonStringEncoder.getInstance().quoteAsString(s);
+        char[] quoted = BufferRecyclers.getJsonStringEncoder().quoteAsString(s);
         s = '\"' + new String(quoted) + '\"';
       } else {
         s = GenericData.get().toString(o);
       }
-      return new ObjectMapper().readTree(s);
+      return Schema.MAPPER.readTree(s);
     } catch (IOException e) {
       throw new SchemaBuilderException(e);
     }

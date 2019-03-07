@@ -17,6 +17,7 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,7 +34,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecordBuilder;
-import org.codehaus.jackson.node.NullNode;
+
 import org.junit.Assert;
 import org.junit.Test;
 

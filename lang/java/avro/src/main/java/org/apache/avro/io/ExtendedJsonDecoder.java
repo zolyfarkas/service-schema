@@ -13,12 +13,12 @@ package org.apache.avro.io;
  * specific language governing permissions and limitations under the License.
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.io.parsing.Symbol;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

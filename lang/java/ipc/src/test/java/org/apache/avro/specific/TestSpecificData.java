@@ -17,6 +17,9 @@
  */
 package org.apache.avro.specific;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -30,9 +33,6 @@ import java.io.ObjectOutputStream;
 
 import org.apache.avro.FooBarSpecificRecord;
 import org.apache.avro.TypeEnum;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.Assert;
 
@@ -47,7 +47,7 @@ import org.apache.avro.test.Kind;
 import org.apache.avro.test.Reserved;
 
 public class TestSpecificData {
-  
+
   @Test
   /** Make sure that even with nulls, hashCode() doesn't throw NPE. */
   public void testHashCode() {
@@ -119,7 +119,7 @@ public class TestSpecificData {
 
     String json = foo.toString();
     JsonFactory factory = new JsonFactory();
-    JsonParser parser = factory.createJsonParser(json);
+    JsonParser parser = factory.createParser(json);
     ObjectMapper mapper = new ObjectMapper();
 
     // will throw exception if string is not parsable json

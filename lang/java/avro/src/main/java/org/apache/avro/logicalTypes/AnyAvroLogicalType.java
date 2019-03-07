@@ -15,6 +15,8 @@
  */
 package org.apache.avro.logicalTypes;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,8 +47,6 @@ import org.apache.avro.io.JsonExtensionEncoder;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.reflect.ExtendedReflectDatumWriter;
 import org.apache.avro.util.CharSequenceReader;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
 
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
@@ -133,7 +133,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
   public String toString(Schema schema) throws UncheckedIOException {
     StringWriter sw = new StringWriter();
     try {
-      JsonGenerator jgen = Schema.FACTORY.createJsonGenerator(sw);
+      JsonGenerator jgen = Schema.FACTORY.createGenerator(sw);
       schema.toJson(new AvroNamesRefResolver(resolver), jgen);
       jgen.flush();
     } catch (IOException ex) {
