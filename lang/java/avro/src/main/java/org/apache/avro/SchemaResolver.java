@@ -26,5 +26,8 @@ public interface SchemaResolver {
     }
   };
 
+  default void registerAsDefault() {
+    SchemaResolvers.registerDefault(this);
+  }
 
 }
