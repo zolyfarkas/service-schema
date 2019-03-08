@@ -1481,7 +1481,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     PRIMITIVES.put("null",    Type.NULL);
   }
 
-  public static class Names extends LinkedHashMap<Name, Schema>  implements SchemaResolver {
+  public static class Names extends LinkedHashMap<Name, Schema> {
     private String space;                         // default namespace
 
     public Names() {
@@ -1525,12 +1525,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return result;
     }
 
-    @Override
     public Schema resolveSchema(String id) {
       throw new UnsupportedOperationException();
     }
 
-    @Override
     public String getId(Schema schema) {
       return null;
     }
