@@ -954,7 +954,13 @@ public class GenericData {
   protected int compare(Object o1, Object o2, Schema s, boolean equals) {
     if (o1 == o2) return 0;
     if (s.getLogicalType() != null) {
-      return equals ? (Objects.equals(o1, o2) ? 0 : 1) : ((Comparable) o1).compareTo(o2);
+      if (equals) {
+        return (Objects.equals(o1, o2) ? 0 : 1);
+      } else {
+        if (o1 instanceof Comparable && o2 instanceof Comparable) {
+          return ((Comparable) o1).compareTo(o2);
+        }
+      }
     }
     switch (s.getType()) {
     case RECORD:
