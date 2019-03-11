@@ -92,7 +92,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
     Schema sch;
     try {
       sch = new Schema.Parser(new AvroNamesRefResolver(resolver)).parse(
-              Schema.FACTORY.createJsonParser(new CharSequenceReader(schema)));
+              Schema.FACTORY.createParser(new CharSequenceReader(schema)));
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }

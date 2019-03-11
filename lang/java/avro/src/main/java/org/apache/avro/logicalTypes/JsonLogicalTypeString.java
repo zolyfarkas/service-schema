@@ -40,7 +40,7 @@ public final class JsonLogicalTypeString<T> extends AbstractLogicalType<T> {
   @Override
   public T deserialize(Object object) {
     try {
-      return Schema.MAPPER.readValue(((CharSequence) object).toString(), getLogicalJavaType());
+      return Schema.MAPPER.readValue(object.toString(), getLogicalJavaType());
     } catch (IOException ex) {
       throw new UncheckedIOException("Cannot deserialize " + object, ex);
     }
