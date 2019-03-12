@@ -1,10 +1,19 @@
+# Apache AVRO
 Apache Avro™ is a data serialization system.
 
 Learn more about Avro, please visit our website at:
 
   http://avro.apache.org/
 
+## Overview
+
+  * 1.9.0.1p - latest version, based on jackson 2.9+
+  * 1.8.1.50p - latest version, based on jackson 1.9
+
+ This fork, contains numerous fixes, and featured not implement (but reported) in the original project.
+
 Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j-avro.png)](https://gitter.im/spf4j-avro/Lobby)
+
 
 ## Getting started:
 
