@@ -655,10 +655,19 @@ public class SpecificCompiler {
     }
   }
 
-  private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList("int",
-  "long", "float", "double", "boolean"
-  ));
 
+
+  /**
+   * @deprecated use Set<String> javaAnnotations(JsonProperties props, GenEntity entity) variant.
+   */
+  @Deprecated
+  public Set<String> javaAnnotations(JsonProperties props) {
+    Set<String> result = new HashSet<>();
+    for (GenEntity entity : GenEntity.values()) {
+      result.addAll(javaAnnotations(props, entity));
+    }
+    return result;
+  }
 
   /** Utility for template use.  Returns the java annotations for a schema element. */
   public Set<String> javaAnnotations(JsonProperties props, GenEntity entity) {
