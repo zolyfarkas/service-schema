@@ -442,10 +442,10 @@ public class BinaryDecoder extends Decoder {
    * {@link java.lang.UnsupportedOperationException}.
    */
   public boolean isEnd() throws IOException {
-    if (limit - pos > 0) {
+    if (pos < limit) {
       // buffer not empty, not at end.
       return false;
-    } else {
+    }
       if (source.isEof()) {
         return true;
       }
@@ -453,13 +453,8 @@ public class BinaryDecoder extends Decoder {
       int read = source.tryReadRaw(buf, 0, buf.length);
       pos = 0;
       limit = read;
-      if (0 == read) {
-        // nothing left
-        return true;
-      }
-      return false;
+      return 0 == read;
     }
-  }
 
   /**
    * Ensures that buf[pos + num - 1] is not out of the buffer array bounds.
