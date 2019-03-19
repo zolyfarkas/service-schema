@@ -66,7 +66,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
     super(schema.getType(), Collections.EMPTY_SET, "any",
             Collections.EMPTY_MAP, Object.class);
     if (type != Schema.Type.RECORD) {
-       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string, not" + type);
+       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by RECORD, not" + type);
     }
     Schema.Field sField = schema.getField("avsc");
     Schema.Field cField = schema.getField("content");
