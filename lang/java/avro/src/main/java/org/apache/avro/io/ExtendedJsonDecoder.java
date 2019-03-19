@@ -75,37 +75,33 @@ public final class ExtendedJsonDecoder extends JsonDecoder
      * @return
      * @throws IOException
      */
-    @Override
-    public int readIndex() throws IOException {
-        try {
-            super.advance(Symbol.UNION);
-            JsonParser lin = this.in;
-            Symbol.Alternative a = (Symbol.Alternative) parser.popSymbol();
+  @Override
+  public int readIndex() throws IOException {
+    super.advance(Symbol.UNION);
+    JsonParser lin = this.in;
+    Symbol.Alternative a = (Symbol.Alternative) parser.popSymbol();
 
-            String label;
-            final JsonToken currentToken = lin.getCurrentToken();
-            if (currentToken == JsonToken.VALUE_NULL) {
-                label = "null";
-            } else if (ExtendedJsonEncoder.isNullableSingle(a)) {
-                label = ExtendedJsonEncoder.getNullableSingle(a);
-            } else if (currentToken == JsonToken.START_OBJECT
-                    && lin.nextToken() == JsonToken.FIELD_NAME) {
-                label = lin.getText();
-                lin.nextToken();
-                parser.pushSymbol(Symbol.UNION_END);
-            } else {
-                throw (AvroTypeException) error("start-union");
-            }
-            int n = a.findLabel(label);
-            if (n < 0) {
-                throw new AvroTypeException("Unknown union branch " + label);
-            }
-            parser.pushSymbol(a.getSymbol(n));
-            return n;
-        } catch (IllegalArgumentException ex) {
-          throw new RuntimeException(ex);
-        }
+    String label;
+    final JsonToken currentToken = lin.getCurrentToken();
+    if (currentToken == JsonToken.VALUE_NULL) {
+      label = "null";
+    } else if (ExtendedJsonEncoder.isNullableSingle(a)) {
+      label = ExtendedJsonEncoder.getNullableSingle(a);
+    } else if (currentToken == JsonToken.START_OBJECT
+            && lin.nextToken() == JsonToken.FIELD_NAME) {
+      label = lin.getText();
+      lin.nextToken();
+      parser.pushSymbol(Symbol.UNION_END);
+    } else {
+      throw (AvroTypeException) error("start-union");
     }
+    int n = a.findLabel(label);
+    if (n < 0) {
+      throw new AvroTypeException("Unknown union branch " + label);
+    }
+    parser.pushSymbol(a.getSymbol(n));
+    return n;
+  }
 
     /**
      * Overwrite to inject default values.
