@@ -113,8 +113,9 @@ public class TestDecimal {
   }
 
   public void runTestFailure(LogicalType type2) {
+    serializeDeserialize(type2, new BigDecimal("0.12345678910"), BigDecimal.ZERO);
     try {
-      serializeDeserialize(type2, new BigDecimal("0.12345678910"), BigDecimal.ZERO);
+      serializeDeserialize(type2, new BigDecimal("0.12345678919"), BigDecimal.ZERO);
       Assert.fail();
     } catch (IllegalArgumentException ex) {
       Assert.assertThat(ex.getMessage(), Matchers.containsString("Cannot serialize"));
@@ -136,7 +137,7 @@ public class TestDecimal {
       throw new IllegalArgumentException("Cannot deserialize " + nr, ex);
     }
     if (BigDecimal.ZERO.equals(epsilon)) {
-      Assert.assertEquals(nr, nr2);
+      Assert.assertTrue(nr.compareTo(nr2) == 0);
     } else {
       Assert.assertTrue("Comparing " + nr + " with " + nr2, nr.subtract(nr2).abs().compareTo(epsilon) <= 0);
     }

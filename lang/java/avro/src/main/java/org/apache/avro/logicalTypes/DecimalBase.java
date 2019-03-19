@@ -22,6 +22,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
@@ -52,33 +53,30 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
           "serRounding", "deserRounding");
 
   final MathContext mc;
-  private final int scale;
   private final int precision;
-  private final RoundingMode serRm;
-  private final RoundingMode deserRm;
+  @Nullable
+  private final Integer scale;
+  private final MathContext serRm;
+  private final MathContext deserRm;
 
-  DecimalBase(Number precision, Number scale, Schema.Type type, RoundingMode serRm, RoundingMode deserRm) {
+  DecimalBase(@Nullable Number precision, @Nullable Number scale,
+          Schema.Type type, @Nullable RoundingMode serRm, @Nullable RoundingMode deserRm) {
     super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm), BigDecimal.class);
-    precision = precision == null ? 36 : precision;
-    this.serRm = serRm == null ? DEFAULT_SER_ROUNDING : serRm;
-    this.deserRm = deserRm == null ? DEFAULT_DESER_ROUNDING : deserRm;
-    if (precision.intValue() <= 0) {
+    int pInt = precision == null ? 36 : precision.intValue();
+    if (pInt <= 0) {
       throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: "
               + precision + " (must be positive)");
     }
-    scale = scale == null ? (precision == null ? 12 : precision.intValue() / 2) : scale;
-    int sInt = scale.intValue();
-    int pInt = precision.intValue();
-    if (sInt < 0) {
-      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
-              + scale + " (must be positive)");
-    } else if (sInt > pInt) {
-      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
-              + scale + " (greater than precision: " + precision + ")");
-    }
+    this.serRm = serRm == null
+            ? (DEFAULT_SER_ROUNDING == null ? null : new MathContext(pInt, DEFAULT_SER_ROUNDING))
+            : new MathContext(pInt, serRm);
+
+    this.deserRm = deserRm == null
+            ? (DEFAULT_DESER_ROUNDING == null ? null : new MathContext(pInt, DEFAULT_DESER_ROUNDING))
+            : new MathContext(pInt, deserRm);
     mc = new MathContext(pInt, RoundingMode.HALF_EVEN);
-    this.scale = sInt;
     this.precision = pInt;
+    this.scale = scale == null ? null : scale.intValue();
   }
 
   private static Map<String, Object> toAttributes(Number precision, Number scale,
@@ -104,23 +102,21 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public BigDecimal deserialize(Object object) {
+    BigDecimal result;
     if (BigDecimal.class == object.getClass()) {
-      return (BigDecimal) object;
+      result = (BigDecimal) object;
+    } else {
+      result = doDeserialize(object);
     }
-    BigDecimal result = doDeserialize(object);
-    if (result.scale() > scale) {
-      if (deserRm != null) {
-        result = result.setScale(scale, deserRm);
-      } else {
-        throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with scale " + scale
-                + " if you desire rounding, you can annotate type with @deserRounding(\"HALF_UP\") or "
-                + "set the system property avro.decimal.defaultDeserRounding=HALF_UP ");
-      }
-    }
+    result = result.stripTrailingZeros(); // reduce precission if possible.
     if (result.precision() > precision) {
+      if (deserRm != null) {
+        result = result.round(deserRm);
+      } else {
           throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with precision " + precision
                 + " if you desire rounding, you can annotate type with @deserRounding(\"HALF_UP\") or "
                 + "set the system property avro.decimal.defaultDeserRounding=HALF_UP ");
+      }
     }
     return result;
   }
@@ -130,14 +126,14 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public Object serialize(BigDecimal decimal) {
-    if (decimal.scale() > scale) {
+    if (scale != null) {
       if (serRm != null) {
-        decimal = decimal.setScale(scale, serRm);
+        decimal = decimal.setScale(scale, serRm.getRoundingMode());
       } else {
-        throw new UnsupportedOperationException("Decimal " + decimal + " exceeds scale " + scale
-                + " if you desire rounding, you can annotate type with @serRounding(\"HALF_UP\") or "
-                + "set the system property avro.decimal.defaultSerRounding=HALF_UP ");
+        decimal = decimal.setScale(scale);
       }
+    } else {
+      decimal = decimal.stripTrailingZeros();  // reduce precission if possible. (and the payload size)
     }
     if (decimal.precision() > precision) {
       throw new UnsupportedOperationException("Decimal " + decimal + " exceeds precision " + precision);
