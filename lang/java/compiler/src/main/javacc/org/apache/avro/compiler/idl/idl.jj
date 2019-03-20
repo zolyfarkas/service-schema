@@ -143,6 +143,10 @@ public class Idl implements Closeable {
     this.source = source;
   }
 
+  public String getSource() {
+    return source;
+  }
+
   public void setIsAllowUndefinedLogicalTypes(boolean allowUndefinedLogicalTypes) {
     this.allowUndefinedLogicalTypes = allowUndefinedLogicalTypes;
   }
