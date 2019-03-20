@@ -50,6 +50,10 @@ import org.apache.avro.io.ResolvingDecoder;
 import org.apache.avro.specific.ExtendedSpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.RawSerializer;
@@ -337,6 +341,31 @@ public class Json {
       value.toJson(new AvroNamesRefResolver(resolver), jgen);
     }
   }
+
+  public static class AvroSchemaDeserializer extends JsonDeserializer<Schema> {
+
+    private final SchemaResolver resolver;
+
+    public AvroSchemaDeserializer(SchemaResolver resolver) {
+      this.resolver = resolver;
+    }
+
+    public AvroSchemaDeserializer() {
+      this(SchemaResolvers.getDefault());
+    }
+
+    @Override
+    public Class<Schema> handledType() {
+      return Schema.class;
+    }
+
+    @Override
+    public Schema deserialize(JsonParser p, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException {
+      return new Schema.Parser(new AvroNamesRefResolver(resolver)).parse(p);
+    }
+  }
+
 
   public static class RawJsonStringSerialize extends RawSerializer<RawJsonString> {
 

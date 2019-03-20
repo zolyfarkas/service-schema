@@ -120,6 +120,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     module.addSerializer(new Json.AvroSchemaSerializer());
     module.addSerializer(new Json.AvroJsonSerializer());
     module.addSerializer(new RawJsonStringSerialize());
+    module.addDeserializer(Schema.class, new Json.AvroSchemaDeserializer());
     MAPPER.registerModule(module);
     FACTORY.setCodec(MAPPER);
   }
@@ -1374,7 +1375,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     /** Parse a schema from the provided file.
      * If named, the schema is added to the names known to this parser. */
     public Schema parse(File file) throws IOException {
-      return parse(FACTORY.createJsonParser(file));
+      return parse(FACTORY.createParser(file));
     }
 
     public Schema parse(InputStream in) throws IOException {
@@ -1384,7 +1385,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     /** Parse a schema from the provided stream.
      * If named, the schema is added to the names known to this parser. */
     public Schema parse(InputStream in, final boolean allowUndefinedLogicalTypes) throws IOException {
-      return parse(FACTORY.createJsonParser(in), allowUndefinedLogicalTypes);
+      return parse(FACTORY.createParser(in), allowUndefinedLogicalTypes);
     }
 
     /** Read a schema from one or more json strings */
@@ -1402,7 +1403,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
      * If named, the schema is added to the names known to this parser. */
     public Schema parse(String s, final boolean allowUndefinedLogicalTypes) {
       try {
-        return parse(FACTORY.createJsonParser(new StringReader(s)), allowUndefinedLogicalTypes);
+        return parse(FACTORY.createParser(new StringReader(s)), allowUndefinedLogicalTypes);
       } catch (IOException e) {
         throw new SchemaParseException(e);
       }

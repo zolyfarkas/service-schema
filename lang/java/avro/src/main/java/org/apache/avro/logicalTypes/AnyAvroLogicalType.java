@@ -131,10 +131,14 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
     }
 
   public String toString(Schema schema) throws UncheckedIOException {
+    return toString(schema, resolver);
+  }
+
+  public static String toString(Schema schema, SchemaResolver res) throws UncheckedIOException {
     StringWriter sw = new StringWriter();
     try {
       JsonGenerator jgen = Schema.FACTORY.createGenerator(sw);
-      schema.toJson(new AvroNamesRefResolver(resolver), jgen);
+      schema.toJson(new AvroNamesRefResolver(res), jgen);
       jgen.flush();
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

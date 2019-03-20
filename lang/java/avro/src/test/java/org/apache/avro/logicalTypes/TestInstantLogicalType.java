@@ -17,10 +17,8 @@ package org.apache.avro.logicalTypes;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
