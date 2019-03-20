@@ -50,6 +50,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import org.apache.avro.util.Sets;
@@ -122,6 +123,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     module.addSerializer(new RawJsonStringSerialize());
     module.addDeserializer(Schema.class, new Json.AvroSchemaDeserializer());
     MAPPER.registerModule(module);
+    MAPPER.disable(SerializationFeature.FLUSH_AFTER_WRITE_VALUE);
     FACTORY.setCodec(MAPPER);
   }
 
