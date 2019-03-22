@@ -13,12 +13,14 @@ package org.apache.avro.io;
  * specific language governing permissions and limitations under the License.
  */
 
+//import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.io.parsing.Symbol;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+//import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
+import org.apache.avro.LogicalType;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
@@ -359,17 +362,23 @@ public final class ExtendedJsonDecoder extends JsonDecoder
     advanceBy(schema);
     if (in.getCurrentToken() == JsonToken.VALUE_STRING) {
       // probably encoded with recular encoder, will be best effort here.
+      // this is a horendous way
       String text = in.getText();
       T result;
-      switch (schema.getType()) {
-        case STRING:
-          result = Schema.FACTORY.createJsonParser(text).readValueAs(clasz);
-          break;
-        case BYTES:
-          result = Schema.FACTORY.createJsonParser(text.getBytes(CHARSET)).readValueAs(clasz);
-          break;
-        default:
-          throw new UnsupportedOperationException("Unsupported schema " + schema);
+      LogicalType lt = schema.getLogicalType();
+      if (lt != null && "json_any".equals(lt.getLogicalTypeName())) {
+          result = (T) text;
+      } else {
+        switch (schema.getType()) {
+          case STRING:
+             result = Schema.FACTORY.createParser(text).readValueAs(clasz);
+            break;
+          case BYTES:
+            result = Schema.FACTORY.createParser(text.getBytes(CHARSET)).readValueAs(clasz);
+            break;
+          default:
+            throw new UnsupportedOperationException("Unsupported schema " + schema);
+        }
       }
       in.nextToken();
       return result;
