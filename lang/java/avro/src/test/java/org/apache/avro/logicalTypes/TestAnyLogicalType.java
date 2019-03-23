@@ -30,6 +30,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.avro.HealthRecord;
 
 /**
  *
@@ -156,6 +157,11 @@ public class TestAnyLogicalType {
     Assert.assertEquals(record.toString(), back.toString());
   }
 
+
+  @Test
+  public void testHealthCheckCluster2Repro() throws IOException {
+    AvroUtils.readAvroExtendedJson(ClassLoader.getSystemResourceAsStream("testAnyJson.json"), HealthRecord.class);
+  }
 
 
 
