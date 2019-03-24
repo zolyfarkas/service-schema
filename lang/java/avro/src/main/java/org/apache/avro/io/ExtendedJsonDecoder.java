@@ -172,7 +172,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                 if (in.getCurrentToken() == JsonToken.END_OBJECT) {
                     in.nextToken();
                     if (top == Symbol.RECORD_END) {
-                        if (currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
+                        if (!lenient && currentReorderBuffer != null && !currentReorderBuffer.savedFields.isEmpty()) {
                             throw error("Unknown fields: " + currentReorderBuffer.savedFields.keySet());
                         }
                         currentReorderBuffer = reorderBuffers.pop();
