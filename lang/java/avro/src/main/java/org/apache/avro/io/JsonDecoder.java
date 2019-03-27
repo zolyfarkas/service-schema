@@ -863,7 +863,14 @@ public class JsonDecoder extends ParsingDecoder
 
     @Override
     public String toString() {
-      return this.getClass().getName() + "{token=" + token + ", value = " + getStringValue() + '}';
+      StringBuilder result = new StringBuilder();
+      String stringValue = getStringValue();
+      result.append(token);
+      if (stringValue != null) {
+        result.append('=');
+        result.append(stringValue);
+      }
+      return result.toString();
     }
 
   }
