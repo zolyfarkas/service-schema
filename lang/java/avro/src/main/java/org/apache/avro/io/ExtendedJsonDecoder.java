@@ -20,6 +20,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.io.parsing.Symbol;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 //import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +31,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.List;
 import org.apache.avro.LogicalType;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
@@ -123,10 +123,11 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                 Symbol.FieldAdjustAction fa = (Symbol.FieldAdjustAction) top;
                 String name = fa.fname;
                 if (currentReorderBuffer != null) {
-                    List<JsonDecoder.JsonElement> node = currentReorderBuffer.savedFields.remove(name);
+                    TokenBuffer node = currentReorderBuffer.savedFields.remove(name);
                     if (node != null) {
                         currentReorderBuffer.origParser = in;
-                        this.in = makeParser(node, this.in.getCodec());
+                        this.in = node.asParser();
+                        this.in.nextToken();
                         return null;
                     }
                 }
@@ -140,7 +141,11 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                             if (currentReorderBuffer == null) {
                                 currentReorderBuffer = new JsonDecoder.ReorderBuffer();
                             }
-                            currentReorderBuffer.savedFields.put(fn, getValueAsTree(in, 8));
+ //                           currentReorderBuffer.savedFields.put(fn, getValueAsTree(in, 8));
+                            TokenBuffer tokenBuffer = TokenBuffer.asCopyOfValue(in);
+                            // Moves the parser to the end of the current event e.g. END_OBJECT
+                            currentReorderBuffer.savedFields.put(fn, tokenBuffer);
+                            in.nextToken();
                         }
                     } while (in.getCurrentToken() == JsonToken.FIELD_NAME);
                     if (injectDefaultValueIfAvailable(in, fa)) {
@@ -225,12 +230,13 @@ public final class ExtendedJsonDecoder extends JsonDecoder
         if (null != defVal) {
             JsonParser traverse = defVal.traverse();
             traverse.nextToken();
-            List<JsonElement> result = JsonDecoder.getValueAsTree(traverse, 2);
+            TokenBuffer result = TokenBuffer.asCopyOfValue(traverse);
             if (currentReorderBuffer == null) {
                 currentReorderBuffer = new ReorderBuffer();
             }
             currentReorderBuffer.origParser = in;
-            this.in = makeParser(result, this.in.getCodec());
+            this.in = result.asParser();
+            this.in.nextToken();
             return true;
         }
         return false;
