@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import org.apache.avro.AvroUtils;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
@@ -28,9 +29,14 @@ import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.specific.SpecificRecord;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.avro.DebugDetail;
 import org.spf4j.base.avro.HealthRecord;
+import org.spf4j.base.avro.Method;
+import org.spf4j.base.avro.ServiceError;
+import org.spf4j.base.avro.StackSampleElement;
 
 /**
  *
@@ -163,6 +169,24 @@ public class TestAnyLogicalType {
     AvroUtils.readAvroExtendedJson(ClassLoader.getSystemResourceAsStream("testAnyJson.json"), HealthRecord.class);
   }
 
+  @Test
+  public void testServiceErrorParsing() throws IOException {
+       ServiceError err0 = new ServiceError(404, "404", "bla", null, null);
+      ServiceError err1 = new ServiceError(404, "404", "bla", err0, new DebugDetail("origin", Collections.EMPTY_LIST,
+              new org.spf4j.base.avro.Throwable("aclass", "exception0", Collections.EMPTY_LIST,
+                      null, Collections.EMPTY_LIST), Arrays.asList(new StackSampleElement(0, 0, 1,
+                              new Method("a", "b")))));
+      ServiceError err2 = new ServiceError(400, "400", "bla2", err1,
+              new DebugDetail("origin", Collections.EMPTY_LIST,
+              new org.spf4j.base.avro.Throwable("aclass", "exception", Collections.EMPTY_LIST,
+                      null, Collections.EMPTY_LIST), Collections.EMPTY_LIST));
+    byte[] writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson((SpecificRecord) err2);
+    String strVal = new String(writeAvroExtendedJson, StandardCharsets.UTF_8);
+    System.out.println(strVal);
+    ServiceError back = AvroUtils.readAvroExtendedJson(new ByteArrayInputStream(writeAvroExtendedJson),
+            ServiceError.class);
+    Assert.assertEquals(err2.toString(), back.toString());
+  }
 
 
 }
