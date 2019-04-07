@@ -141,7 +141,6 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                             if (currentReorderBuffer == null) {
                                 currentReorderBuffer = new JsonDecoder.ReorderBuffer();
                             }
- //                           currentReorderBuffer.savedFields.put(fn, getValueAsTree(in, 8));
                             TokenBuffer tokenBuffer = TokenBuffer.asCopyOfValue(in);
                             // Moves the parser to the end of the current event e.g. END_OBJECT
                             currentReorderBuffer.savedFields.put(fn, tokenBuffer);
@@ -231,6 +230,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
             JsonParser traverse = defVal.traverse();
             traverse.nextToken();
             TokenBuffer result = TokenBuffer.asCopyOfValue(traverse);
+            result.setCodec(Schema.MAPPER);
             if (currentReorderBuffer == null) {
                 currentReorderBuffer = new ReorderBuffer();
             }
