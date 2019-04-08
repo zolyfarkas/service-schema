@@ -176,7 +176,7 @@
     <dependency>
       <groupId>org.spf4j.avro</groupId>
       <artifactId>core-schema</artifactId>
-      <version>0.16</version>
+      <version>0.17</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

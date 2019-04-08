@@ -80,13 +80,19 @@ implements JsonExtensionDecoder {
 //          }
           // hack, works for my use cases...
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
-          for (int i = rootSymbol.production.length - 1; i > 0; i--) {
-              Symbol s = rootSymbol.production[i];
-              if (s.kind == Symbol.Kind.TERMINAL) {
-                parser.skipTerminal(s);
-              }
-          }
+          skipSymbols(rootSymbol);
       }
+  }
+
+  private void skipSymbols(Symbol rootSymbol) throws IOException {
+    for (int i = rootSymbol.production.length - 1; i > 0; i--) {
+      Symbol s = rootSymbol.production[i];
+      if (s.kind == Symbol.Kind.TERMINAL) {
+        parser.skipTerminal(s);
+      } else if (s.production != null && s.production.length > 0) {
+        skipSymbols(s);
+      }
+    }
   }
 
   @Override

@@ -18,7 +18,9 @@ package org.apache.avro.logicalTypes;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,8 +29,16 @@ import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.avro.SchemaResolver;
+import org.apache.avro.SchemaResolvers;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.ExtendedJsonDecoder;
+import org.apache.avro.reflect.ExtendedReflectData;
+import org.apache.avro.reflect.ReflectDatumReader;
+import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecord;
 import org.junit.Assert;
 import org.junit.Test;
@@ -186,6 +196,35 @@ public class TestAnyLogicalType {
     ServiceError back = AvroUtils.readAvroExtendedJson(new ByteArrayInputStream(writeAvroExtendedJson),
             ServiceError.class);
     Assert.assertEquals(err2.toString(), back.toString());
+  }
+
+
+  @Test
+  public void testServiceErrorParsing2() throws IOException {
+     SchemaResolvers.registerDefault(new SchemaResolver() {
+       @Override
+       public Schema resolveSchema(String id) {
+         return ServiceError.getClassSchema();
+       }
+
+       @Override
+       public String getId(Schema schema) {
+         return schema.getProp("mvnId");
+       }
+     });
+    URL resource = Thread.currentThread().getContextClassLoader().getResource("bugRepro2.json");
+    try (InputStream openStream = resource.openStream()) {
+//    Schema schema = ExtendedReflectData.get().getSchema(ServiceError.class);
+//    DatumReader reader = new ReflectDatumReader(schema, schema);
+//    Decoder decoder = new ExtendedJsonDecoder(schema, openStream);
+//    ServiceError back = (ServiceError) reader.read(null, decoder);
+   ServiceError back = AvroUtils.readAvroExtendedJson(openStream,
+              ServiceError.class);
+      Assert.assertNotNull(back);
+      System.out.println(back);
+    }
+
+
   }
 
 
