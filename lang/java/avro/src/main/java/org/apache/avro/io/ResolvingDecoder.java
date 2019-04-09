@@ -82,7 +82,7 @@ public class ResolvingDecoder extends ValidatingDecoder {
     if (null == reader) {
       throw new NullPointerException("reader cannot be null!");
     }
-    return new ResolvingGrammarGenerator().generate(writer, reader);
+    return ResolvingGrammarGenerator.getOrCreate(writer, reader);
   }
 
   /** Returns the actual order in which the reader's fields will be

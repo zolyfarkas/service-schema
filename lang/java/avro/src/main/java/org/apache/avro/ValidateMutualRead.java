@@ -18,7 +18,6 @@
 
 package org.apache.avro;
 
-import java.io.IOException;
 
 import org.apache.avro.io.parsing.ResolvingGrammarGenerator;
 import org.apache.avro.io.parsing.Symbol;
@@ -61,9 +60,9 @@ class ValidateMutualRead implements SchemaValidationStrategy {
       throws SchemaValidationException {
     boolean error;
     try {
-      error = Symbol.hasErrors(new ResolvingGrammarGenerator().generate(
+      error = Symbol.hasErrors(ResolvingGrammarGenerator.getOrCreate(
           writtenWith, readUsing));
-    } catch (IOException e) {
+    } catch (RuntimeException e) {
       throw new SchemaValidationException(readUsing, writtenWith, e);
     }
     if (error) {

@@ -20,24 +20,60 @@ package org.apache.avro.io.parsing;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
 
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
+import static org.apache.avro.io.parsing.ValidatingGrammarGenerator.DISABLE_SYMBOL_CACHE;
 
 /**
  * The class that generates a resolving grammar to resolve between two
  * schemas.
  */
 public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
+
+  private static final ResolvingGrammarGenerator INSTANCE = new ResolvingGrammarGenerator();
+
+  private static final BiFunction<Schema, Schema, Symbol> IMPL = DISABLE_SYMBOL_CACHE
+            ? ResolvingGrammarGenerator::create : Cache::getCachedSymbol;
+
+
+  public static Symbol getOrCreate(Schema writer, Schema reader) {
+    return IMPL.apply(writer, reader);
+  }
+
+  public static Symbol create(Schema writer, Schema reader) {
+    try {
+      return INSTANCE.generate(writer, reader);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+
+  private static class Cache {
+    private static final ConcurrentMap<RWSchemas, Symbol> ROOT_SYMBOL_CACHE
+            = new ConcurrentHashMap<>(16);
+
+    private static Symbol getCachedSymbol(final Schema writer, final Schema reader) {
+      return ROOT_SYMBOL_CACHE.computeIfAbsent(new RWSchemas(writer, reader),
+              (x) ->  ResolvingGrammarGenerator.create(x.getWriter(), x.getReader()));
+    }
+
+  }
+
   /**
    * Resolves the writer schema <tt>writer</tt> and the reader schema
    * <tt>reader</tt> and returns the start symbol for the grammar generated.
