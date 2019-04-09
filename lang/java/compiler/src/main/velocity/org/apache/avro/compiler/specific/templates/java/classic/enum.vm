@@ -30,7 +30,18 @@ public enum ${this.mangle($schema.getName())} implements org.apache.avro.generic
   #foreach ($symbol in ${schema.getEnumSymbols()})${this.mangle($symbol)}#if ($velocityHasNext), #end#end
   ;
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("${this.javaEscape($schema.toString())}");
+
+  /**
+   * The avro schema of this enum.
+   * @return The avro schema of this enum.
+   */
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
+
+  /**
+   * The avro schema of this enum.
+   * @exclude exclude from model introspection
+   * @return The avro schema of this enum.
+   */
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   @Override
   public java.lang.String toString() {

@@ -33,6 +33,11 @@ import org.apache.avro.specific.SpecificData;
 public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends org.apache.avro.specific.SpecificExceptionBase#else extends org.apache.avro.specific.SpecificRecordBase#end {
   private static final long serialVersionUID = ${this.fingerprint64($schema)}L;
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse(${this.javaSplit($schema.toString())});
+
+  /**
+   * The avro schema of this record type.
+   * @return The avro schema of this record type.
+   */
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 #foreach ($field in $schema.getFields())
 #if ($field.doc() || $this.extraFieldDoc($field))
@@ -106,6 +111,11 @@ public class ${this.mangle($schema.getName())}#if ($schema.isError()) extends or
 #end
 
 #end
+  /**
+   * The avro schema of this record type.
+   * @exclude exclude from model introspection
+   * @return The avro schema of this record type.
+   */
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   // Used by DatumWriter.  Applications should not call. 
   public java.lang.Object get(int field$) {

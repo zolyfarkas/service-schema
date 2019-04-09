@@ -30,7 +30,18 @@ package $schema.getNamespace();
 public class ${this.mangle($schema.getName())} extends org.apache.avro.specific.SpecificFixed {
   private static final long serialVersionUID = ${this.fingerprint64($schema)}L;
   public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("${this.javaEscape($schema.toString())}");
+
+  /**
+   * The avro schema of this fixed type.
+   * @return The avro schema of this fixed type.
+   */
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
+
+  /**
+   * The avro schema of this fixed type.
+   * @exclude exclude from model introspection
+   * @return The avro schema of this fixed type.
+   */
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   
   /** Creates a new ${this.mangle($schema.getName())} */
