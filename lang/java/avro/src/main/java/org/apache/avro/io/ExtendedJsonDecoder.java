@@ -126,8 +126,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                     TokenBuffer node = currentReorderBuffer.savedFields.remove(name);
                     if (node != null) {
                         currentReorderBuffer.origParser = in;
-                        this.in = node.asParser();
-                        this.in.nextToken();
+                        this.in = node.asParserOnFirstToken();
                         return null;
                     }
                 }
@@ -235,8 +234,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                 currentReorderBuffer = new ReorderBuffer();
             }
             currentReorderBuffer.origParser = in;
-            this.in = result.asParser();
-            this.in.nextToken();
+            this.in = result.asParserOnFirstToken();
             return true;
         }
         return false;
@@ -411,6 +409,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
           break;
         default:
           Symbol rootSymbol = JsonGrammarGenerator.getRootSymbol(schema);
+//          skipSymbols(rootSymbol);
           Parser p = new Parser(rootSymbol, null);
           int countToFirstTerminal = p.countToFirstTerminal();
           Symbol theTerminal = p.lastSymbol();
@@ -432,6 +431,18 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       }
   }
 
+  private void skipSymbols(Symbol rootSymbol) throws IOException {
+    for (int i = rootSymbol.production.length - 1; i > 0; i--) {
+      Symbol s = rootSymbol.production[i];
+      if (s.kind == Symbol.Kind.TERMINAL) {
+        parser.skipTerminal(s);
+      } else if (s.production != null && s.production.length > 0) {
+        skipSymbols(s);
+      }
+    }
+  }
+
+
   @Override
   public JsonNode readValueAsTree(final Schema schema) throws IOException {
     advanceBy(schema);
@@ -439,5 +450,21 @@ public final class ExtendedJsonDecoder extends JsonDecoder
     in.nextToken();
     return result;
   }
+
+  @Override
+  public TokenBuffer bufferValue(Schema schema) throws IOException {
+    advanceBy(schema);
+    TokenBuffer result = TokenBuffer.asCopyOfValue(in);
+    in.nextToken();
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "ExtendedJsonDecoder{" + "lenient=" + lenient + " at " + in.getCurrentLocation() + '}';
+  }
+
+
+
 
 }

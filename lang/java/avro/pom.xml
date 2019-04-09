@@ -178,6 +178,12 @@
       <artifactId>core-schema</artifactId>
       <version>0.17</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

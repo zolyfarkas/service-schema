@@ -55,6 +55,24 @@ import org.spf4j.base.avro.StackSampleElement;
 public class TestAnyLogicalType {
 
 
+  static {
+   SchemaResolvers.registerDefault(new SchemaResolver() {
+      @Override
+      public Schema resolveSchema(String id) {
+        if ("org.spf4j.avro:core-schema:0.17:c".equals(id)) {
+          return ServiceError.getClassSchema();
+        } else {
+          throw new UnsupportedOperationException();
+        }
+      }
+
+      @Override
+      public String getId(Schema schema) {
+        return schema.getProp("mvnId");
+      }
+    });
+  }
+
   @Test
   public void testJsonRecord() throws IOException {
     Schema anyRecord = SchemaBuilder.record("test")
@@ -72,15 +90,14 @@ public class TestAnyLogicalType {
             .endRecord();
     GenericData.Record record = new GenericData.Record(testSchema);
     record.put("anyField", "someString");
-      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
     System.out.println(writeAvroExtendedJson);
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
     Assert.assertEquals(record.toString(), back.toString());
 
   }
 
-
- @Test
+  @Test
   public void testJsonRecord2() throws IOException {
     GenericData.Record record = createTestRecord();
     String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
@@ -93,7 +110,7 @@ public class TestAnyLogicalType {
   public void testJsonRecord3() throws IOException {
     GenericData.Record record = createTestRecord();
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    AvroUtils.writeAvroBin(bos,  record);
+    AvroUtils.writeAvroBin(bos, record);
     System.out.println(new String(bos.toByteArray(), StandardCharsets.UTF_8));
     GenericRecord back = (GenericRecord) AvroUtils.readAvroBin(new ByteArrayInputStream(bos.toByteArray()),
             record.getSchema());
@@ -120,7 +137,6 @@ public class TestAnyLogicalType {
     record.put("otherCrap", "false");
     return record;
   }
-
 
   public static GenericData.Record createTestRecord2() {
     Schema anyRecord = SchemaBuilder.record("test")
@@ -166,13 +182,12 @@ public class TestAnyLogicalType {
   public void testJsonRecord2Bin() throws IOException {
     GenericData.Record record = createTestRecord2();
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    AvroUtils.writeAvroBin(bos,  record);
+    AvroUtils.writeAvroBin(bos, record);
     System.out.println(new String(bos.toByteArray(), StandardCharsets.UTF_8));
     GenericRecord back = (GenericRecord) AvroUtils.readAvroBin(new ByteArrayInputStream(bos.toByteArray()),
             record.getSchema());
     Assert.assertEquals(record.toString(), back.toString());
   }
-
 
   @Test
   public void testHealthCheckCluster2Repro() throws IOException {
@@ -181,15 +196,15 @@ public class TestAnyLogicalType {
 
   @Test
   public void testServiceErrorParsing() throws IOException {
-       ServiceError err0 = new ServiceError(404, "404", "bla", null, null);
-      ServiceError err1 = new ServiceError(404, "404", "bla", err0, new DebugDetail("origin", Collections.EMPTY_LIST,
-              new org.spf4j.base.avro.Throwable("aclass", "exception0", Collections.EMPTY_LIST,
-                      null, Collections.EMPTY_LIST), Arrays.asList(new StackSampleElement(0, 0, 1,
-                              new Method("a", "b")))));
-      ServiceError err2 = new ServiceError(400, "400", "bla2", err1,
-              new DebugDetail("origin", Collections.EMPTY_LIST,
-              new org.spf4j.base.avro.Throwable("aclass", "exception", Collections.EMPTY_LIST,
-                      null, Collections.EMPTY_LIST), Collections.EMPTY_LIST));
+    ServiceError err0 = new ServiceError(404, "404", "bla", null, null);
+    ServiceError err1 = new ServiceError(404, "404", "bla", err0, new DebugDetail("origin", Collections.EMPTY_LIST,
+            new org.spf4j.base.avro.Throwable("aclass", "exception0", Collections.EMPTY_LIST,
+                    null, Collections.EMPTY_LIST), Arrays.asList(new StackSampleElement(0, 0, 1,
+                    new Method("a", "b")))));
+    ServiceError err2 = new ServiceError(400, "400", "bla2", err1,
+            new DebugDetail("origin", Collections.EMPTY_LIST,
+                    new org.spf4j.base.avro.Throwable("aclass", "exception", Collections.EMPTY_LIST,
+                            null, Collections.EMPTY_LIST), Collections.EMPTY_LIST));
     byte[] writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson((SpecificRecord) err2);
     String strVal = new String(writeAvroExtendedJson, StandardCharsets.UTF_8);
     System.out.println(strVal);
@@ -198,34 +213,24 @@ public class TestAnyLogicalType {
     Assert.assertEquals(err2.toString(), back.toString());
   }
 
-
   @Test
   public void testServiceErrorParsing2() throws IOException {
-     SchemaResolvers.registerDefault(new SchemaResolver() {
-       @Override
-       public Schema resolveSchema(String id) {
-         return ServiceError.getClassSchema();
-       }
-
-       @Override
-       public String getId(Schema schema) {
-         return schema.getProp("mvnId");
-       }
-     });
     URL resource = Thread.currentThread().getContextClassLoader().getResource("bugRepro2.json");
     try (InputStream openStream = resource.openStream()) {
-//    Schema schema = ExtendedReflectData.get().getSchema(ServiceError.class);
-//    DatumReader reader = new ReflectDatumReader(schema, schema);
-//    Decoder decoder = new ExtendedJsonDecoder(schema, openStream);
-//    ServiceError back = (ServiceError) reader.read(null, decoder);
-   ServiceError back = AvroUtils.readAvroExtendedJson(openStream,
-              ServiceError.class);
-      Assert.assertNotNull(back);
-      System.out.println(back);
+      Schema schema = ExtendedReflectData.get().getSchema(ServiceError.class);
+      DatumReader reader = new ReflectDatumReader(schema, schema);
+      Decoder decoder = new ExtendedJsonDecoder(schema, openStream);
+      try {
+        ServiceError back = (ServiceError) reader.read(null, decoder);
+        Assert.assertNotNull(back);
+        System.out.println(back);
+      } catch (RuntimeException ex) {
+        System.out.println("Exception processing at " + decoder);
+        throw ex;
+      }
+
     }
 
-
   }
-
 
 }

@@ -120,6 +120,9 @@ public class Parser {
         throw new AvroTypeException("Attempt to process a "
                 + input + " when a "
                 + top + " was expected.");
+      }  else if (k == Symbol.Kind.REPEATER
+          && input == ((Symbol.Repeater) top).end) {
+        return;
       } else if (top.production != null) {
         pushProduction(top);
       }

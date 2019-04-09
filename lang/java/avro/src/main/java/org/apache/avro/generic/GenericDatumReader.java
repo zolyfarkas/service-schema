@@ -33,10 +33,8 @@ import org.apache.avro.Schema.Type;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.ResolvingDecoder;
 import org.apache.avro.util.Utf8;
-import org.apache.avro.util.WeakIdentityHashMap;
 
 /** {@link DatumReader} for generic Java objects. */
 public class GenericDatumReader<D> implements DatumReader<D> {
@@ -90,55 +88,11 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     this.expected = reader;
   }
 
-  private static final ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>
-    RESOLVER_CACHE =
-    new ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>() {
-    protected Map<Schema,Map<Schema,ResolvingDecoder>> initialValue() {
-      return new WeakIdentityHashMap<>();
-    }
-  };
 
-  private static final ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>
-    RESOLVER_CACHE_EXT =
-    new ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>>() {
-    protected Map<Schema,Map<Schema,ResolvingDecoder>> initialValue() {
-      return new WeakIdentityHashMap<>();
-    }
-  };
-
-  /** Gets a resolving decoder for use by this GenericDatumReader.
-   *  Unstable API.
-   *  Currently uses a thread local cache to prevent constructing the
-   *  resolvers too often, because that is very expensive.
-   */
-  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder) throws IOException {
-    if (decoder instanceof JsonExtensionDecoder) {
-      return getResolver(actual, expected, decoder, RESOLVER_CACHE_EXT);
-    } else {
-       return getResolver(actual, expected, decoder, RESOLVER_CACHE);
-    }
-  }
-
-
-  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder,
-          ThreadLocal<Map<Schema,Map<Schema,ResolvingDecoder>>> tlCache)
+  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder)
     throws IOException {
-    ResolvingDecoder resolver;
-    Map<Schema, Map<Schema, ResolvingDecoder>> sMap = tlCache.get();
-    Map<Schema,ResolvingDecoder> cache = sMap.get(actual);
-    if (cache == null) {
-      cache = new WeakIdentityHashMap<>();
-      sMap.put(actual, cache);
-    }
-    resolver = cache.get(expected);
-    if (resolver == null) {
-      resolver = DecoderFactory.get().resolvingDecoder(
+    return DecoderFactory.get().resolvingDecoder(
           Schema.applyAliases(actual, expected), expected, decoder);
-      cache.put(expected, resolver);
-    } else {
-      resolver.configure(decoder);
-    }
-    return resolver;
   }
 
   @Override

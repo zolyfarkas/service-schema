@@ -446,8 +446,7 @@ public class JsonDecoder extends ParsingDecoder
         TokenBuffer node = currentReorderBuffer.savedFields.remove(name);
         if (node != null) {
             currentReorderBuffer.origParser = in;
-            in = node.asParser();
-            in.nextToken();
+            in = node.asParserOnFirstToken();
             return null;
         }
       }
