@@ -37,6 +37,9 @@ import org.apache.avro.io.JsonExtensionEncoder;
  */
 public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
 
+  private static final boolean SET_SCALE_WHEN_SERIALIZING =
+          Boolean.parseBoolean(System.getProperty("avro.decimal.setScaleWhenSerializing", "true"));
+
   private static final RoundingMode DEFAULT_DESER_ROUNDING = getRoundingMode("avro.decimal.defaultDeserRounding");
   private static final RoundingMode DEFAULT_SER_ROUNDING = getRoundingMode("avro.decimal.defaultSerRounding");
 
@@ -126,15 +129,14 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public Object serialize(BigDecimal decimal) {
-    if (scale != null) {
+    if (SET_SCALE_WHEN_SERIALIZING && scale != null) {
       if (serRm != null) {
         decimal = decimal.setScale(scale, serRm.getRoundingMode());
       } else {
         decimal = decimal.setScale(scale);
       }
-    } else {
-      decimal = decimal.stripTrailingZeros();  // reduce precission if possible. (and the payload size)
     }
+    decimal = decimal.stripTrailingZeros();  // reduce precission if possible. (and the payload size)
     if (decimal.precision() > precision) {
       throw new UnsupportedOperationException("Decimal " + decimal + " exceeds precision " + precision);
     }

@@ -22,9 +22,9 @@ import org.apache.avro.Schema;
 /**
  * @author Zoltan Farkas
  */
-public final class DecimalStringLogicalType extends DecimalBase {
+public final class DecimalPlainStringLogicalType extends DecimalBase {
 
-  public DecimalStringLogicalType(Number precision, Number scale, Schema.Type type,
+  public DecimalPlainStringLogicalType(Number precision, Number scale, Schema.Type type,
           RoundingMode serRm, RoundingMode deserRm) {
     super(precision, scale, type, serRm, deserRm);
   }
@@ -36,7 +36,7 @@ public final class DecimalStringLogicalType extends DecimalBase {
 
   @Override
   public Object doSerialize(BigDecimal decimal) {
-     return decimal.toString();
+     return decimal.toPlainString();
   }
 
 }

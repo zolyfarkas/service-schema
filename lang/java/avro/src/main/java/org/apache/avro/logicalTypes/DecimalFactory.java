@@ -26,6 +26,9 @@ import org.apache.avro.Schema;
  */
 public class DecimalFactory implements LogicalTypeFactory {
 
+  private static final boolean USE_PLAIN_STRING =
+          Boolean.parseBoolean(System.getProperty("avro.decimal.usePlainString", "false"));
+
   @Override
   public String getLogicalTypeName() {
     return "decimal";
@@ -60,8 +63,19 @@ public class DecimalFactory implements LogicalTypeFactory {
       Schema.Type type = schema.getType();
       switch (type) {
         case STRING:
-          return new DecimalStringLogicalType(precision, scale, type, getRoundingMode(attributes, "serRounding"),
+          boolean usePlainString = USE_PLAIN_STRING;
+          Object ups = attributes.get("usePlainString");
+          if (ups != null) {
+            usePlainString = (Boolean) ups;
+          }
+          if (usePlainString) {
+            return new DecimalPlainStringLogicalType(precision, scale, type, getRoundingMode(attributes, "serRounding"),
                   getRoundingMode(attributes, "deserRounding"));
+          } else {
+            return new DecimalStringLogicalType(precision, scale, type, getRoundingMode(attributes, "serRounding"),
+                  getRoundingMode(attributes, "deserRounding"));
+          }
+
         case BYTES:
           return new DecimalBytesLogicalType(precision, scale, type, getRoundingMode(attributes, "serRounding"),
                   getRoundingMode(attributes, "deserRounding"));
