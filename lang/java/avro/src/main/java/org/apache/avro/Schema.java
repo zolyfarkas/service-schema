@@ -454,9 +454,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
    */
   public String toString(boolean pretty) {
     try {
-      StringWriter writer = new StringWriter();
-      JsonGenerator gen = FACTORY.createJsonGenerator(writer);
-      if (pretty) gen.useDefaultPrettyPrinter();
+      StringWriter writer = new StringWriter(logicalType == null && props.isEmpty() ? 16 : 64);
+      JsonGenerator gen = FACTORY.createGenerator(writer);
+      if (pretty) {
+        gen.useDefaultPrettyPrinter();
+      }
       toJson(gen);
       gen.flush();
       return writer.toString();

@@ -35,6 +35,7 @@ public final class SchemaResolvers {
   private static volatile SchemaResolver defaultResolver = null;
 
   static {
+    REGISTERED_RESOLVERS.put("none", SchemaResolver.NONE);
     ServiceLoader<SchemaResolverRegistration> regs = ServiceLoader.load(SchemaResolverRegistration.class);
     for (SchemaResolverRegistration reg : regs) {
       SchemaResolver ex = register(reg.getName(), reg.getResolver());
