@@ -23,7 +23,7 @@ import java.math.BigInteger;
 import org.apache.avro.Schema;
 
 /**
- *
+ * An extension interface that allows to decode decimal, and other json types naturally.
  * @author Zoltan Farkas
  */
 public interface JsonExtensionDecoder {

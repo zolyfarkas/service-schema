@@ -38,11 +38,12 @@ import org.apache.avro.io.parsing.Parser;
 import org.apache.avro.logicalTypes.DecimalBytesLogicalType;
 
 /**
- * This class extends the JsonDecoder to work with the ExtendedGenericDatumReader class to write the more
- * compact PIMCO JSON format. The AVRO codec mechanism builds a weird parse tree of the schema and then
- * iterates over that and the json string looking for the next expected field. As our extended encoding
- * deliberately skips fields that match the default we need to start mucking about with the stack when the
- * next field isn't there! More info to come as we remember how it works!
+ * This class extends the JsonDecoder to:
+ * <ul>
+ * <li>Decode JSON with "natural" encoding of union {null, type} encoding</li>
+ * <li>Infer not present attributes by using the default defined in the writer schema</li>
+ * <li>Ability to decode the decimal logicalType when naturally encoded in JSON.</li>
+ * </ul>
  */
 public final class ExtendedJsonDecoder extends JsonDecoder
         implements JsonExtensionDecoder {
