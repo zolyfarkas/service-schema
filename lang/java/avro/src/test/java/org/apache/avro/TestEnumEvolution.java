@@ -26,6 +26,7 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,6 +34,19 @@ import org.junit.Test;
  * @author Zoltan Farkas
  */
 public class TestEnumEvolution {
+
+  @Test
+  public void testEnumSchem() {
+    Schema schema = SchemaBuilder
+            .enumeration("MyEnum")
+            .enumDefault("UNKNOWN")
+            .symbols("UNKNOWN", "A", "B", "C");
+    System.out.println(schema.toString());
+    Assert.assertThat(schema.toString(), Matchers.containsString("\"default\":\"UNKNOWN\""));
+    Schema fromString = Schema.fromString(schema.toString());
+    Assert.assertEquals("UNKNOWN", fromString.getEnumDefault());
+  }
+
 
   @Test
   public void testCompatibility() throws IOException {

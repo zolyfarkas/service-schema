@@ -759,6 +759,9 @@ public class SchemaBuilder {
    **/
   public static final class EnumBuilder<R> extends
       NamespacedBuilder<R, EnumBuilder<R>> {
+
+    private String enumDefault;
+
     private EnumBuilder(Completion<R> context, NameContext names, String name) {
       super(context, names, name);
     }
@@ -773,10 +776,15 @@ public class SchemaBuilder {
       return this;
     }
 
+    public EnumBuilder<R> enumDefault(final String defaultSymbol) {
+      this.enumDefault = defaultSymbol;
+      return this;
+    }
+
     /** Configure this enum type's symbols, and end its configuration. **/
     public R symbols(String... symbols) {
       Schema schema = Schema.createEnum(name(), doc(), space(),
-          Arrays.asList(symbols));
+          Arrays.asList(symbols), enumDefault);
       completeSchema(schema);
       return context().complete(schema);
     }

@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.apache.avro.util.Sets;
 
 
@@ -248,7 +249,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   /** Create an enum schema. */
   public static Schema createEnum(String name, String doc, String namespace,
-                                  List<String> values, final String defaultEnumVal) {
+                                  List<String> values, @Nullable final String defaultEnumVal) {
     return new EnumSchema(new Name(name, namespace), doc,
         new LockableArrayList<String>(values), defaultEnumVal);
   }
@@ -956,6 +957,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
                   + " for " + name + ", symbols = " + symbols);
         }
         this.enumDefault = enumDefault;
+        props.put("default", new TextNode(enumDefault));
       } else {
         this.enumDefault = null;
       }
@@ -1063,11 +1065,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
           String  tVal = value.textValue();
           if (this.enumDefault == null) {
             setFalbackSymbol(tVal);
-          } else if (!this.enumDefault.equals(tVal)) {
+            break;
+          } else if (this.enumDefault.equals(tVal)) {
+            return;
+          } else {
             throw new IllegalStateException("Denum  default already set to " + this.enumDefault
               + " cannot overwrite with " + tVal + " for " + this);
           }
-          break;
         case "symbolAliases":
           setAliases(value);
           break;
