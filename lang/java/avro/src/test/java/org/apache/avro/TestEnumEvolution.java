@@ -15,17 +15,21 @@
  */
 package org.apache.avro;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
+import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.JsonDecoder;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,6 +49,53 @@ public class TestEnumEvolution {
     Assert.assertThat(schema.toString(), Matchers.containsString("\"default\":\"UNKNOWN\""));
     Schema fromString = Schema.fromString(schema.toString());
     Assert.assertEquals("UNKNOWN", fromString.getEnumDefault());
+  }
+
+  @Test
+  public void testEnumSchem2() throws IOException {
+    Schema schema = SchemaBuilder
+            .enumeration("MyEnum")
+            .enumDefault("UNKNOWN")
+            .symbols("UNKNOWN", "A", "B", "C");
+    schema.addProp("symbolAliases", ImmutableMap.of("A", Arrays.asList("A A")));
+    schema.addProp("stringSymbols", ImmutableMap.of("B", "BB"));
+    System.out.println(schema.toString());
+    Assert.assertThat(schema.toString(), Matchers.containsString("\"default\":\"UNKNOWN\""));
+    Schema fromString = Schema.fromString(schema.toString());
+    Assert.assertEquals("UNKNOWN", fromString.getEnumDefault());
+
+    Schema recSchema = SchemaBuilder
+            .record("myrecord").namespace("org.example")
+            .fields().name("enumVal").type(schema).noDefault()
+            .endRecord();
+
+    readtest1(recSchema);
+    readtest2(recSchema);
+    readtest3(recSchema);
+  }
+
+  public void readtest1(Schema recSchema) throws IOException {
+    JsonDecoder jsonDecoder = DecoderFactory.get().jsonDecoder(recSchema, "{\"enumVal\":\"A A\"}");
+    GenericDatumReader reader = new GenericDatumReader(recSchema);
+    GenericRecord read = (GenericRecord) reader.read(null, jsonDecoder);
+    System.out.println(read);
+    Assert.assertEquals("A", ((GenericEnumSymbol) read.get("enumVal")).toString());
+  }
+
+  public void readtest2(Schema recSchema) throws IOException {
+    JsonDecoder jsonDecoder = DecoderFactory.get().jsonDecoder(recSchema, "{\"enumVal\":\"BB\"}");
+    GenericDatumReader reader = new GenericDatumReader(recSchema);
+    GenericRecord read = (GenericRecord) reader.read(null, jsonDecoder);
+    System.out.println(read);
+    Assert.assertEquals("BB", ((GenericEnumSymbol) read.get("enumVal")).toString());
+  }
+
+  public void readtest3(Schema recSchema) throws IOException {
+    JsonDecoder jsonDecoder = DecoderFactory.get().jsonDecoder(recSchema, "{\"enumVal\":\"dfsfgsdg\"}");
+    GenericDatumReader reader = new GenericDatumReader(recSchema);
+    GenericRecord read = (GenericRecord) reader.read(null, jsonDecoder);
+    System.out.println(read);
+    Assert.assertEquals("UNKNOWN", ((GenericEnumSymbol) read.get("enumVal")).toString());
   }
 
 

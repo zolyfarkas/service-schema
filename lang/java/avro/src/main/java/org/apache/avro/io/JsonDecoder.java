@@ -330,7 +330,7 @@ public class JsonDecoder extends ParsingDecoder
       }
       throw new AvroTypeException("Unknown symbol in enum " + in.getText());
     } else {
-      throw error("fixed");
+      throw error("enum");
     }
   }
 

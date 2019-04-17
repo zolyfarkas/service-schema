@@ -239,11 +239,6 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
   public void writeEnum(int e) throws IOException {
     parser.advance(Symbol.ENUM);
     Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();
-    if (e < 0 || e >= top.size) {
-      throw new AvroTypeException(
-          "Enumeration out of range: max is " +
-          top.size + " but received " + e);
-    }
     out.writeString(top.getLabel(e));
   }
 

@@ -92,10 +92,7 @@ public class JsonGrammarGenerator extends ValidatingGrammarGenerator {
     case UNION:
       return super.generate(sc, seen);
     case ENUM:
-      String enumDefault = sc.getEnumDefault();
-      return Symbol.seq(Symbol.enumLabelsAction(sc.getEnumStringSymbols(),
-              enumDefault == null ? -1 : sc.getEnumOrdinal(enumDefault)),
-          Symbol.ENUM);
+      return Symbol.seq(Symbol.enumLabelsAction(sc), Symbol.ENUM);
 
     case ARRAY:
       return Symbol.seq(Symbol.repeat(Symbol.ARRAY_END,

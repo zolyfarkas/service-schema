@@ -632,38 +632,33 @@ public abstract class Symbol {
 
   }
 
-  public static EnumLabelsAction enumLabelsAction(List<String> symbols) {
-    return new EnumLabelsAction(symbols, -1);
-  }
-
   /** For JSON. */
-  public static EnumLabelsAction enumLabelsAction(List<String> symbols, int defSymb) {
-    return new EnumLabelsAction(symbols, defSymb);
+  public static EnumLabelsAction enumLabelsAction(Schema schema) {
+    return new EnumLabelsAction(schema);
   }
 
-  public static class EnumLabelsAction extends IntCheckAction {
-    public final List<String> symbols;
-    private final int defSymb;
+  public static class EnumLabelsAction extends Symbol {
 
-    @Deprecated public EnumLabelsAction(List<String> symbols, int defSymb) {
-      super(symbols.size());
-      this.symbols = symbols;
-      this.defSymb = defSymb;
+    private final Schema enumSchema;
+
+    @Deprecated public EnumLabelsAction(Schema schema) {
+      super(Kind.EXPLICIT_ACTION);
+      this.enumSchema = schema;
     }
 
     public String getLabel(int n) {
-      return symbols.get(n);
+      return enumSchema.getEnumSymbols().get(n);
     }
 
     public int findLabel(String l) {
-      if (l != null) {
-        for (int i = 0; i < symbols.size(); i++) {
-          if (l.equals(symbols.get(i))) {
-            return i;
-          }
+      int enumSymbolOrAliasOrdinal = enumSchema.getEnumSymbolOrAliasOrdinal(l);
+      if (enumSymbolOrAliasOrdinal < 0) {
+        String enumDefault = enumSchema.getEnumDefault();
+        if (enumDefault != null) {
+          return enumSchema.getEnumOrdinal(enumDefault);
         }
       }
-      return defSymb;
+      return enumSymbolOrAliasOrdinal;
     }
   }
 
