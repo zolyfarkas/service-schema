@@ -632,16 +632,23 @@ public abstract class Symbol {
 
   }
 
-  /** For JSON. */
   public static EnumLabelsAction enumLabelsAction(List<String> symbols) {
-    return new EnumLabelsAction(symbols);
+    return new EnumLabelsAction(symbols, -1);
+  }
+
+  /** For JSON. */
+  public static EnumLabelsAction enumLabelsAction(List<String> symbols, int defSymb) {
+    return new EnumLabelsAction(symbols, defSymb);
   }
 
   public static class EnumLabelsAction extends IntCheckAction {
     public final List<String> symbols;
-    @Deprecated public EnumLabelsAction(List<String> symbols) {
+    private final int defSymb;
+
+    @Deprecated public EnumLabelsAction(List<String> symbols, int defSymb) {
       super(symbols.size());
       this.symbols = symbols;
+      this.defSymb = defSymb;
     }
 
     public String getLabel(int n) {
@@ -656,7 +663,7 @@ public abstract class Symbol {
           }
         }
       }
-      return -1;
+      return defSymb;
     }
   }
 
