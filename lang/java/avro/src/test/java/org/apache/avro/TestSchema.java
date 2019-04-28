@@ -30,11 +30,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.junit.Assert;
+import static org.junit.Assert.assertNotSame;
 import org.junit.Test;
 
 public class TestSchema {
@@ -133,6 +135,21 @@ public class TestSchema {
     Schema s = new Schema.Parser().parse(Resources.toString(Resources.getResource("TestSchema.avsc"),
             StandardCharsets.UTF_8));
     Assert.assertTrue(s.getProp("beta") != null);
+  }
+
+  @Test
+  public void testAliasesSelfReferential() {
+    String t1 = "{\"type\":\"record\",\"name\":\"a\",\"fields\":[{\"name\":\"f\",\"type\":{\"type\":\"record\",\"name\":\"C\",\"fields\":[{\"name\":\"c\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"C\"]}}]}}]}";
+    String t2 = "{\"type\":\"record\",\"name\":\"x\",\"fields\":[{\"name\":\"f\",\"type\":{\"type\":\"record\",\"name\":\"C\",\"fields\":[{\"name\":\"d\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"C\"]},\"aliases\":[\"c\"]}]}}],\"aliases\":[\"a\"]}";
+    Schema s1 = new Schema.Parser().parse(t1);
+    Schema s2 = new Schema.Parser().parse(t2);
+
+    assertEquals(s1.getAliases(), Collections.emptySet());
+    assertEquals(s2.getAliases(), Collections.singleton("a"));
+
+    Schema s3 = Schema.applyAliases(s1, s2);
+    assertNotSame(s2, s3);
+    assertEquals(s2, s3);
   }
 
 

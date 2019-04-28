@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.Objects;
 import org.apache.avro.util.Sets;
 
 
@@ -875,7 +876,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       boolean first = seen.isEmpty();
       try {
         seen.add(here);
-        return fields.equals(((RecordSchema)o).fields);
+        return Objects.equals(fields, ((RecordSchema)o).fields);
       } finally {
         if (first) seen.clear();
       }
