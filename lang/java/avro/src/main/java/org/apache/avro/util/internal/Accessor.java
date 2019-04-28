@@ -118,4 +118,3 @@ public class Accessor {
     return fieldAccessor().createField(name, schema, doc, defaultValue);
   }
 
-}
