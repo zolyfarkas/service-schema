@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
-import javax.annotation.Nullable;
 import org.apache.avro.AvroMissingFieldException;
 
 import org.apache.avro.AvroRuntimeException;
