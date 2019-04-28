@@ -68,27 +68,19 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
   }
 
   /**
-   * Validates that a particular value for a given field is valid according to
-   * the following algorithm:
-   * 1. If the value is not null, or the field type is null, or the field type
-   * is a union which accepts nulls, returns.
-   * 2. Else, if the field has a default value, returns.
-   * 3. Otherwise throws AvroRuntimeException.
+   * Validates that a particular value for a given field is valid according to the
+   * following algorithm: 1. If the value is not null, or the field type is null,
+   * or the field type is a union which accepts nulls, returns. 2. Else, if the
+   * field has a default value, returns. 3. Otherwise throws AvroRuntimeException.
+   *
    * @param field the field to validate.
    * @param value the value to validate.
-   * @throws NullPointerException if value is null and the given field does
-   * not accept null values.
+   * @throws NullPointerException if value is null and the given field does not
+   *                              accept null values.
    */
   protected void validate(Field field, Object value) {
-    if (isValidValue(field, value)) {
-      return;
-    }
-    else if (field.defaultValue() != null) {
-      return;
-    }
-    else {
-      throw new AvroRuntimeException(
-          "Field " + field + " does not accept null values");
+    if (!isValidValue(field, value) && field.defaultVal() == null) {
+      throw new AvroRuntimeException("Field " + field + " does not accept null values");
     }
   }
 

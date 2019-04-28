@@ -20,7 +20,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.Assert;
@@ -66,7 +65,7 @@ public class SymbolTest {
         Schema schema = new Schema.Parser().parse(SCHEMA);
 
         Symbol root = Symbol.root(new ResolvingGrammarGenerator()
-                .generate(schema, schema, new HashMap<ValidatingGrammarGenerator.LitS, Symbol>()));
+                .generate(schema, schema));
         validateNonNull(root, new HashSet<Symbol>());
 
         Schema samplePairSchema = schema.getField("subNodes").schema().getElementType();
@@ -153,10 +152,10 @@ protocol NodeTest {
     public void testValidSymbolTree2() throws IOException {
 
         Symbol root = Symbol.root(new ResolvingGrammarGenerator()
-                .generate(NODE_SCHEMA, NODE_SCHEMA, new HashMap<ValidatingGrammarGenerator.LitS, Symbol>()));
+                .generate(NODE_SCHEMA, NODE_SCHEMA));
         validateNonNull(root, new HashSet<Symbol>());
         root = Symbol.root(new ResolvingGrammarGenerator()
-                .generate(NOPAIR_SCHEMA, NOPAIR_SCHEMA, new HashMap<ValidatingGrammarGenerator.LitS, Symbol>()));
+                .generate(NOPAIR_SCHEMA, NOPAIR_SCHEMA));
         validateNonNull(root, new HashSet<Symbol>());
 
         GenericData.Record node1 = new GenericData.Record(NODE_SCHEMA);

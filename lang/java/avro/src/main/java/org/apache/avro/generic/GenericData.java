@@ -17,6 +17,9 @@
  */
 package org.apache.avro.generic;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -24,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -33,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.WeakHashMap;
+import org.apache.avro.AvroMissingFieldException;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
@@ -44,9 +50,14 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.UnresolvedUnionException;
 import org.apache.avro.io.BinaryData;
+import org.apache.avro.io.BinaryDecoder;
+import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
+import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.util.Utf8;
+import org.apache.avro.util.internal.Accessor;
 
 
 /** Utilities for generic Java data. See {@link GenericRecordBuilder} for a convenient
@@ -1009,6 +1020,52 @@ public class GenericData {
       return ((Comparable)o1).compareTo(o2);
     }
   }
+
+  private final Map<Field, Object> defaultValueCache = Collections.synchronizedMap(new WeakHashMap<>());
+
+  /**
+   * Gets the default value of the given field, if any.
+   *
+   * @param field the field whose default value should be retrieved.
+   * @return the default value associated with the given field, or null if none is
+   *         specified in the schema.
+   */
+  @SuppressWarnings({ "unchecked" })
+  public Object getDefaultValue(Field field) {
+    JsonNode json = Accessor.defaultValue(field);
+    if (json == null)
+      throw new AvroMissingFieldException("Field " + field + " not set and has no default value", field);
+    if (json.isNull() && (field.schema().getType() == Type.NULL
+        || (field.schema().getType() == Type.UNION && field.schema().getTypes().get(0).getType() == Type.NULL))) {
+      return null;
+    }
+
+    // Check the cache
+    Object defaultValue = defaultValueCache.get(field);
+
+    // If not cached, get the default Java value by encoding the default JSON
+    // value and then decoding it:
+    if (defaultValue == null)
+      try {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(baos, null);
+        Accessor.encode(encoder, field.schema(), json);
+        encoder.flush();
+        BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(baos.toByteArray(), null);
+        defaultValue = createDatumReader(field.schema()).read(null, decoder);
+
+        // this MAY result in two threads creating the same defaultValue
+        // and calling put. The last thread will win. However,
+        // that's not an issue.
+        defaultValueCache.put(field, defaultValue);
+      } catch (IOException e) {
+        throw new AvroRuntimeException(e);
+      }
+
+    return defaultValue;
+  }
+
+
 
   private static final Schema STRINGS = Schema.create(Type.STRING);
 

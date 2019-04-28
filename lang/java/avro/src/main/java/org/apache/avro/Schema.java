@@ -56,6 +56,7 @@ import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.Objects;
 import org.apache.avro.util.Sets;
+import org.apache.avro.util.internal.Accessor;
 
 
 /** An abstract data type.
@@ -529,6 +530,26 @@ public abstract class Schema extends JsonProperties implements Serializable {
   /** A field within a record. */
   public static class Field extends JsonProperties {
 
+    static {
+      Accessor.setAccessor(new Accessor.FieldAccessor() {
+        @Override
+        protected JsonNode defaultValue(Field field) {
+          return field.defaultValue();
+        }
+
+        @Override
+        protected Field createField(String name, Schema schema, String doc, JsonNode defaultValue) {
+          return new Field(name, schema, doc, defaultValue, true, Order.ASCENDING);
+        }
+
+        @Override
+        protected Field createField(String name, Schema schema, String doc, JsonNode defaultValue, boolean validate,
+            Order order) {
+          return new Field(name, schema, doc, defaultValue, validate, order);
+        }
+      });
+    }
+
     /** How values of this field should be ordered when sorting records. */
     public enum Order {
       ASCENDING, DESCENDING, IGNORE;
@@ -602,13 +623,17 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public Schema schema() { return schema; }
     /** Field's documentation within the record, if set. May return null. */
     public String doc() { return doc; }
-    /** @deprecated use {@link #defaultVal() } */
-    @Deprecated public JsonNode defaultValue() { return defaultValue; }
+
+    public JsonNode defaultValue() {
+      return defaultValue;
+    }
     /**
      * @return the default value for this field specified using the mapping
      *  in {@link JsonProperties}
      */
-    public Object defaultVal() { return defaultVal; }
+    public Object defaultVal() {
+      return defaultVal;
+    }
     public Order order() { return order; }
     @Deprecated public Map<String,String> props() { return getProps(); }
     public void addAlias(String alias) {
@@ -781,24 +806,33 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   }
 
-  private static class SeenPair {
-    private Object s1; private Object s2;
-    private SeenPair(Object s1, Object s2) { this.s1 = s1; this.s2 = s2; }
-    public boolean equals(Object o) {
-      if (!(o instanceof SeenPair)) return false;
-      return this.s1 == ((SeenPair)o).s1 && this.s2 == ((SeenPair)o).s2;
+  /**
+   * Useful as key of {@link Map}s when traversing two schemas at the same time
+   * and need to watch for recursion.
+   */
+  public static final class SeenPair {
+    private Object s1;
+    private Object s2;
+
+    public SeenPair(final Object s1, final Object s2) {
+      this.s1 = s1;
+      this.s2 = s2;
     }
+
+    public boolean equals(final Object o) {
+      if (!(o instanceof SeenPair))
+        return false;
+      return this.s1 == ((SeenPair) o).s1 && this.s2 == ((SeenPair) o).s2;
+    }
+
+    @Override
     public int hashCode() {
       return System.identityHashCode(s1) + System.identityHashCode(s2);
     }
   }
 
-  private static final ThreadLocal<Set> SEEN_EQUALS = new ThreadLocal<Set>() {
-    protected Set initialValue() { return new HashSet(); }
-  };
-  private static final ThreadLocal<Map> SEEN_HASHCODE = new ThreadLocal<Map>() {
-    protected Map initialValue() { return new IdentityHashMap(); }
-  };
+ private static final ThreadLocal<Set> SEEN_EQUALS = ThreadLocal.withInitial(HashSet::new);
+
 
   @SuppressWarnings(value="unchecked")
   private static class RecordSchema extends NamedSchema {
