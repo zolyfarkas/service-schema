@@ -520,7 +520,17 @@ public class ReflectData extends SpecificData {
       } else if (Iterable.class.isAssignableFrom(raw)) {   // Collection
         if (params.length != 1)
           throw new AvroTypeException("No array type specified.");
-        Schema schema = Schema.createArray(createSchema(params[0], names));
+        Type itType = params[0];
+        if (itType instanceof ParameterizedType) {
+          Type itRT = ((ParameterizedType) itType).getRawType();
+          if (itRT == Map.Entry.class)  {
+            Type[] itRTArgs = ((ParameterizedType) itType).getActualTypeArguments();
+            if (String.class == itRTArgs[0]) {
+              return Schema.createMap(createSchema(itRTArgs[1], names));
+            }
+          }
+        }
+        Schema schema = Schema.createArray(createSchema(itType, names));
         schema.addProp(CLASS_PROP, raw.getName());
         return schema;
       }
