@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -13,6 +14,7 @@ import org.apache.avro.logicalTypes.TestAnyLogicalType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.avro.LogRecord;
 
 /**
  * @author Zoltan Farkas
@@ -26,6 +28,10 @@ public class ExtendedReflectDataTest {
   }
 
   public <T> List<GenericRecord> testMethod2(Class<T> clasz) {
+    return null;
+  }
+
+  public <T> Iterable<Map.Entry<String, LogRecord>> testMethod3(Class<T> clasz) {
     return null;
   }
 
@@ -46,6 +52,18 @@ public class ExtendedReflectDataTest {
 
     Schema createSchema = rdata.createSchema(rt, Arrays.asList(TestAnyLogicalType.createTestRecord()), new HashMap<>());
     LOG.debug("schema", createSchema);
+  }
+
+  @Test
+  public void testParameterizedTypesMapIterator() throws NoSuchMethodException {
+    ExtendedReflectData rdata = new ExtendedReflectData();
+    Method m = ExtendedReflectDataTest.class.getMethod("testMethod3", new Class[] {Class.class});
+    Type rt = m.getGenericReturnType();
+    Schema createSchema = rdata.getSchema(rt);
+    LOG.debug("schema", createSchema);
+    Assert.assertTrue(createSchema.getType() == Schema.Type.MAP);
+    Schema valueType = createSchema.getValueType();
+    Assert.assertEquals("LogRecord", valueType.getName());
   }
 
   @Test
