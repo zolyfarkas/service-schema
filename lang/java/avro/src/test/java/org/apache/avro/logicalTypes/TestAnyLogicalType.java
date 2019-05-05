@@ -59,7 +59,7 @@ public class TestAnyLogicalType {
    SchemaResolvers.registerDefault(new SchemaResolver() {
       @Override
       public Schema resolveSchema(String id) {
-        if ("org.spf4j.avro:core-schema:0.17:c".equals(id)) {
+        if ("org.spf4j.avro:core-schema:0.19:c".equals(id)) {
           return ServiceError.getClassSchema();
         } else {
           throw new UnsupportedOperationException();
