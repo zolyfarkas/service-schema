@@ -116,6 +116,7 @@ public class ExtendedReflectDatumWriter<T> extends ExtendedSpecificDatumWriter<T
     int size = data.length;
     out.setItemCount(size);
     for (int i = 0; i < size; i++) {
+      out.startItem();
       this.write(element, data[i], out);
     }
   }
