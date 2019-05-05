@@ -46,6 +46,7 @@ import org.spf4j.base.avro.HealthRecord;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.ServiceError;
 import org.spf4j.base.avro.StackSampleElement;
+import org.spf4j.base.avro.jmx.MBeanAttributeInfo;
 
 /**
  *
@@ -192,6 +193,13 @@ public class TestAnyLogicalType {
   public void testHealthCheckCluster2Repro() throws IOException {
     AvroUtils.readAvroExtendedJson(ClassLoader.getSystemResourceAsStream("testAnyJson.json"), HealthRecord.class);
   }
+
+  @Test
+  public void testJMXAttrsRepro() throws IOException {
+    AvroUtils.readAvroExtendedJson(ClassLoader.getSystemResourceAsStream("testAnyJson2.json"),
+            Schema.createArray(MBeanAttributeInfo.getClassSchema()));
+  }
+
 
   @Test
   public void testServiceErrorParsing() throws IOException {

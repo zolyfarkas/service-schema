@@ -34,6 +34,7 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.ResolvingDecoder;
+import org.apache.avro.util.Optional;
 import org.apache.avro.util.Utf8;
 
 /** {@link DatumReader} for generic Java objects. */
@@ -110,9 +111,9 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     Object result;
     LogicalType logicalType = expected.getLogicalType();
     if (logicalType != null) {
-      Object decoded = logicalType.tryDirectDecode(in, expected);
-      if (decoded != null) {
-        return decoded;
+      Optional<Object> decoded = logicalType.tryDirectDecode(in, expected);
+      if (decoded.isPresent()) {
+        return decoded.get();
       }
     }
     final Type type = expected.getType();

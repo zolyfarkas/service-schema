@@ -5,13 +5,14 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.util.Optional;
 
 /**
  * Avro Logical type interface.
@@ -79,9 +80,9 @@ public interface LogicalType<T> {
    * @return null if no direct decode available.
    * @throws IOException
    */
-  @Nullable
-  default T tryDirectDecode(final Decoder enc, final Schema schema) throws IOException {
-    return null;
+  @Nonnull
+  default Optional<T> tryDirectDecode(final Decoder enc, final Schema schema) throws IOException {
+    return Optional.empty();
   }
 
   default String getLogicalTypeName() {

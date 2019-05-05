@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import org.apache.avro.util.Optional;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
@@ -76,12 +77,12 @@ public final class JsonLogicalTypeBytes<T> extends AbstractLogicalType<T> {
   }
 
   @Override
-  public T tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
+  public Optional<T> tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
-      return (pd).readValue(schema, getLogicalJavaType());
+      return Optional.of(pd.readValue(schema, getLogicalJavaType()));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 
