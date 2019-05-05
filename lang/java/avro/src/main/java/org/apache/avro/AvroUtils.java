@@ -112,11 +112,11 @@ public final class AvroUtils {
     reader.read(res, decoder);
   }
 
-  public static GenericRecord readAvroExtendedJson(final InputStream input, final Schema schema)
+  public static Object readAvroExtendedJson(final InputStream input, final Schema schema)
           throws IOException {
     DatumReader reader = new GenericDatumReader(schema);
     Decoder decoder = new ExtendedJsonDecoder(schema, input);
-    return (GenericRecord) reader.read(null, decoder);
+    return  reader.read(null, decoder);
   }
 
   public static GenericRecord readAvroExtendedJson(final Reader input, final Schema schema)

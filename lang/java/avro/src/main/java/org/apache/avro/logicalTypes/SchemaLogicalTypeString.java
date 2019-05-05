@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collections;
+import org.apache.avro.util.Optional;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.AvroNamesRefResolver;
 import org.apache.avro.Schema;
@@ -54,13 +55,13 @@ public final class SchemaLogicalTypeString extends AbstractLogicalType<Schema> {
   }
 
   @Override
-  public Schema tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
+  public Optional<Schema> tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
       JsonNode nodes = pd.readValueAsTree(schema);
-      return Schema.parse(nodes, new AvroNamesRefResolver(resolver),  true);
+      return Optional.of(Schema.parse(nodes, new AvroNamesRefResolver(resolver),  true));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 

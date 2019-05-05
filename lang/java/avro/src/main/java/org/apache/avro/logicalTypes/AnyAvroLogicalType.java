@@ -47,6 +47,7 @@ import org.apache.avro.io.JsonExtensionEncoder;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.reflect.ExtendedReflectDatumWriter;
 import org.apache.avro.util.CharSequenceReader;
+import org.apache.avro.util.Optional;
 
 /**
  * Decimal represents arbitrary-precision fixed-scale decimal numbers
@@ -148,7 +149,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
   }
 
   @Override
-  public Object tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
+  public Optional<Object> tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
       JsonNode theJson = pd.readValueAsTree(schema);
@@ -158,9 +159,9 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
       String jsonString = Schema.MAPPER.writeValueAsString(cntnt);
       ExtendedJsonDecoder jdec = new ExtendedJsonDecoder(anySchema, jsonString);
       DatumReader reader = new GenericDatumReader(anySchema, anySchema);
-      return reader.read(null, jdec);
+      return Optional.of(reader.read(null, jdec));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 

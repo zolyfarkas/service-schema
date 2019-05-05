@@ -21,6 +21,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.avro.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.apache.avro.AbstractLogicalType;
@@ -144,11 +145,11 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
   }
 
   @Override
-  public BigDecimal tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
+  public Optional<BigDecimal> tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
-      return ((JsonExtensionDecoder) dec).readBigDecimal(schema);
+      return Optional.of(((JsonExtensionDecoder) dec).readBigDecimal(schema));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 

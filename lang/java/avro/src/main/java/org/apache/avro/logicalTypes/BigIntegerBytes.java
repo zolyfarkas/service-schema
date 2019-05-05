@@ -18,6 +18,7 @@ package org.apache.avro.logicalTypes;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import org.apache.avro.util.Optional;
 import javax.annotation.Nullable;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.AvroRuntimeException;
@@ -76,11 +77,11 @@ public final class BigIntegerBytes extends AbstractLogicalType<java.math.BigInte
   }
 
   @Override
-  public java.math.BigInteger tryDirectDecode(final Decoder dec, final Schema schema) throws IOException {
+  public Optional<java.math.BigInteger> tryDirectDecode(final Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
-      return ((JsonExtensionDecoder) dec).readBigInteger(schema);
+      return Optional.of(((JsonExtensionDecoder) dec).readBigInteger(schema));
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 

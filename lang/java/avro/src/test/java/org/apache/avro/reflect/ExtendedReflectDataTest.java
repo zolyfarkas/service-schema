@@ -35,6 +35,10 @@ public class ExtendedReflectDataTest {
     return null;
   }
 
+  public <T> Iterable<Map.Entry<String, Iterable<LogRecord>>> testMethod4(Class<T> clasz) {
+    return null;
+  }
+
   @Test
   public void testParameterizedTypes() throws NoSuchMethodException {
     ExtendedReflectData rdata = new ExtendedReflectData();
@@ -63,6 +67,18 @@ public class ExtendedReflectDataTest {
     LOG.debug("schema", createSchema);
     Assert.assertTrue(createSchema.getType() == Schema.Type.MAP);
     Schema valueType = createSchema.getValueType();
+    Assert.assertEquals("LogRecord", valueType.getName());
+  }
+
+  @Test
+  public void testParameterizedTypesMapIterator2() throws NoSuchMethodException {
+    ExtendedReflectData rdata = new ExtendedReflectData();
+    Method m = ExtendedReflectDataTest.class.getMethod("testMethod4", new Class[] {Class.class});
+    Type rt = m.getGenericReturnType();
+    Schema createSchema = rdata.getSchema(rt);
+    LOG.debug("schema", createSchema);
+    Assert.assertTrue(createSchema.getType() == Schema.Type.MAP);
+    Schema valueType = createSchema.getValueType().getElementType();
     Assert.assertEquals("LogRecord", valueType.getName());
   }
 
