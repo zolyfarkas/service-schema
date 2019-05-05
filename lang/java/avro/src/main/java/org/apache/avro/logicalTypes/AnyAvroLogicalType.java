@@ -167,9 +167,14 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
   @Override
   public boolean tryDirectEncode(Object toSer, Encoder enc, final Schema schema) throws IOException {
     if (enc instanceof JsonExtensionEncoder) {
-      Schema avsc = ExtendedReflectData.get().getSchema(toSer.getClass());
-      if (avsc == null) {
-        avsc = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
+      Schema avsc;
+      if (toSer == null) {
+        avsc = Schema.create(Schema.Type.NULL);
+      } else {
+        avsc = ExtendedReflectData.get().getSchema(toSer.getClass());
+        if (avsc == null) {
+          avsc = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
+        }
       }
       Map record = new HashMap(4);
       record.put("avsc", new RawJsonString(toString(avsc)));
