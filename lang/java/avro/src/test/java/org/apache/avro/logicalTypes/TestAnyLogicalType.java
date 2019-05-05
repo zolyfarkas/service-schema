@@ -38,7 +38,6 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.reflect.ReflectDatumReader;
-import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificRecord;
 import org.junit.Assert;
 import org.junit.Test;
