@@ -111,9 +111,14 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
 
   @Override
   public Object serialize(Object toSer) {
-      Schema schema = ExtendedReflectData.get().getSchema(toSer.getClass());
-      if (schema == null) {
-        schema = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
+      Schema schema;
+      if (toSer == null) {
+        schema = Schema.create(Schema.Type.NULL);
+      } else {
+        schema = ExtendedReflectData.get().getSchema(toSer.getClass());
+        if (schema == null) {
+          schema = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
+        }
       }
       String strSchema = toString(schema);
       GenericRecord result = new GenericData.Record(uSchema);
