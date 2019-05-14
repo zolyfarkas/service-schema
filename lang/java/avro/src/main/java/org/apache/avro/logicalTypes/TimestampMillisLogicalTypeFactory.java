@@ -23,32 +23,19 @@ import org.apache.avro.Schema;
 /**
  * @author zfarkas
  */
-public class InstantLogicalTypeFactory implements LogicalTypeFactory {
+public class TimestampMillisLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public String getLogicalTypeName() {
-    return "instant";
+    return "timestamp-millis";
   }
 
   @Override
   public LogicalType fromSchema(final Schema schema) {
     Schema.Type type = schema.getType();
     switch (type) {
-      case STRING:
-        String format = schema.getProp("format");
-        if (format == null) {
-          return new InstantStringLogicalType(schema);
-        } else {
-          return new InstantCustomStringLogicalType(schema, format);
-        }
       case LONG:
         return new InstantLongLogicalType(schema, getLogicalTypeName());
-      case RECORD:
-        if (schema.getField("millis") != null) {
-          return new InstantMillisRecordLogicalType(schema);
-        } else {
-          return new InstantNanoRecordLogicalType(schema);
-        }
       default:
         throw new IllegalArgumentException("Unsupported schema for instant " + schema);
     }
