@@ -25,8 +25,8 @@ import org.apache.avro.Schema;
  */
 public final class InstantLongLogicalType extends AbstractLogicalType<Instant> {
 
-  InstantLongLogicalType(Schema schema) {
-    super(schema.getType(), Collections.EMPTY_SET, "instant",
+  InstantLongLogicalType(Schema schema, String logicalTypeName) {
+    super(schema.getType(), Collections.EMPTY_SET, logicalTypeName,
             Collections.EMPTY_MAP, Instant.class);
   }
 
