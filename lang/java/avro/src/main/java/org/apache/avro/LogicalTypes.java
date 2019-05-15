@@ -36,6 +36,7 @@ import org.apache.avro.logicalTypes.JsonAnyLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonArrayLogicalTypeFactory;
 import org.apache.avro.logicalTypes.JsonRecordLogicalTypeFactory;
 import org.apache.avro.logicalTypes.SchemaLogicalTypeFactory;
+import org.apache.avro.logicalTypes.TimestampMicrosLogicalTypeFactory;
 import org.apache.avro.logicalTypes.TimestampMillisLogicalTypeFactory;
 import org.apache.avro.logicalTypes.URILogicalTypeFactory;
 import org.apache.avro.logicalTypes.URLLogicalTypeFactory;
@@ -63,6 +64,7 @@ public class LogicalTypes {
      register(new URILogicalTypeFactory());
      register(new SchemaLogicalTypeFactory());
      register(new TimestampMillisLogicalTypeFactory());
+     register(new TimestampMicrosLogicalTypeFactory());
      ServiceLoader<org.apache.avro.LogicalTypeFactory> factories
              = ServiceLoader.load(org.apache.avro.LogicalTypeFactory.class);
      Iterator<org.apache.avro.LogicalTypeFactory> iterator = factories.iterator();

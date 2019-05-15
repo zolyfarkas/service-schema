@@ -23,11 +23,11 @@ import org.apache.avro.Schema;
 /**
  * @author zfarkas
  */
-public class TimestampMillisLogicalTypeFactory implements LogicalTypeFactory {
+public class TimestampMicrosLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public String getLogicalTypeName() {
-    return "timestamp-millis";
+    return "timestamp-micros";
   }
 
   @Override
