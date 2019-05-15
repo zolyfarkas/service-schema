@@ -35,9 +35,13 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
   private final GenericData data;
   private Schema root;
 
-  public GenericDatumWriter() { this(GenericData.get()); }
+  public GenericDatumWriter() {
+    this(GenericData.get());
+  }
 
-  protected GenericDatumWriter(GenericData data) { this.data = data; }
+  protected GenericDatumWriter(GenericData data) {
+    this.data = data;
+  }
 
   public GenericDatumWriter(Schema root) {
     this();
@@ -50,9 +54,13 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
   }
 
   /** Return the {@link GenericData} implementation. */
-  public GenericData getData() { return data; }
+  public GenericData getData() {
+    return data;
+  }
 
-  public void setSchema(Schema root) { this.root = root; }
+  public void setSchema(Schema root) {
+    this.root = root;
+  }
 
   public void write(D datum, Encoder out) throws IOException {
     write(root, datum, out);
@@ -98,15 +106,16 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
 
   /** Helper method for adding a message to an NPE. */
   protected NullPointerException npe(NullPointerException e, String s) {
-    NullPointerException result = new NullPointerException(e.getMessage()+s);
+    NullPointerException result = new NullPointerException(e.getMessage() + s);
     result.initCause(e.getCause() == null ? e : e.getCause());
     return result;
   }
 
-  /** Called to write a record.  May be overridden for alternate record
-   * representations.*/
-  protected void writeRecord(Schema schema, Object datum, Encoder out)
-    throws IOException {
+  /**
+   * Called to write a record. May be overridden for alternate record
+   * representations.
+   */
+  protected void writeRecord(Schema schema, Object datum, Encoder out) throws IOException {
     Object state = data.getRecordState(datum, schema);
     for (Field f : schema.getFields()) {
       writeField(datum, f, out, state);
@@ -125,12 +134,13 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     }
   }
 
-  /** Called to write an enum value.  May be overridden for alternate enum
-   * representations.*/
-  protected void writeEnum(Schema schema, Object datum, Encoder out)
-    throws IOException {
+  /**
+   * Called to write an enum value. May be overridden for alternate enum
+   * representations.
+   */
+  protected void writeEnum(Schema schema, Object datum, Encoder out) throws IOException {
     if (!data.isEnum(datum))
-      throw new AvroTypeException("Not an enum: "+datum);
+      throw new AvroTypeException("Not an enum: " + datum + " for schema: " + schema);
     out.writeEnum(schema.getEnumOrdinal(datum.toString()));
   }
 
@@ -190,10 +200,10 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     return ((Iterable) array).iterator();
   }
 
-  /** Called to write a map.  May be overridden for alternate map
-   * representations.*/
-  protected void writeMap(Schema schema, Object datum, Encoder out)
-    throws IOException {
+  /**
+   * Called to write a map. May be overridden for alternate map representations.
+   */
+  protected void writeMap(Schema schema, Object datum, Encoder out) throws IOException {
     Schema value = schema.getValueType();
     int size = getMapSize(datum);
     int actualSize = 0;
@@ -207,53 +217,63 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     }
     out.writeMapEnd();
     if (actualSize != size) {
-      throw new ConcurrentModificationException("Size of map written was " +
-          size + ", but number of entries written was " + actualSize + ". ");
+      throw new ConcurrentModificationException(
+          "Size of map written was " + size + ", but number of entries written was " + actualSize + ". ");
     }
   }
 
-  /** Called by the default implementation of {@link #writeMap} to get the size
-   * of a map.  The default implementation is for {@link Map}.*/
+  /**
+   * Called by the default implementation of {@link #writeMap} to get the size of
+   * a map. The default implementation is for {@link Map}.
+   */
   @SuppressWarnings("unchecked")
   protected int getMapSize(Object map) {
     return ((Map) map).size();
   }
 
-  /** Called by the default implementation of {@link #writeMap} to enumerate
-   * map elements.  The default implementation is for {@link Map}.*/
+  /**
+   * Called by the default implementation of {@link #writeMap} to enumerate map
+   * elements. The default implementation is for {@link Map}.
+   */
   @SuppressWarnings("unchecked")
-  protected Iterable<Map.Entry<Object,Object>> getMapEntries(Object map) {
+  protected Iterable<Map.Entry<Object, Object>> getMapEntries(Object map) {
     return ((Map) map).entrySet();
   }
 
-  /** Called to write a string.  May be overridden for alternate string
-   * representations.*/
-  protected void writeString(Schema schema, Object datum, Encoder out)
-    throws IOException {
+  /**
+   * Called to write a string. May be overridden for alternate string
+   * representations.
+   */
+  protected void writeString(Schema schema, Object datum, Encoder out) throws IOException {
     writeString(datum, out);
   }
-  /** Called to write a string.  May be overridden for alternate string
-   * representations.*/
+
+  /**
+   * Called to write a string. May be overridden for alternate string
+   * representations.
+   */
   protected void writeString(Object datum, Encoder out) throws IOException {
     out.writeString((CharSequence) datum);
   }
 
-  /** Called to write a bytes.  May be overridden for alternate bytes
-   * representations.*/
+  /**
+   * Called to write a bytes. May be overridden for alternate bytes
+   * representations.
+   */
   protected void writeBytes(Object datum, Encoder out) throws IOException {
-    out.writeBytes((ByteBuffer)datum);
+    out.writeBytes((ByteBuffer) datum);
   }
 
-  /** Called to write a fixed value.  May be overridden for alternate fixed
-   * representations.*/
-  protected void writeFixed(Schema schema, Object datum, Encoder out)
-    throws IOException {
-    out.writeFixed(((GenericFixed)datum).bytes(), 0, schema.getFixedSize());
+  /**
+   * Called to write a fixed value. May be overridden for alternate fixed
+   * representations.
+   */
+  protected void writeFixed(Schema schema, Object datum, Encoder out) throws IOException {
+    out.writeFixed(((GenericFixed) datum).bytes(), 0, schema.getFixedSize());
   }
 
   private void error(Schema schema, Object datum) {
-    throw new AvroTypeException("Not a "+schema+": "+datum);
+    throw new AvroTypeException("Not a " + schema + ": " + datum);
   }
 
 }
-
