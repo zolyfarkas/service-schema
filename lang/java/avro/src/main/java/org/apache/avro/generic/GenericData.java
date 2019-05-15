@@ -60,8 +60,10 @@ import org.apache.avro.util.Utf8;
 import org.apache.avro.util.internal.Accessor;
 
 
-/** Utilities for generic Java data. See {@link GenericRecordBuilder} for a convenient
- * way to build {@link GenericRecord} instances.
+/**
+ * Utilities for generic Java data. See {@link GenericRecordBuilder} for a
+ * convenient way to build {@link GenericRecord} instances.
+ *
  * @see GenericRecordBuilder
  */
 public class GenericData {
@@ -69,15 +71,19 @@ public class GenericData {
   private static final GenericData INSTANCE = new GenericData();
 
   /** Used to specify the Java type for a string schema. */
-  public enum StringType { CharSequence, String, Utf8 };
+  public enum StringType {
+    CharSequence, String, Utf8
+  };
 
   protected static final String STRING_PROP = "avro.java.string";
   protected static final String STRING_TYPE_STRING = "String";
 
   private final ClassLoader classLoader;
 
-  /** Set the Java type to be used when reading this schema.  Meaningful only
-   * only string schemas and map schemas (for the keys). */
+  /**
+   * Set the Java type to be used when reading this schema. Meaningful only only
+   * string schemas and map schemas (for the keys).
+   */
   public static void setStringType(Schema s, StringType stringType) {
     // Utf8 is the default and implements CharSequence, so we only need to add
     // a property when the type is String
@@ -86,28 +92,32 @@ public class GenericData {
   }
 
   /** Return the singleton instance. */
-  public static GenericData get() { return INSTANCE; }
+  public static GenericData get() {
+    return INSTANCE;
+  }
 
   /** For subclasses.  Applications normally use {@link GenericData#get()}. */
   public GenericData() {
     this(null);
   }
 
-  /** For subclasses.  GenericData does not use a ClassLoader. */
+  /** For subclasses. GenericData does not use a ClassLoader. */
   public GenericData(ClassLoader classLoader) {
-    this.classLoader = (classLoader != null)
-      ? classLoader
-      : getClass().getClassLoader();
+    this.classLoader = (classLoader != null) ? classLoader : getClass().getClassLoader();
   }
 
   /** Return the class loader that's used (by subclasses). */
-  public ClassLoader getClassLoader() { return classLoader; }
+  public ClassLoader getClassLoader() {
+    return classLoader;
+  }
 
-  private Map<String, Conversion<?>> conversions =
-      new HashMap<>();
+  private Map<String, Conversion<?>> conversions = new HashMap<>();
 
-  private Map<Class<?>, Map<String, Conversion<?>>> conversionsByClass =
-      new IdentityHashMap<>();
+  private Map<Class<?>, Map<String, Conversion<?>>> conversionsByClass = new IdentityHashMap<>();
+
+  public Collection<Conversion<?>> getConversions() {
+    return conversions.values();
+  }
 
   /**
    * Registers the given conversion to be used when reading and writing with
@@ -144,13 +154,12 @@ public class GenericData {
   /**
    * Returns the conversion for the given class and logical type.
    *
-   * @param datumClass a Class
+   * @param datumClass  a Class
    * @param logicalType a LogicalType
    * @return the conversion for the class and logical type, or null
    */
   @SuppressWarnings("unchecked")
-  public <T> Conversion<T> getConversionByClass(Class<T> datumClass,
-                                                LogicalType logicalType) {
+  public <T> Conversion<T> getConversionByClass(Class<T> datumClass, LogicalType logicalType) {
     Map<String, Conversion<?>> conversions = conversionsByClass.get(datumClass);
     if (conversions != null) {
       return (Conversion<T>) conversions.get(logicalType.getName());
@@ -172,17 +181,20 @@ public class GenericData {
     return (Conversion<Object>) conversions.get(logicalType.getName());
   }
 
-  /** Default implementation of {@link GenericRecord}. Note that this implementation
-   * does not fill in default values for fields if they are not specified; use {@link
-   * GenericRecordBuilder} in that case.
+  /**
+   * Default implementation of {@link GenericRecord}. Note that this
+   * implementation does not fill in default values for fields if they are not
+   * specified; use {@link GenericRecordBuilder} in that case.
+   *
    * @see GenericRecordBuilder
    */
   public static class Record implements GenericRecord, Comparable<Record> {
     private final Schema schema;
     private final Object[] values;
+
     public Record(Schema schema) {
       if (schema == null || !Type.RECORD.equals(schema.getType()))
-        throw new AvroRuntimeException("Not a record schema: "+schema);
+        throw new AvroRuntimeException("Not a record schema: " + schema);
       this.schema = schema;
       this.values = new Object[schema.getFields().size()];
     }
@@ -199,75 +211,125 @@ public class GenericData {
         System.arraycopy(other.values, 0, values, 0, other.values.length);
       }
     }
-    @Override public Schema getSchema() { return schema; }
-    @Override public void put(String key, Object value) {
+
+    @Override
+    public Schema getSchema() {
+      return schema;
+    }
+
+    @Override
+    public void put(String key, Object value) {
       Schema.Field field = schema.getField(key);
       if (field == null)
-        throw new AvroRuntimeException("Not a valid schema field: "+key);
+        throw new AvroRuntimeException("Not a valid schema field: " + key);
 
       values[field.pos()] = value;
     }
-    @Override public void put(int i, Object v) { values[i] = v; }
-    @Override public Object get(String key) {
+
+    @Override
+    public void put(int i, Object v) {
+      values[i] = v;
+    }
+
+    @Override
+    public Object get(String key) {
       Field field = schema.getField(key);
       if (field == null) {
         throw new IllegalArgumentException("Invalid field " + key);
       }
       return values[field.pos()];
     }
-    @Override public Object get(int i) { return values[i]; }
-    @Override public boolean equals(Object o) {
-      if (o == this) return true;                 // identical object
-      if (!(o instanceof Record)) return false;   // not a record
-      Record that = (Record)o;
+
+    @Override
+    public Object get(int i) {
+      return values[i];
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this)
+        return true; // identical object
+      if (!(o instanceof Record))
+        return false; // not a record
+      Record that = (Record) o;
       if (!this.schema.equals(that.schema))
         return false;                             // not the same schema
       return GenericData.get().compare(this, that, schema, true) == 0;
     }
-    @Override public int hashCode() {
+
+    @Override
+    public int hashCode() {
       return GenericData.get().hashCode(this, schema);
     }
-    @Override public int compareTo(Record that) {
+
+    @Override
+    public int compareTo(Record that) {
       return GenericData.get().compare(this, that, schema);
     }
-    @Override public String toString() {
+
+    @Override
+    public String toString() {
       return GenericData.get().toString(this);
     }
   }
 
   /** Default implementation of an array. */
-  @SuppressWarnings(value="unchecked")
-  public static class Array<T> extends AbstractList<T>
-    implements GenericArray<T>, Comparable<GenericArray<T>> {
+  @SuppressWarnings(value = "unchecked")
+  public static class Array<T> extends AbstractList<T> implements GenericArray<T>, Comparable<GenericArray<T>> {
     private static final Object[] EMPTY = new Object[0];
     private final Schema schema;
     private int size;
     private Object[] elements = EMPTY;
+
     public Array(int capacity, Schema schema) {
-      if (schema == null || Type.ARRAY != schema.getType())
-        throw new AvroRuntimeException("Not an array schema: "+schema);
+      if (schema == null || !Type.ARRAY.equals(schema.getType()))
+        throw new AvroRuntimeException("Not an array schema: " + schema);
       this.schema = schema;
       if (capacity != 0)
         elements = new Object[capacity];
     }
+
     public Array(Schema schema, Collection<T> c) {
-      if (schema == null || Type.ARRAY != schema.getType())
-        throw new AvroRuntimeException("Not an array schema: "+schema);
+      if (schema == null || !Type.ARRAY.equals(schema.getType()))
+        throw new AvroRuntimeException("Not an array schema: " + schema);
       this.schema = schema;
       if (c != null) {
         elements = new Object[c.size()];
         addAll(c);
       }
     }
+
     @Override
-    public Schema getSchema() { return schema; }
-    @Override public int size() { return size; }
-    @Override public void clear() {
+    public Schema getSchema() {
+      return schema;
+    }
+
+    @Override
+    public int size() {
+      return size;
+    }
+
+    @Override
+    public void clear() {
       // Let GC do its work
       Arrays.fill(elements, 0, size, null);
       size = 0;
     }
-    @Override public Iterator<T> iterator() {
+
+    @Override
+    public void reset() {
+      size = 0;
+    }
+
+    @Override
+    public void prune() {
+      if (size < elements.length) {
+        Arrays.fill(elements, size, elements.length, null);
+      }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
       return new Iterator<T>() {
         private int position = 0;
         @Override
