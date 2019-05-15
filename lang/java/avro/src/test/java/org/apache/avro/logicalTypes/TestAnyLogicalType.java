@@ -39,7 +39,9 @@ import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.reflect.ReflectDatumReader;
 import org.apache.avro.specific.SpecificRecord;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.base.avro.DebugDetail;
 import org.spf4j.base.avro.HealthRecord;
@@ -55,11 +57,12 @@ import org.spf4j.base.avro.jmx.MBeanAttributeInfo;
 public class TestAnyLogicalType {
 
 
-  static {
+  @BeforeClass
+  public static void init() {
    SchemaResolvers.registerDefault(new SchemaResolver() {
       @Override
       public Schema resolveSchema(String id) {
-        if ("org.spf4j.avro:core-schema:0.19:c".equals(id)) {
+        if (id.matches("org.spf4j.avro:core-schema:.*:c")) {
           return ServiceError.getClassSchema();
         } else {
           throw new UnsupportedOperationException();
@@ -71,6 +74,11 @@ public class TestAnyLogicalType {
         return schema.getProp("mvnId");
       }
     });
+  }
+
+  @AfterClass
+  public static void restore() {
+    SchemaResolvers.registerDefault(SchemaResolver.NONE);
   }
 
   @Test
