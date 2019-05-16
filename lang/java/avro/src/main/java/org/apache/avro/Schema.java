@@ -1704,7 +1704,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
         if (space == null) {
           space = names.space();
         }
-        name = new Name(getRequiredText(schema, "name", "No name in schema"),
+//        name = new Name(getRequiredText(schema, "name", "No name in schema"),
+//                        space);
+        name = new Name(getOptionalText(schema, "name"),
                         space);
         if (name.space != null) {                 // set default namespace
           names.space(name.space);
@@ -1716,7 +1718,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         result = create(prType);
       } else if (type.equals("record") || type.equals("error")) { // record
         result = new RecordSchema(name, doc, type.equals("error"));
-        if (name != null) names.add(result);
+        if (name != null && name.name != null) names.add(result);
         JsonNode fieldsNode = schema.get("fields");
         if (fieldsNode == null || !fieldsNode.isArray())
           throw new SchemaParseException("Record has no fields: "+schema);
