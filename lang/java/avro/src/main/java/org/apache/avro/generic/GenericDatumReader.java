@@ -23,7 +23,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
@@ -322,7 +321,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
    * #readString(Object,Decoder)}.*/
   protected Object readString(Object old, Schema expected,
                               Decoder in) throws IOException {
-    Class stringClass = getStringClass(expected);
+    Class stringClass = findStringClass(expected);
     if (stringClass == String.class)
       return in.readString();
     if (stringClass == CharSequence.class)
@@ -340,7 +339,9 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   /** Called to create a string from a default value.  Subclasses may override
    * to use a different string representation.  By default, this calls {@link
    * Utf8#Utf8(String)}.*/
-  protected Object createString(String value) { return new Utf8(value); }
+  protected Object createString(String value) {
+    return value;
+  }
 
   /** Determines the class to used to represent a string Schema.  By default
    * uses {@link GenericData#STRING_PROP} to determine whether {@link Utf8} or
@@ -349,10 +350,9 @@ public class GenericDatumReader<D> implements DatumReader<D> {
    */
   protected Class findStringClass(Schema schema) {
     String name = schema.getProp(GenericData.STRING_PROP);
-    if (name == null) return CharSequence.class;
-
-    switch (GenericData.StringType.valueOf(name)) {
-      case String:
+    if (name == null) return DEFAULT_STRING_CLASS;
+    switch (name) {
+      case "String":
         return String.class;
       default:
         return DEFAULT_STRING_CLASS;
@@ -370,17 +370,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     }
   }
 
-  private Map<Schema,Class> stringClassCache =
-    new IdentityHashMap<Schema,Class>();
-
-  private Class getStringClass(Schema s) {
-    Class c = stringClassCache.get(s);
-    if (c == null) {
-      c = findStringClass(s);
-      stringClassCache.put(s, c);
-    }
-    return c;
-  }
 
   private final Map<Class,Constructor> stringCtorCache =
     new HashMap<Class,Constructor>();
