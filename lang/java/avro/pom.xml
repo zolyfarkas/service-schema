@@ -182,7 +182,7 @@
     <dependency>
       <groupId>org.spf4j.avro</groupId>
       <artifactId>core-schema</artifactId>
-      <version>0.19-SNAPSHOT</version>
+      <version>0.19</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
