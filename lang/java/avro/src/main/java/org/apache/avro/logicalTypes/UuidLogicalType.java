@@ -25,8 +25,8 @@ import org.apache.avro.Schema;
  */
 public final class UuidLogicalType extends AbstractLogicalType<UUID> {
 
-  UuidLogicalType(Schema schema) {
-    super(schema.getType(), Collections.EMPTY_SET, "uuid",
+  UuidLogicalType(Schema.Type type) {
+    super(type, Collections.EMPTY_SET, "uuid",
             Collections.EMPTY_MAP, UUID.class);
   }
 

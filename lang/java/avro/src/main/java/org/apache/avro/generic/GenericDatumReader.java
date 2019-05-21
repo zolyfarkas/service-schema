@@ -25,10 +25,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.Conversion;
+import org.apache.avro.Conversions;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.Schema.Type;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
@@ -107,7 +108,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   /** Called to read data.*/
   protected Object read(Object old, Schema expected,
       ResolvingDecoder in) throws IOException {
-    Object result;
     LogicalType logicalType = expected.getLogicalType();
     if (logicalType != null) {
       Optional<Object> decoded = logicalType.tryDirectDecode(in, expected);
@@ -115,34 +115,80 @@ public class GenericDatumReader<D> implements DatumReader<D> {
         return decoded.get();
       }
     }
-    final Type type = expected.getType();
-    switch (type) {
-    case RECORD:  result = readRecord(old, expected, in); break;
-    case ENUM:    result = readEnum(expected, in); break;
-    case ARRAY:   result = readArray(old, expected, in); break;
-    case MAP:     result = readMap(old, expected, in); break;
-    case UNION:   result = read(old, expected.getTypes().get(in.readIndex()), in); break;
-    case FIXED:   result = readFixed(old, expected, in); break;
-    case STRING:  result = readString(old, expected, in); break;
-    case BYTES:   result = readBytes(old, expected, in); break;
-    case INT:     result = readInt(old, expected, in); break;
-    case LONG:    result = in.readLong(); break;
-    case FLOAT:   result = in.readFloat(); break;
-    case DOUBLE:  result = in.readDouble(); break;
-    case BOOLEAN: result = in.readBoolean(); break;
-    case NULL:    in.readNull(); result = null; break;
-    default: throw new AvroRuntimeException("Unknown type: " + expected);
-    }
+    Object result = readWithoutConversion(old, expected, in);
     if (logicalType != null) {
-      result = logicalType.deserialize(result);
+      Conversion<?> conversion = getData().getConversionFor(logicalType);
+      if (conversion != null) {
+        result = convert(result, expected, logicalType, conversion);
+      } else {
+        result = logicalType.deserialize(result);
+      }
     }
     return result;
   }
 
-  /** Called to read a record instance. May be overridden for alternate record
-   * representations.*/
-  protected Object readRecord(Object old, Schema expected,
-      ResolvingDecoder in) throws IOException {
+ protected Object readWithoutConversion(Object old, Schema expected, ResolvingDecoder in) throws IOException {
+    switch (expected.getType()) {
+    case RECORD:
+      return readRecord(old, expected, in);
+    case ENUM:
+      return readEnum(expected, in);
+    case ARRAY:
+      return readArray(old, expected, in);
+    case MAP:
+      return readMap(old, expected, in);
+    case UNION:
+      return read(old, expected.getTypes().get(in.readIndex()), in);
+    case FIXED:
+      return readFixed(old, expected, in);
+    case STRING:
+      return readString(old, expected, in);
+    case BYTES:
+      return readBytes(old, expected, in);
+    case INT:
+      return readInt(old, expected, in);
+    case LONG:
+      return in.readLong();
+    case FLOAT:
+      return in.readFloat();
+    case DOUBLE:
+      return in.readDouble();
+    case BOOLEAN:
+      return in.readBoolean();
+    case NULL:
+      in.readNull();
+      return null;
+    default:
+      throw new AvroRuntimeException("Unknown type: " + expected);
+    }
+ }
+
+
+
+  /**
+   * Convert a underlying representation of a logical type (such as a ByteBuffer)
+   * to a higher level object (such as a BigDecimal).
+   *
+   * @throws IllegalArgumentException if a null schema or logicalType is passed in
+   *                                  while datum and conversion are not null.
+   *                                  Please be noticed that the exception type
+   *                                  has changed. With version 1.8.0 and earlier,
+   *                                  in above circumstance, the exception thrown
+   *                                  out depends on the implementation of
+   *                                  conversion (most likely a
+   *                                  NullPointerException). Now, an
+   *                                  IllegalArgumentException will be thrown out
+   *                                  instead.
+   */
+  protected Object convert(Object datum, Schema schema, LogicalType type, Conversion<?> conversion) {
+    return Conversions.convertToLogicalType(datum, schema, type, conversion);
+  }
+
+  /**
+   * Called to read a record instance. May be overridden for alternate record
+   * representations.
+   */
+  protected Object readRecord(Object old, Schema expected, ResolvingDecoder in) throws IOException {
     Object r = data.newRecord(old, expected);
     Object state = data.getRecordState(r, expected);
 

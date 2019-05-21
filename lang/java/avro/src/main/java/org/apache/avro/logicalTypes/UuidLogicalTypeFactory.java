@@ -25,6 +25,13 @@ import org.apache.avro.Schema;
  */
 public class UuidLogicalTypeFactory implements LogicalTypeFactory {
 
+  private static final UuidLogicalType LT = new UuidLogicalType(Schema.Type.STRING);
+
+
+  public static final LogicalType uuid() {
+    return LT;
+  }
+
   @Override
   public String getLogicalTypeName() {
     return "uuid";
@@ -35,7 +42,7 @@ public class UuidLogicalTypeFactory implements LogicalTypeFactory {
     Schema.Type type = schema.getType();
     switch (type) {
       case STRING:
-          return new UuidLogicalType(schema);
+          return LT;
       default:
         throw new IllegalArgumentException("Unsupported schema for uuid " + schema);
     }

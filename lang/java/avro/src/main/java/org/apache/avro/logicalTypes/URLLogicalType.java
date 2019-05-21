@@ -27,8 +27,8 @@ import org.apache.avro.Schema;
  */
 public final class URLLogicalType extends AbstractLogicalType<URL> {
 
-  URLLogicalType(Schema schema) {
-    super(schema.getType(), Collections.EMPTY_SET, "url",
+  URLLogicalType(Schema.Type schemaType) {
+    super(schemaType, Collections.EMPTY_SET, "url",
             Collections.EMPTY_MAP, URL.class);
   }
 

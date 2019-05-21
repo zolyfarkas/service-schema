@@ -55,7 +55,9 @@ public interface LogicalType<T> {
    * @param object
    * @return
    */
-  T deserialize(Object object);
+  default T deserialize(Object object) {
+    return (T) object;
+  }
 
   /**
    * convert from logicalType to the avro type.
@@ -63,7 +65,9 @@ public interface LogicalType<T> {
    * @param object
    * @return
    */
-  Object serialize(T object);
+  default Object serialize(T object) {
+    return object;
+  }
 
   /**
    * @param object
@@ -89,9 +93,11 @@ public interface LogicalType<T> {
     return getName();
   }
 
-  default void addToSchema(Schema schema) {
+  default Schema addToSchema(Schema schema) {
     validate(schema);
+    schema.addProp(LOGICAL_TYPE_PROP, getName());
     schema.setLogicalType(this);
+    return schema;
   }
 
   default void validate(Schema schema) {

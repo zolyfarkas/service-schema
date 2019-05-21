@@ -23,7 +23,10 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
+import org.apache.avro.Conversion;
+import org.apache.avro.Conversions;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -69,40 +72,117 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
   /** Called to write data.*/
   protected void write(Schema schema, Object datum, Encoder out)
     throws IOException {
-    try {
       LogicalType lType = schema.getLogicalType();
       if (lType != null) {
           if (lType.tryDirectEncode(datum, out, schema)) {
             return;
           } else {
-            datum = lType.serialize(datum);
+            Conversion<?> conversion = getData().getConversionByClass(datum.getClass(), lType);
+            if (conversion != null) {
+              datum = convert(schema, lType, conversion, datum);
+            } else {
+              datum = lType.serialize(datum);
+            }
           }
       }
+      writeWithoutConversion(schema, datum, out);
+  }
+
+  /**
+   * Convert a high level representation of a logical type (such as a BigDecimal)
+   * to the its underlying representation object (such as a ByteBuffer).
+   *
+   * @throws IllegalArgumentException if a null schema or logicalType is passed in
+   *                                  while datum and conversion are not null.
+   *                                  Please be noticed that the exception type
+   *                                  has changed. With version 1.8.0 and earlier,
+   *                                  in above circumstance, the exception thrown
+   *                                  out depends on the implementation of
+   *                                  conversion (most likely a
+   *                                  NullPointerException). Now, an
+   *                                  IllegalArgumentException will be thrown out
+   *                                  instead.
+   */
+  protected <T> Object convert(Schema schema, LogicalType logicalType, Conversion<T> conversion, Object datum) {
+    try {
+      if (conversion == null) {
+        return datum;
+      } else {
+        return Conversions.convertToRawType(datum, schema, logicalType, conversion);
+      }
+    } catch (AvroRuntimeException e) {
+      Throwable cause = e.getCause();
+      if (cause != null && cause.getClass() == ClassCastException.class) {
+        // This is to keep backwards compatibility. The convert function here used to
+        // throw CCE. After being moved to Conversions, it throws AvroRuntimeException
+        // instead. To keep as much same behaviour as before, this function checks if
+        // the cause is a CCE. If yes, rethrow it in case any child class checks it.
+        // This
+        // behaviour can be changed later in future versions to make it consistent with
+        // reading path, which throws AvroRuntimeException
+        throw (ClassCastException) cause;
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  /** Called to write data. */
+  protected void writeWithoutConversion(Schema schema, Object datum, Encoder out) throws IOException {
+    try {
       switch (schema.getType()) {
-      case RECORD: writeRecord(schema, datum, out); break;
-      case ENUM:   writeEnum(schema, datum, out);   break;
-      case ARRAY:  writeArray(schema, datum, out);  break;
-      case MAP:    writeMap(schema, datum, out);    break;
+      case RECORD:
+        writeRecord(schema, datum, out);
+        break;
+      case ENUM:
+        writeEnum(schema, datum, out);
+        break;
+      case ARRAY:
+        writeArray(schema, datum, out);
+        break;
+      case MAP:
+        writeMap(schema, datum, out);
+        break;
       case UNION:
         int index = resolveUnion(schema, datum);
         out.writeIndex(index);
         write(schema.getTypes().get(index), datum, out);
         break;
-      case FIXED:   writeFixed(schema, datum, out);   break;
-      case STRING:  writeString(schema, datum, out);  break;
-      case BYTES:   writeBytes(datum, out);           break;
-      case INT:     out.writeInt(((Number)datum).intValue()); break;
-      case LONG:    out.writeLong(((Number)datum).longValue());       break;
-      case FLOAT:   out.writeFloat(((Number)datum).floatValue());     break;
-      case DOUBLE:  out.writeDouble(((Number)datum).doubleValue());   break;
-      case BOOLEAN: out.writeBoolean((Boolean)datum); break;
-      case NULL:    out.writeNull();                  break;
-      default: error(schema,datum);
+      case FIXED:
+        writeFixed(schema, datum, out);
+        break;
+      case STRING:
+        writeString(schema, datum, out);
+        break;
+      case BYTES:
+        writeBytes(datum, out);
+        break;
+      case INT:
+        out.writeInt(((Number) datum).intValue());
+        break;
+      case LONG:
+        out.writeLong(((Number) datum).longValue());
+        break;
+      case FLOAT:
+        out.writeFloat(((Number) datum).floatValue());
+        break;
+      case DOUBLE:
+        out.writeDouble(((Number) datum).doubleValue());
+        break;
+      case BOOLEAN:
+        out.writeBoolean((Boolean) datum);
+        break;
+      case NULL:
+        out.writeNull();
+        break;
+      default:
+        error(schema, datum);
       }
     } catch (NullPointerException e) {
-      throw npe(e, " of "+schema.getFullName());
+      throw npe(e, " of " + schema.getFullName());
     }
   }
+
 
   /** Helper method for adding a message to an NPE. */
   protected NullPointerException npe(NullPointerException e, String s) {

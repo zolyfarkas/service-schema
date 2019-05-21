@@ -27,8 +27,8 @@ import org.apache.avro.Schema;
  */
 public final class URILogicalType extends AbstractLogicalType<URI> {
 
-  URILogicalType(Schema schema) {
-    super(schema.getType(), Collections.EMPTY_SET, "uri",
+  URILogicalType(Schema.Type schemaType) {
+    super(schemaType, Collections.EMPTY_SET, "uri",
             Collections.EMPTY_MAP, URI.class);
   }
 

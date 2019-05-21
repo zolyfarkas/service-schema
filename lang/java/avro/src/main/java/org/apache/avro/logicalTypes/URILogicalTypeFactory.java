@@ -25,6 +25,12 @@ import org.apache.avro.Schema;
  */
 public class URILogicalTypeFactory implements LogicalTypeFactory {
 
+  private static final URILogicalType LT = new URILogicalType(Schema.Type.STRING);
+
+  public static LogicalType uri() {
+    return LT;
+  }
+
   @Override
   public String getLogicalTypeName() {
     return "uri";
@@ -35,7 +41,7 @@ public class URILogicalTypeFactory implements LogicalTypeFactory {
     Schema.Type type = schema.getType();
     switch (type) {
       case STRING:
-          return new URILogicalType(schema);
+          return LT;
       default:
         throw new IllegalArgumentException("Unsupported schema for URL " + schema);
     }

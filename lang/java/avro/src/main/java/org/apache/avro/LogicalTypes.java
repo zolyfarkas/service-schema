@@ -74,6 +74,10 @@ public class LogicalTypes {
      Logger.getLogger("avro.LogicalTypes").log(Level.FINE, "LogicalTypes loaded {0}", REGISTERED_TYPES.keySet());
   }
 
+  public static LogicalType uuid() {
+    return UuidLogicalTypeFactory.uuid();
+  }
+
   /**
    * factory for avro official compatibility.
    */
