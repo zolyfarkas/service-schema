@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
+import javax.annotation.Nullable;
 import org.apache.avro.AvroMissingFieldException;
 
 import org.apache.avro.AvroRuntimeException;
@@ -159,6 +160,7 @@ public class GenericData {
    * @return the conversion for the class and logical type, or null
    */
   @SuppressWarnings("unchecked")
+  @Nullable
   public <T> Conversion<T> getConversionByClass(Class<T> datumClass, LogicalType logicalType) {
     Map<String, Conversion<?>> conversions = conversionsByClass.get(datumClass);
     if (conversions != null) {
