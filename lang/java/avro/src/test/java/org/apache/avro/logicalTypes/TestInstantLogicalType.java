@@ -20,6 +20,7 @@ import java.io.StringReader;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.apache.avro.AvroUtils;
+import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
@@ -142,6 +143,71 @@ public class TestInstantLogicalType {
     Assert.assertEquals(record.toString(), back.toString());
 
   }
+
+ @Test
+  public void testTSMillisRecord1() throws IOException {
+    Schema anyRecord = Schema.create(Schema.Type.LONG);
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "timestamp-millis");
+    LogicalType lt = LogicalTypes.fromSchema(anyRecord);
+    anyRecord.setLogicalType(lt);
+
+    Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
+            .name("instant").type(anyRecord)
+            .noDefault()
+            .endRecord();
+    GenericData.Record record = new GenericData.Record(testSchema);
+    record.put("instant", Instant.now().toEpochMilli());
+      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
+    Assert.assertEquals(record.toString(), back.toString());
+
+  }
+
+
+ @Test
+  public void testTSMillisRecord4() throws IOException {
+    Schema anyRecord = Schema.create(Schema.Type.LONG);
+    anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "timestamp-millis");
+    LogicalType lt = LogicalTypes.fromSchema(anyRecord);
+    anyRecord.setLogicalType(lt);
+
+    GenericData.get().addLogicalTypeConversion(new Conversion<Instant> () {
+      @Override
+      public Class<Instant> getConvertedType() {
+        return Instant.class;
+      }
+
+      @Override
+      public String getLogicalTypeName() {
+        return "timestamp-millis";
+      }
+
+      @Override
+      public Long toLong(Instant value, Schema schema, LogicalType type) {
+        return value.toEpochMilli();
+      }
+
+      @Override
+      public Instant fromLong(Long value, Schema schema, LogicalType type) {
+        return Instant.ofEpochMilli(value);
+      }
+
+    });
+
+    Schema testSchema = SchemaBuilder.builder().record("test_record").fields()
+            .name("instant").type(anyRecord)
+            .noDefault()
+            .endRecord();
+    GenericData.Record record = new GenericData.Record(testSchema);
+    record.put("instant", Instant.now().truncatedTo(ChronoUnit.MILLIS));
+      String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
+    System.out.println(writeAvroExtendedJson);
+    GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
+    Assert.assertEquals(record.toString(), back.toString());
+
+  }
+
 
 
 
