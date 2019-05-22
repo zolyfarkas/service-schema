@@ -114,17 +114,17 @@ public class GenericDatumReader<D> implements DatumReader<D> {
       if (decoded.isPresent()) {
         return decoded.get();
       }
-    }
-    Object result = readWithoutConversion(old, expected, in);
-    if (logicalType != null) {
+      Object result = readWithoutConversion(old, expected, in);
       Conversion<?> conversion = getData().getConversionFor(logicalType);
       if (conversion != null) {
         result = convert(result, expected, logicalType, conversion);
       } else {
         result = logicalType.deserialize(result);
       }
+      return result;
+    } else {
+      return readWithoutConversion(old, expected, in);
     }
-    return result;
   }
 
  protected Object readWithoutConversion(Object old, Schema expected, ResolvingDecoder in) throws IOException {
