@@ -246,7 +246,7 @@ public class TestSchema {
           new GenericData.EnumSymbol(Schema.parse(BASIC_ENUM_SCHEMA), "B"),
           false);
     checkParseError("{\"type\":\"enum\"}");        // symbols required
-    checkParseError("{\"type\":\"enum\",\"symbols\": [\"X\"]}"); // name reqd
+//    checkParseError("{\"type\":\"enum\",\"symbols\": [\"X\"]}"); // why not anonymous Enum
     // check no duplicate symbols
     checkParseError("{\"type\":\"enum\",\"name\":\"X\",\"symbols\":[\"X\",\"X\"]}");
     // check no invalid symbols
