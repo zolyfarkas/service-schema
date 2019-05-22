@@ -106,7 +106,7 @@ the ExtendedJsonEncoder will serialize:
  
 for
 ```
-@logicalType("jsonRecord") string field = "{}";
+@logicalType("json_record") string field = "{}";
 ```
 Avro JsonEncoder will serialize:
 ```
