@@ -101,19 +101,6 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
     return Symbol.root(generate(r, new HashMap<>()));
   }
 
-  /**
-   * Takes a {@link Resolver.Action} for resolving two schemas and returns the
-   * start symbol for a grammar that implements that resolution. If the action is
-   * for a record and there's already a symbol for that record in <tt>seen</tt>,
-   * then that symbol is returned. Otherwise a new symbol is generated and
-   * returned.
-   *
-   * @param action The resolver to be implemented
-   * @param seen   The &lt;Action&gt; to symbol map of start symbols of resolving
-   *               grammars so far.
-   * @return          The start symbol for the resolving grammar
-   * @throws IOException
-   */
  /**
    * Takes a {@link Resolver.Action} for resolving two schemas and returns the
    * start symbol for a grammar that implements that resolution. If the action is
@@ -162,8 +149,7 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       }
       return Symbol.seq(Symbol.alt(symbols, labels), Symbol.WRITER_UNION_ACTION);
 
-    }
-    if (action instanceof Resolver.ReaderUnion) {
+    } else if (action instanceof Resolver.ReaderUnion) {
       Resolver.ReaderUnion ru = (Resolver.ReaderUnion) action;
       Symbol s = generate(ru.actualAction, seen);
       return Symbol.seq(Symbol.unionAdjustAction(ru.firstMatch, s), Symbol.UNION);
