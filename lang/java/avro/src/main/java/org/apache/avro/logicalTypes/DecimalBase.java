@@ -112,14 +112,18 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
     } else {
       result = doDeserialize(object);
     }
+    return readScale(result);
+  }
+
+  private BigDecimal readScale(BigDecimal result) throws AvroRuntimeException {
     result = result.stripTrailingZeros(); // reduce precission if possible.
     if (result.precision() > precision) {
       if (deserRm != null) {
         result = result.round(deserRm);
       } else {
-          throw new AvroRuntimeException("Received Decimal " + object + " is not compatible with precision " + precision
+        throw new AvroRuntimeException("Received Decimal " + result + " is not compatible with precision " + precision
                 + " if you desire rounding, you can annotate type with @deserRounding(\"HALF_UP\") or "
-                + "set the system property avro.decimal.defaultDeserRounding=HALF_UP ");
+                        + "set the system property avro.decimal.defaultDeserRounding=HALF_UP ");
       }
     }
     return result;
@@ -130,6 +134,10 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
 
   @Override
   public Object serialize(BigDecimal decimal) {
+    return doSerialize(writeScale(decimal));
+  }
+
+  private BigDecimal writeScale(BigDecimal decimal) throws UnsupportedOperationException {
     if (SET_SCALE_WHEN_SERIALIZING && scale != null) {
       if (serRm != null) {
         decimal = decimal.setScale(scale, serRm.getRoundingMode());
@@ -141,13 +149,13 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
     if (decimal.precision() > precision) {
       throw new UnsupportedOperationException("Decimal " + decimal + " exceeds precision " + precision);
     }
-    return doSerialize(decimal);
+    return decimal;
   }
 
   @Override
   public Optional<BigDecimal> tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
-      return Optional.of(((JsonExtensionDecoder) dec).readBigDecimal(schema));
+      return Optional.of(readScale(((JsonExtensionDecoder) dec).readBigDecimal(schema)));
     } else {
       return Optional.empty();
     }
@@ -156,7 +164,7 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
   @Override
   public boolean tryDirectEncode(BigDecimal object, Encoder enc, final Schema schema) throws IOException {
     if (DecimalEncoder.OPTIMIZED_JSON_DECIMAL_WRITE && enc instanceof JsonExtensionEncoder) {
-      ((JsonExtensionEncoder) enc).writeDecimal(object, schema);
+      ((JsonExtensionEncoder) enc).writeDecimal(writeScale(object), schema);
       return true;
     } else {
       return false;
