@@ -18,7 +18,6 @@
 package org.apache.avro.generic;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -51,12 +50,10 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.UnresolvedUnionException;
 import org.apache.avro.io.BinaryData;
-import org.apache.avro.io.BinaryDecoder;
-import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
-import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.io.ExtendedJsonDecoder;
+import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.util.Utf8;
 import org.apache.avro.util.internal.Accessor;
 
@@ -1099,8 +1096,9 @@ public class GenericData {
     JsonNode json = Accessor.defaultValue(field);
     if (json == null)
       throw new AvroMissingFieldException("Field " + field + " not set and has no default value", field);
-    if (json.isNull() && (field.schema().getType() == Type.NULL
-        || (field.schema().getType() == Type.UNION && field.schema().getTypes().get(0).getType() == Type.NULL))) {
+    Schema schema = field.schema();
+    if (json.isNull() && (schema.getType() == Type.NULL
+        || (schema.getType() == Type.UNION && schema.getTypes().get(0).getType() == Type.NULL))) {
       return null;
     }
 
@@ -1111,13 +1109,22 @@ public class GenericData {
     // value and then decoding it:
     if (defaultValue == null)
       try {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(baos, null);
-        Accessor.encode(encoder, field.schema(), json);
-        encoder.flush();
-        BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(baos.toByteArray(), null);
-        defaultValue = createDatumReader(field.schema()).read(null, decoder);
-
+        try {
+          if (schema.getType() == Type.UNION) {
+            schema = schema.getTypes().get(0);
+          }
+          JsonDecoder decoder = new JsonDecoder(schema, json.traverse(Schema.MAPPER));
+          defaultValue = createDatumReader(schema).read(null, decoder);
+        } catch (RuntimeException ex) {
+          // try the extended JSON decoder.
+          try {
+            JsonDecoder decoder = new ExtendedJsonDecoder(schema, json.traverse(Schema.MAPPER), false);
+            defaultValue = createDatumReader(schema).read(null, decoder);
+          } catch (RuntimeException ex2) {
+            ex2.addSuppressed(ex);
+            throw ex2;
+          }
+        }
         // this MAY result in two threads creating the same defaultValue
         // and calling put. The last thread will win. However,
         // that's not an issue.
