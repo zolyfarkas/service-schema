@@ -85,7 +85,7 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     if (null == out)
       throw new NullPointerException("OutputStream cannot be null");
     JsonGenerator g
-      = Schema.FACTORY.createJsonGenerator(out, JsonEncoding.UTF8);
+      = Schema.FACTORY.createGenerator(out, JsonEncoding.UTF8);
     if (pretty) {
       DefaultPrettyPrinter pp = new DefaultPrettyPrinter() {
         //@Override
