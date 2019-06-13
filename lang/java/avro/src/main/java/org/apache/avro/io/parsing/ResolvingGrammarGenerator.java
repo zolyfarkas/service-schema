@@ -77,12 +77,24 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
 
 
   private static class Cache {
+
     private static final ConcurrentMap<RWSchemas, Symbol> ROOT_SYMBOL_CACHE
             = new ConcurrentHashMap<>(16);
+    private static final ThreadLocal<Boolean> COMPUTING = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private static Symbol getCachedSymbol(final Schema writer, final Schema reader) {
+      if (COMPUTING.get()) {
+        return ResolvingGrammarGenerator.create(writer, reader);
+      }
       return ROOT_SYMBOL_CACHE.computeIfAbsent(new RWSchemas(writer, reader),
-              (x) ->  ResolvingGrammarGenerator.create(x.getWriter(), x.getReader()));
+              (x) -> {
+                COMPUTING.set(Boolean.TRUE);
+                try {
+                  return ResolvingGrammarGenerator.create(x.getWriter(), x.getReader());
+                } finally {
+                  COMPUTING.set(Boolean.FALSE);
+                }
+              });
     }
 
   }
