@@ -182,6 +182,16 @@ public final class AvroUtils {
     return reader.read(null, decoder);
   }
 
+  public static Object readAvroBin(final InputStream input,
+          final Schema writerSchema, final Schema readerSchema)
+          throws IOException {
+    DatumReader reader = new GenericDatumReader(writerSchema, readerSchema);
+    DecoderFactory decoderFactory = DecoderFactory.get();
+    Decoder decoder = decoderFactory.binaryDecoder(input, null);
+    return reader.read(null, decoder);
+  }
+
+
   public static byte[] writeAvroJson(final SpecificRecord req) {
     ByteArrayOutputStream bos = new ByteArrayOutputStream(128);
     try {
