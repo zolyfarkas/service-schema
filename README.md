@@ -7,7 +7,7 @@ Learn more about Avro, please visit our website at:
 
 ## Overview
 
-  * 1.9.0.1p - latest version, based on jackson 2.9+
+  * 1.9.0.11p - latest version, based on jackson 2.9+
   * 1.8.1.50p - latest version, based on jackson 1.9
 
  This fork, contains numerous fixes, and featured not implement (but reported) in the original project.
@@ -48,7 +48,7 @@ This fork is published to bintray, and you can use it by adding the repositories
             <dependency>
               <groupId>org.apache.avro</groupId>
               <artifactId>avro</artifactId>
-              <version>1.8.1.48p</version>
+              <version>1.9.0.11p</version>
               <type>pom</type>
             </dependency>
 
@@ -159,6 +159,7 @@ will serialize in json to:
 ## Examples for above  in action:
 
  * [fred-schema](https://github.com/zolyfarkas/fred-schema)
+ * [quandl-schema](https://github.com/zolyfarkas/quandl-schema)
  * [core-schema](https://github.com/zolyfarkas/core-schema)
  * [generic examples](https://github.com/zolyfarkas/avro-schema-examples)
 
