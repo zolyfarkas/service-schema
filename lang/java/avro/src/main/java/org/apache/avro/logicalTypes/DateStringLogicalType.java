@@ -21,7 +21,7 @@ import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 
 /**
- * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ * Date representation as String with format "YYYY-mm-dd".
  */
 public final class DateStringLogicalType extends AbstractLogicalType<LocalDate> {
 

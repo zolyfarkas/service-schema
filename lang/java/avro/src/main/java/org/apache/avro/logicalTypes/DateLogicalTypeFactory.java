@@ -39,7 +39,12 @@ public class DateLogicalTypeFactory implements LogicalTypeFactory {
       case LONG:
         return new DateLongLogicalType(schema);
       case INT:
-        return new DateIntLogicalType(schema);
+        Object objectProp = schema.getObjectProp("ymd");
+        if (objectProp != null) {
+          return new DateIntYMDLogicalType(schema);
+        } else {
+          return new DateIntLogicalType(schema);
+        }
       case RECORD:
           return new DateRecordLogicalType(schema);
       default:

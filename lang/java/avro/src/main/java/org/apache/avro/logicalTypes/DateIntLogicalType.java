@@ -21,7 +21,7 @@ import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 
 /**
- * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ * Date representation, representing the number of days since epoch.
  */
 public final class DateIntLogicalType extends AbstractLogicalType<LocalDate> {
 

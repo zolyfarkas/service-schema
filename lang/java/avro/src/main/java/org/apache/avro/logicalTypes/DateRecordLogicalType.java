@@ -23,7 +23,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 
 /**
- * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ * Date representation as  record with fields: year, month day.
  */
 public final class DateRecordLogicalType extends AbstractLogicalType<LocalDate> {
 

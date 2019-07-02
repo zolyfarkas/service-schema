@@ -17,28 +17,39 @@ package org.apache.avro.logicalTypes;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 
 /**
- * Data represented as number of days since epoch.
+ * Data represented as number like YYYYmmdd.
  */
-public final class DateLongLogicalType extends AbstractLogicalType<LocalDate> {
+public final class DateIntYMDLogicalType extends AbstractLogicalType<LocalDate> {
 
-  DateLongLogicalType(Schema schema) {
+  private static final Map<String, Object> ATTR = new HashMap<>(2);
+
+  static {
+    ATTR.put("ymd", Boolean.TRUE);
+  }
+
+  DateIntYMDLogicalType(Schema schema) {
     super(schema.getType(), Collections.EMPTY_SET, "date",
-            Collections.EMPTY_MAP, LocalDate.class);
+            ATTR, LocalDate.class);
   }
 
   @Override
   public LocalDate deserialize(Object object) {
-    long val = ((Number) object).longValue();
-    return LocalDate.ofEpochDay(val);
+    int val = ((Number) object).intValue();
+    int day = val % 100;
+    int month = val % 10000 / 100;
+    int year = val / 10000;
+    return LocalDate.of(year, month, day);
   }
 
   @Override
   public Object serialize(LocalDate temporal) {
-    return  temporal.toEpochDay();
+    return temporal.getYear() * 10000 + temporal.getMonthValue() * 100 + temporal.getDayOfMonth();
   }
 
 }

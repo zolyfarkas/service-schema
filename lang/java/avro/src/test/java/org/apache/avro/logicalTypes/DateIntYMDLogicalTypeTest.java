@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 The Apache Software Foundation.
+ * Copyright 2019 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,23 @@
 package org.apache.avro.logicalTypes;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import org.apache.avro.AbstractLogicalType;
+import org.junit.Assert;
 import org.apache.avro.Schema;
+import org.junit.Test;
 
 /**
- * Data represented as number of days since epoch.
+ *
+ * @author Zoltan Farkas
  */
-public final class DateLongLogicalType extends AbstractLogicalType<LocalDate> {
+public class DateIntYMDLogicalTypeTest {
 
-  DateLongLogicalType(Schema schema) {
-    super(schema.getType(), Collections.EMPTY_SET, "date",
-            Collections.EMPTY_MAP, LocalDate.class);
-  }
-
-  @Override
-  public LocalDate deserialize(Object object) {
-    long val = ((Number) object).longValue();
-    return LocalDate.ofEpochDay(val);
-  }
-
-  @Override
-  public Object serialize(LocalDate temporal) {
-    return  temporal.toEpochDay();
+  @Test
+  public void testSerDeser() {
+    DateIntLogicalType dateIntLogicalType = new DateIntLogicalType(Schema.create(Schema.Type.INT));
+    LocalDate now = LocalDate.now();
+    Integer nr = (Integer) dateIntLogicalType.serialize(now);
+    LocalDate deserialize = dateIntLogicalType.deserialize(nr);
+    Assert.assertEquals(now, deserialize);
   }
 
 }
