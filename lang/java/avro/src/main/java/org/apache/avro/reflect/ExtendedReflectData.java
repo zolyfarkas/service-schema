@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.JsonProperties;
@@ -48,6 +50,8 @@ public class ExtendedReflectData extends ReflectData {
       try {
         return createSchema(t, new HashMap<>());
       } catch (RuntimeException ex) {
+        Logger.getLogger(ExtendedReflectData.class.getName())
+                .log(Level.FINE, "Unable to create schema for " + type, ex);
         return NONE;
       }
     });
