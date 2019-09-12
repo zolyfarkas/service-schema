@@ -42,12 +42,17 @@ public class NullableAnnotationsGenerator implements JavaAnnotationsGenerator {
         return Collections.singleton("javax.annotation.ParametersAreNonnullByDefault");
       case CONSTRUCTOR_ARG:
       case SETTER_ARG:
-      case GETTER:
       case FIELD:
         if (isNullable(schema)) {
           return Collections.singleton("javax.annotation.Nullable");
         } else {
           return Collections.EMPTY_SET;
+        }
+      case GETTER:
+        if (isNullable(schema)) {
+          return Collections.singleton("javax.annotation.Nullable");
+        } else {
+          return Collections.singleton("javax.annotation.Nonnull");
         }
       default:
         return Collections.EMPTY_SET;
