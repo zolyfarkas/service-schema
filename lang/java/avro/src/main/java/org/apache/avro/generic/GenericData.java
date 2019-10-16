@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.AvroMissingFieldException;
 
@@ -191,16 +192,18 @@ public class GenericData {
     private final Schema schema;
     private final Object[] values;
 
-    public Record(Schema schema) {
-      if (schema == null || !Type.RECORD.equals(schema.getType()))
+    public Record(@Nonnull Schema schema) {
+      if (Type.RECORD != schema.getType()) {
         throw new AvroRuntimeException("Not a record schema: " + schema);
+      }
       this.schema = schema;
       this.values = new Object[schema.getFields().size()];
     }
-    
-    public Record(Schema schema, Object[] values) {
-      if (schema == null || !Type.RECORD.equals(schema.getType()))
+
+    public Record(@Nonnull Schema schema, @Nonnull Object[] values) {
+      if (Type.RECORD != schema.getType()) {
         throw new AvroRuntimeException("Not a record schema: " + schema);
+      }
       this.schema = schema;
       this.values = values;
     }
@@ -213,8 +216,7 @@ public class GenericData {
         for (int ii = 0; ii < values.length; ii++) {
           values[ii] = INSTANCE.deepCopy(fields.get(ii).schema(), other.values[ii]);
         }
-      }
-      else {
+      } else {
         System.arraycopy(other.values, 0, values, 0, other.values.length);
       }
     }
