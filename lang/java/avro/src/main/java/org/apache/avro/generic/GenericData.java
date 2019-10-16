@@ -197,6 +197,14 @@ public class GenericData {
       this.schema = schema;
       this.values = new Object[schema.getFields().size()];
     }
+    
+    public Record(Schema schema, Object[] values) {
+      if (schema == null || !Type.RECORD.equals(schema.getType()))
+        throw new AvroRuntimeException("Not a record schema: " + schema);
+      this.schema = schema;
+      this.values = values;
+    }
+
     public Record(Record other, boolean deepCopy) {
       schema = other.schema;
       List<Field> fields = schema.getFields();
