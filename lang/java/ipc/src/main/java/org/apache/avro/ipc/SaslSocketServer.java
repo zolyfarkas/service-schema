@@ -27,13 +27,10 @@ import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslException;
 import javax.security.auth.callback.CallbackHandler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** A {@link Server} that uses {@link javax.security.sasl} for authentication
  * and encryption. */
 public class SaslSocketServer extends SocketServer {
-  private static final Logger LOG = LoggerFactory.getLogger(SaslServer.class);
 
   private static abstract class SaslServerFactory {
     protected abstract SaslServer getServer() throws SaslException;

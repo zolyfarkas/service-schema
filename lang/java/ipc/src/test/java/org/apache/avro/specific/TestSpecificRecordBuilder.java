@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Foo;
@@ -232,12 +232,12 @@ public class TestSpecificRecordBuilder {
     long startTimeNanos = System.nanoTime();
     for (int ii = 0; ii < count; ii++) {
       Person person = new Person();
-      person.name = "James Gosling";
-      person.year_of_birth = 1955;
-      person.state = "CA";
-      person.country = "US";
-      person.friends = friends;
-      person.languages = languages;
+      person.setName("James Gosling");
+      person.setYearOfBirth(1955);
+      person.setState("CA");
+      person.setCountry("US");
+      person.setFriends(friends);
+      person.setLanguages(languages);
     }
     long durationNanos = System.nanoTime() - startTimeNanos;
     double durationMillis = durationNanos / 1e6d;

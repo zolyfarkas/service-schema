@@ -105,8 +105,8 @@ public class TestWordCount {
     @Override
     protected void map(AvroKey<TextStats> record, NullWritable ignore, Context context)
         throws IOException, InterruptedException {
-      mCount.set(record.datum().count);
-      mText.set(record.datum().name.toString());
+      mCount.set(record.datum().getCount());
+      mText.set(record.datum().getName().toString());
       context.write(mText, mCount);
     }
   }
@@ -181,11 +181,11 @@ public class TestWordCount {
     protected void reduce(Text line, Iterable<IntWritable> counts, Context context)
         throws IOException, InterruptedException {
       TextStats record = new TextStats();
-      record.count = 0;
+      record.setCount(0);
       for (IntWritable count : counts) {
-        record.count += count.get();
+        record.setCount(record.getCount() + count.get());
       }
-      record.name = line.toString();
+      record.setName(line.toString());
       mStats.datum(record);
       context.write(mStats, NullWritable.get());
     }
@@ -303,7 +303,7 @@ public class TestWordCount {
         new SpecificDatumReader<TextStats>());
     Map<String, Integer> counts = new HashMap<String, Integer>();
     for (TextStats record : reader) {
-      counts.put(record.name.toString(), record.count);
+      counts.put(record.getName().toString(), record.getCount());
     }
     reader.close();
 
@@ -384,7 +384,7 @@ public class TestWordCount {
         new SpecificDatumReader<TextStats>());
     Map<String, Integer> counts = new HashMap<String, Integer>();
     for (TextStats record : reader) {
-      counts.put(record.name.toString(), record.count);
+      counts.put(record.getName().toString(), record.getCount());
     }
     reader.close();
 
@@ -465,7 +465,7 @@ public class TestWordCount {
         new SpecificDatumReader<TextStats>());
     Map<String, Integer> counts = new HashMap<String, Integer>();
     for (TextStats record : reader) {
-      counts.put(record.name.toString(), record.count);
+      counts.put(record.getName().toString(), record.getCount());
     }
     reader.close();
 

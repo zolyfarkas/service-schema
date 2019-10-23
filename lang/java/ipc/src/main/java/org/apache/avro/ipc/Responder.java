@@ -218,22 +218,22 @@ public abstract class Responder {
     if (connection != null && connection.isConnected())
       return connection.getRemote();
     HandshakeRequest request = (HandshakeRequest)handshakeReader.read(null, in);
-    Protocol remote = protocols.get(request.clientHash);
-    if (remote == null && request.clientProtocol != null) {
-      remote = Protocol.parse(request.clientProtocol.toString());
-      protocols.put(request.clientHash, remote);
+    Protocol remote = protocols.get(request.getClientHash());
+    if (remote == null && request.getClientProtocol() != null) {
+      remote = Protocol.parse(request.getClientProtocol().toString());
+      protocols.put(request.getClientHash(), remote);
     }
     HandshakeResponse response = new HandshakeResponse();
-    if (localHash.equals(request.serverHash)) {
-      response.match =
-        remote == null ? HandshakeMatch.NONE : HandshakeMatch.BOTH;
+    if (localHash.equals(request.getServerHash())) {
+      response.setMatch(
+        remote == null ? HandshakeMatch.NONE : HandshakeMatch.BOTH);
     } else {
-      response.match =
-        remote == null ? HandshakeMatch.NONE : HandshakeMatch.CLIENT;
+      response.setMatch(
+        remote == null ? HandshakeMatch.NONE : HandshakeMatch.CLIENT);
     }
-    if (response.match != HandshakeMatch.BOTH) {
-      response.serverProtocol = local.toString();
-      response.serverHash = localHash;
+    if (response.getMatch() != HandshakeMatch.BOTH) {
+      response.setServerProtocol(local.toString());
+      response.setServerHash(localHash);
     }
 
     RPCContext context = new RPCContext();
@@ -244,7 +244,7 @@ public abstract class Responder {
     }
     handshakeWriter.write(response, out);
 
-    if (connection != null && response.match != HandshakeMatch.NONE)
+    if (connection != null && response.getMatch() != HandshakeMatch.NONE)
       connection.setRemote(remote);
 
     return remote;
