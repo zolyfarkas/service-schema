@@ -48,7 +48,7 @@ import org.junit.Test;
 
 public class TestGenericData {
 
-  @Test(expected=AvroRuntimeException.class)
+  @Test(expected=NullPointerException.class)
     public void testrecordConstructorNullSchema() throws Exception {
     new GenericData.Record(null);
   }
