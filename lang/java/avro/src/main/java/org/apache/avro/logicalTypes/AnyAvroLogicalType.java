@@ -149,8 +149,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
-    String strSchema = sw.toString();
-    return strSchema;
+    return sw.toString();
   }
 
   @Override
