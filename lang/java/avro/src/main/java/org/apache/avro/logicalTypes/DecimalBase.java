@@ -83,6 +83,15 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
     this.scale = scale == null ? null : scale.intValue();
   }
 
+  public int getPrecision() {
+    return precision;
+  }
+
+  @Nullable
+  public Integer getScale() {
+    return scale;
+  }
+
   private static Map<String, Object> toAttributes(Number precision, Number scale,
           RoundingMode serRm, RoundingMode deserRm) {
     Map<String, Object> attr = new HashMap<String, Object>(4);
