@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -136,7 +137,7 @@ public class ExtendedReflectData extends ReflectData {
           schema.addProp(SpecificData.CLASS_PROP, raw.getName());
           return schema;
         }
-      } else if (Iterable.class.isAssignableFrom(raw)) {   // Collection
+      } else if (Collection.class.isAssignableFrom(raw)) {   // Collection
         Iterable col = (Iterable) object;
         Iterator iterator = col.iterator();
         if (iterator.hasNext()) {
