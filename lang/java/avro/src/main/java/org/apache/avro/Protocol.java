@@ -104,7 +104,7 @@ public class Protocol extends JsonProperties {
     public Schema getResponse() { return Schema.create(Schema.Type.NULL); }
     /** Errors that might be thrown. */
     public Schema getErrors() {
-      return Schema.createUnion(new ArrayList<Schema>());
+      return Schema.createUnion(Collections.EMPTY_LIST);
     }
 
     /** Returns true if this is a one-way message, with no response or errors.*/
@@ -254,8 +254,9 @@ public class Protocol extends JsonProperties {
   /** Set the types of this protocol. */
   public void setTypes(Collection<Schema> newTypes) {
     types = new Schema.Names();
-    for (Schema s : newTypes)
+    for (Schema s : newTypes) {
       types.add(s);
+    }
   }
 
   /** The messages of this protocol. */
