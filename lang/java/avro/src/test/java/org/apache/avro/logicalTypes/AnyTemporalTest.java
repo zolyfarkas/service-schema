@@ -26,6 +26,7 @@ import org.apache.avro.LogicalTypes;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.junit.Test;
+import org.threeten.extra.YearQuarter;
 
 /**
  *
@@ -48,6 +49,7 @@ public class AnyTemporalTest {
     testZDT5(at);
     testD(at);
     testYM(at);
+    testYQ(at);    
     testYM2(at);
     testY(at);
   }
@@ -106,6 +108,14 @@ public class AnyTemporalTest {
     Temporal now2 = at.deserialize(serialize);
     Assert.assertEquals(now, now2);
   }
+
+  public void testYQ(LogicalType<Temporal> at) {
+    YearQuarter now = YearQuarter.now();
+    Object serialize = at.serialize(now);
+    Temporal now2 = at.deserialize(serialize);
+    Assert.assertEquals(now, now2);
+  }
+
 
   public void testYM2(LogicalType<Temporal> at) {
     YearMonth now = YearMonth.of(-10, 2);

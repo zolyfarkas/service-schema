@@ -24,9 +24,17 @@ import java.time.temporal.Temporal;
 import java.util.Collections;
 import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
+import org.threeten.extra.YearQuarter;
 
 /**
- * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ * Any temporal type.
+ *
+ * can be:
+ *
+ * Year, YearQuarter, YearMonth, LocalDate, LocalDateTime, ZonedDateTime.
+ *
+ * Once YearWeek implements Temporal (https://github.com/ThreeTen/threeten-extra/issues/115)
+ * it will be added.
  */
 public final class AnyTemporalLogicalType extends AbstractLogicalType<Temporal> {
 
@@ -73,9 +81,14 @@ public final class AnyTemporalLogicalType extends AbstractLogicalType<Temporal> 
         if (idx < 0) {
           return Year.parse(strVal);
         }
-        idx = indexOf(strVal, idx + 1, l, '-');
+        int mIdx = idx + 1;
+        idx = indexOf(strVal, mIdx, l, '-');
         if (idx < 0) {
-          return YearMonth.parse(strVal);
+          if (strVal.charAt(mIdx) == 'Q') {
+            return YearQuarter.parse(strVal);
+          } else {
+            return YearMonth.parse(strVal);
+          }
         }
         idx = indexOf(strVal, idx + 1, l, 'T');
         if (idx <  0) {
