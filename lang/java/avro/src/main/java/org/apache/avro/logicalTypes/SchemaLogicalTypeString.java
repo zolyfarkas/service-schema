@@ -59,7 +59,7 @@ public final class SchemaLogicalTypeString extends AbstractLogicalType<Schema> {
     if (dec instanceof JsonExtensionDecoder) {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
       JsonNode nodes = pd.readValueAsTree(schema);
-      return Optional.of(Schema.parse(nodes, new AvroNamesRefResolver(resolver),  true));
+      return Optional.of(Schema.parse(nodes, new AvroNamesRefResolver(resolver),  true, false, true));
     } else {
       return Optional.empty();
     }

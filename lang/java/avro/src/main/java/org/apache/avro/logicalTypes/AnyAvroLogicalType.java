@@ -158,7 +158,7 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
       JsonNode theJson = pd.readValueAsTree(schema);
       JsonNode get = theJson.get("avsc");
-      Schema anySchema = Schema.parse(get, new AvroNamesRefResolver(resolver), true);
+      Schema anySchema = Schema.parse(get, new AvroNamesRefResolver(resolver), true, false, true);
       JsonNode cntnt = theJson.get("content");
       String jsonString = Schema.MAPPER.writeValueAsString(cntnt);
       ExtendedJsonDecoder jdec = new ExtendedJsonDecoder(anySchema, jsonString);

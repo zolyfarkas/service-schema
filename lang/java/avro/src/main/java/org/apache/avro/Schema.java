@@ -589,8 +589,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Deprecated
     public Field(String name, Schema schema, String doc,
         JsonNode defaultValue, Object defaultVal, boolean validateDefault, Order order) {
+      this(name, schema, doc, defaultValue, defaultVal, validateDefault, true, order);
+    }
+
+    public Field(String name, Schema schema, String doc,
+        JsonNode defaultValue, Object defaultVal, boolean validateDefault, boolean validateName, Order order) {
       super(FIELD_RESERVED);
-      this.name = validateName(name);
+      this.name = validateName ? validateName(name) : name;
       this.schema = schema;
       this.doc = doc;
       this.defaultValue = validateDefault ? validateDefault(name, schema, defaultValue) : defaultValue;
@@ -712,11 +717,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
     private final String name;
     private final String space;
     private final String full;
+
+    public Name(String name, String space) {
+      this(name, space, true);
+    }
     /**
      * @param name if name is a fully qualified name, the space parameter value is being ignored.
      * @param space namespace in case the name is not fully qualified.
      */
-    public Name(String name, String space) {
+    public Name(String name, String space, boolean validateName) {
       if (name == null) {                         // anonymous
         this.name = this.space = this.full = null;
         return;
@@ -724,14 +733,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
       int lastDol = name.lastIndexOf('$');
       if (lastDol >= 0) {
         space = name.substring(0, lastDol + 1);       // ordinal space from name
-        this.name = validateName(name.substring(lastDol + 1, name.length()));
+        this.name = validateName ? validateName(name.substring(lastDol + 1, name.length())) : name;
       } else {
         int lastDot = name.lastIndexOf('.');
         if (lastDot < 0) {                          // unqualified name
-          this.name = validateName(name);
+          this.name = validateName ? validateName(name) : name;
         } else {                                    // qualified name
           space = name.substring(0, lastDot);       // ordinal space from name
-          this.name = validateName(name.substring(lastDot + 1, name.length()));
+          String rawName = name.substring(lastDot + 1, name.length());
+          this.name =  validateName ? validateName(rawName) : rawName ;
         }
       }
       if ("".equals(space))
@@ -1463,9 +1473,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
     /** Read a schema from one or more json strings */
     public Schema parse(String s, String... more) {
-      StringBuilder b = new StringBuilder(s);
-      for (String part : more)
+      StringBuilder b = new StringBuilder(s.length() * (more.length + 1));
+      b.append(s);
+      for (String part : more) {
         b.append(part);
+      }
       return parse(b.toString());
     }
 
@@ -1487,17 +1499,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     public Schema parse(JsonParser parser, final boolean allowUndefinedLogicalTypes) throws IOException {
-      boolean saved = validateNames.get();
-      boolean savedValidateDefaults = VALIDATE_DEFAULTS.get();
       try {
-        validateNames.set(validate);
-        VALIDATE_DEFAULTS.set(validateDefaults);
-        return Schema.parse(MAPPER.readTree(parser), names, allowUndefinedLogicalTypes);
+        return Schema.parse(MAPPER.readTree(parser), names, allowUndefinedLogicalTypes, validate, validateDefaults);
       } catch (JsonParseException e) {
         throw new SchemaParseException(e);
-      } finally {
-        validateNames.set(saved);
-        VALIDATE_DEFAULTS.set(savedValidateDefaults);
       }
     }
   }
@@ -1608,18 +1613,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
   }
 
-  public static boolean getNameValidationFlag() {
-    return validateNames.get();
-  }
-
-  public static void setNameValidationFlag(final boolean validateName) {
-    validateNames.set(validateName);
-  }
-
-  private static ThreadLocal<Boolean> validateNames = ThreadLocal.withInitial(() -> true);
-
   private static String validateName(String name) {
-    if (!validateNames.get()) return name;        // not validating names
     int length = name.length();
     if (length == 0)
       throw new SchemaParseException("Empty name");
@@ -1634,24 +1628,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
     return name;
   }
 
-  private static final ThreadLocal<Boolean> VALIDATE_DEFAULTS
-    = new ThreadLocal<Boolean>() {
-    @Override protected Boolean initialValue() {
-      return Boolean.valueOf(System.getProperty("avro.validateDefault", "true"));
-    }
-  };
-
-  public static void setValidateDefaultsThreadLocal(final boolean validateDefaults) {
-    VALIDATE_DEFAULTS.set(validateDefaults);
-  }
-
-  public static boolean getValidateDefaultsThrealLocal() {
-    return VALIDATE_DEFAULTS.get();
-  }
-
   private static JsonNode validateDefault(String fieldName, Schema schema,
                                           JsonNode defaultValue) {
-    if (VALIDATE_DEFAULTS.get() && (defaultValue != null)
+    if ((defaultValue != null)
         && !isValidDefault(schema, defaultValue)) { // invalid default
       String message = "Invalid default for field "+fieldName
         +": "+defaultValue+" not a "+schema;
@@ -1714,7 +1693,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   /** @see #parse(String) */
-  public static Schema parse(JsonNode schema, Names names, final boolean allowUndefinedLogicalTypes) {
+  public static Schema parse(JsonNode schema, Names names,
+          final boolean allowUndefinedLogicalTypes, final boolean validateNames, boolean validateDefaults) {
     if (schema.isTextual()) {                     // name
       Schema result = names.get(schema.textValue());
       if (result == null)
@@ -1737,10 +1717,8 @@ public abstract class Schema extends JsonProperties implements Serializable {
         if (space == null) {
           space = names.space();
         }
-//        name = new Name(getRequiredText(schema, "name", "No name in schema"),
-//                        space);
         name = new Name(getOptionalText(schema, "name"),
-                        space);
+                        space, validateNames);
         if (name.space != null) {                 // set default namespace
           names.space(name.space);
         }
@@ -1768,11 +1746,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
               (fieldTypeNode+" is not a defined name."
                +" The type of the \""+fieldName+"\" field must be"
                +" a defined name or a {\"type\": ...} expression.");
-          Schema fieldSchema = parse(fieldTypeNode, names, allowUndefinedLogicalTypes);
+          Schema fieldSchema = parse(fieldTypeNode, names, allowUndefinedLogicalTypes,
+                  validateNames, validateDefaults);
           Field.Order order = Field.Order.ASCENDING;
           JsonNode orderNode = field.get("order");
-          if (orderNode != null)
+          if (orderNode != null) {
             order = Field.Order.valueOf(orderNode.textValue().toUpperCase(Locale.ENGLISH));
+          }
           JsonNode defaultValue = field.get("default");
           Type fieldType = fieldSchema.getType();
           if (defaultValue != null && (Type.FLOAT == fieldType || Type.DOUBLE == fieldType)
@@ -1780,7 +1760,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
             defaultValue =
               new DoubleNode(Double.valueOf(defaultValue.textValue()));
           Field f = new Field(fieldName, fieldSchema,
-                              fieldDoc, defaultValue, order);
+                              fieldDoc, defaultValue, null, validateDefaults, validateNames, order);
           Iterator<String> i = field.fieldNames();
           while (i.hasNext()) {                       // add field props
             String prop = i.next();
@@ -1795,7 +1775,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         reserved = ENUM_RESERVED;
         JsonNode symbolsNode = schema.get("symbols");
         if (symbolsNode == null || !symbolsNode.isArray())
-          throw new SchemaParseException("Enum has no symbols: "+schema);
+          throw new SchemaParseException("Enum has no symbols: " + schema);
         LockableArrayList<String> symbols = new LockableArrayList<String>(symbolsNode.size());
         for (JsonNode n : symbolsNode) {
           symbols.add(n.textValue());
@@ -1818,12 +1798,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
         JsonNode itemsNode = schema.get("items");
         if (itemsNode == null)
           throw new SchemaParseException("Array has no items type: "+schema);
-        result = new ArraySchema(parse(itemsNode, names, allowUndefinedLogicalTypes));
+        result = new ArraySchema(parse(itemsNode, names, allowUndefinedLogicalTypes,
+                validateNames, validateDefaults));
       } else if ("map".equals(type)) {            // map
         JsonNode valuesNode = schema.get("values");
         if (valuesNode == null)
           throw new SchemaParseException("Map has no values type: "+schema);
-        result = new MapSchema(parse(valuesNode, names, allowUndefinedLogicalTypes));
+        result = new MapSchema(parse(valuesNode, names, allowUndefinedLogicalTypes,
+                validateNames, validateDefaults));
       } else if ("fixed".equals(type)) {          // fixed
         JsonNode sizeNode = schema.get("size");
         if (sizeNode == null || !sizeNode.isInt())
@@ -1852,7 +1834,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       LockableArrayList<Schema> types =
         new LockableArrayList<Schema>(schema.size());
       for (JsonNode typeNode : schema)
-        types.add(parse(typeNode, names, allowUndefinedLogicalTypes));
+        types.add(parse(typeNode, names, allowUndefinedLogicalTypes, validateNames, validateDefaults));
       return new UnionSchema(types);
     } else {
       throw new SchemaParseException("Schema not yet supported: "+schema);

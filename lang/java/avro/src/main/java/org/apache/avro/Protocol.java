@@ -453,7 +453,7 @@ public class Protocol extends JsonProperties {
     for (JsonNode type : defs) {
       if (!type.isObject())
         throw new SchemaParseException("Type not an object: "+type);
-      Schema.parse(type, types, allowUndefinedLogicalTypes);
+      Schema.parse(type, types, allowUndefinedLogicalTypes, true, true);
     }
   }
 
@@ -486,7 +486,7 @@ public class Protocol extends JsonProperties {
 
     JsonNode requestNode = json.get("request");
     if (requestNode == null || !requestNode.isArray())
-      throw new SchemaParseException("No request specified: "+json);
+      throw new SchemaParseException("No request specified: " + json);
     List<Field> fields = new ArrayList<Field>();
     for (JsonNode field : requestNode) {
       JsonNode fieldNameNode = field.get("name");
@@ -496,7 +496,7 @@ public class Protocol extends JsonProperties {
       if (fieldTypeNode == null)
         throw new SchemaParseException("No param type: "+field);
       String name = fieldNameNode.textValue();
-      fields.add(new Field(name, Schema.parse(fieldTypeNode, types, allowUndefinedLogicalTypes),
+      fields.add(new Field(name, Schema.parse(fieldTypeNode, types, allowUndefinedLogicalTypes, true, true),
                            null /* message fields don't have docs */,
                            field.get("default")));
     }
@@ -518,14 +518,14 @@ public class Protocol extends JsonProperties {
 
     if (oneWay) {
       if (decls != null)
-        throw new SchemaParseException("one-way can't have errors: "+json);
+        throw new SchemaParseException("one-way can't have errors: " + json);
       if (responseNode != null
-          && Schema.parse(responseNode, types, allowUndefinedLogicalTypes).getType() != Schema.Type.NULL)
-        throw new SchemaParseException("One way response must be null: "+json);
+          && Schema.parse(responseNode, types, allowUndefinedLogicalTypes, true, true).getType() != Schema.Type.NULL)
+        throw new SchemaParseException("One way response must be null: " + json);
       return new Message(messageName, doc, mProps, request);
     }
 
-    Schema response = Schema.parse(responseNode, types, allowUndefinedLogicalTypes);
+    Schema response = Schema.parse(responseNode, types, allowUndefinedLogicalTypes, true, true);
 
     List<Schema> errs = new ArrayList<>();
     errs.add(SYSTEM_ERROR);                       // every method can throw
