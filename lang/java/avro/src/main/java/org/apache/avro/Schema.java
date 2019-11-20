@@ -1608,12 +1608,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
   }
 
-  private static ThreadLocal<Boolean> validateNames
-    = new ThreadLocal<Boolean>() {
-    @Override protected Boolean initialValue() {
-      return Boolean.TRUE;
-    }
-  };
+  public static boolean getNameValidationFlag() {
+    return validateNames.get();
+  }
+
+  public static void setNameValidationFlag(final boolean validateName) {
+    validateNames.set(validateName);
+  }
+
+  private static ThreadLocal<Boolean> validateNames = ThreadLocal.withInitial(() -> true);
 
   private static String validateName(String name) {
     if (!validateNames.get()) return name;        // not validating names
