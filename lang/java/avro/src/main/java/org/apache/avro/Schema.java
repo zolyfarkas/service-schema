@@ -616,13 +616,34 @@ public abstract class Schema extends JsonProperties implements Serializable {
         Object defaultValue, Order order) {
       this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), defaultValue, true, order);
     }
-    public String name() { return name; };
+ 
+    public String name() {
+      return name;
+    };
+
     /** The position of this field within the record. */
-    public int pos() { return position; }
+    public int pos() {
+      return position;
+    }
+
     /** This field's {@link Schema}. */
-    public Schema schema() { return schema; }
+    public Schema schema() {
+      return schema;
+    }
+
     /** Field's documentation within the record, if set. May return null. */
-    public String doc() { return doc; }
+    public String doc() {
+      return doc;
+    }
+
+    /**
+     * @return true if this Field has a default value set. Can be used to determine
+     *         if a "null" return from defaultVal() is due to that being the default
+     *         value or just not set.
+     */
+    public boolean hasDefaultValue() {
+      return defaultValue != null;
+    }
 
     public JsonNode defaultValue() {
       return defaultValue;
