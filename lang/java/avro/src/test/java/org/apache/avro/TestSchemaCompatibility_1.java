@@ -30,14 +30,13 @@ import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.*;
 import org.apache.avro.util.Utf8;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Unit-tests for SchemaCompatibility. */
-public class TestSchemaCompatibility {
-  private static final Logger LOG = LoggerFactory.getLogger(TestSchemaCompatibility.class);
+public class TestSchemaCompatibility_1 {
+  private static final Logger LOG = LoggerFactory.getLogger(TestSchemaCompatibility_1.class);
   // -----------------------------------------------------------------------------------------------
 
   private static final Schema WRITER_SCHEMA = Schema.createRecord(list(
@@ -410,30 +409,5 @@ public class TestSchemaCompatibility {
     Collections.reverse(x);
     Deque<String> dq = new ArrayDeque<>(x);
     return dq;
-  }
-
-
-  @Test
-  public void testRWCompatibility() {
-    Schema schema1 = new Schema.Parser().parse("{\"type\":\"record\",\"name\":\"JFileLocation\","
-            + "\"namespace\":\"org.spf4j.base.avro\","
-            + "\"doc\":\"a location in a file\",\"fields\":[{\"name\":\"fileName\",\"type\":\"string\","
-            + "\"doc\":\"file name\"},{\"name\":\"lineNumber\",\"type\":\"int\",\"doc\":\"line number\"},"
-            + "{\"name\":\"someField\",\"type\":\"string\",\"doc\":\"place on the moon\",\"default\":\"\"}],"
-            + "\"mvnId\":\"org.spf4j:test-schema:2.0\"}");
-
-    Schema  schema2 = new Schema.Parser().parse("{\"type\":\"record\",\"name\":\"JFileLocation\","
-            + "\"namespace\":\"org.spf4j.base.avro\","
-            + "\"doc\":\"a location in a file\",\"fields\":[{\"name\":\"fileName\",\"type\":\"string\","
-            + "\"doc\":\"file name\"},{\"name\":\"lineNumber\",\"type\":\"int\",\"doc\":\"line number\"},"
-            + "{\"name\":\"someField\",\"type\":\"string\",\"doc\":\"place on the moon\",\"default\":\"\"},"
-            + "{\"name\":\"breakBuild\",\"type\":\"string\",\"doc\":\"field to break the build\"}],"
-            + "\"mvnId\":\"org.spf4j:test-schema:3.0\"}");
-
-    Assert.assertEquals(SchemaCompatibilityType.COMPATIBLE,
-            SchemaCompatibility.checkReaderWriterCompatibility(schema1, schema2).getType());
-
-    Assert.assertEquals(SchemaCompatibilityType.INCOMPATIBLE,
-            SchemaCompatibility.checkReaderWriterCompatibility(schema2, schema1).getType());
   }
 }
