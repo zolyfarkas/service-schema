@@ -7,10 +7,11 @@ Learn more about Avro, please visit our website at:
 
 ## Overview
 
-  * 1.9.0.11p - latest version, based on jackson 2.9+
+  * 1.9.0.14p - latest version, based on jackson 2.9+
   * 1.8.1.50p - latest version, based on jackson 1.9
 
- This fork, contains numerous fixes, and featured not implement (but reported) in the original project.
+ This fork, contains numerous fixes, and features not implement (but reported) in the original project.
+ THis fork focuses only on the java implementation. For non-java part please see official fork or other forks.
 
 Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j-avro.png)](https://gitter.im/spf4j-avro/Lobby)
 
