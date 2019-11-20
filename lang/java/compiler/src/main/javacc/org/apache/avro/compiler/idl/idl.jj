@@ -74,6 +74,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.Schema.*;
 import org.apache.avro.Protocol;
 import org.apache.avro.Protocol.*;
+import org.apache.avro.util.internal.Accessor;
 import org.apache.avro.LogicalTypes;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -1386,12 +1387,7 @@ void FieldDeclaration(List<Field> fields):
 {
 (( ("mixin") mixinType = ReferenceType() {
   for (Field field : mixinType.getFields()) {
-    Field nField = new Field(field.name(), field.schema(), field.doc(), field.defaultValue(),
-             !SchemaResolver.isUnresolvedSchema(field.schema()), field.order());
-    Map<String, Object> objectProps = field.getObjectProps();
-    for (Map.Entry<String, Object> entry : objectProps.entrySet()) {
-      nField.addProp(entry.getKey(), entry.getValue());
-    }
+    Field nField = new Field(field, field.schema());
     fields.add(nField);
   }
 }) |
@@ -1424,7 +1420,8 @@ void VariableDeclarator(Schema type, List<Field> fields):
     for (String key : props.keySet())
       if ("order".equals(key))
         order = Field.Order.valueOf(getTextProp(key,props,token).toUpperCase());
-    Field field = new Field(name, type, getDoc(), defaultValue, !SchemaResolver.isUnresolvedSchema(type), order);
+    boolean validate = !SchemaResolver.isUnresolvedSchema(type);
+    Field field = Accessor.createField(name, type, getDoc(), defaultValue, validate, order);
     for (String key : props.keySet())
       if ("order".equals(key)) {                  // already handled: ignore
       } else if ("aliases".equals(key)) {         // aliases

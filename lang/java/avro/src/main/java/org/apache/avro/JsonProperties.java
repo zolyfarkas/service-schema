@@ -128,6 +128,7 @@ public abstract class JsonProperties {
     return reserved;
   }
 
+
   /**
    * Returns the value of the named, string-valued property in this schema.
    * Returns <tt>null</tt> if there is no string-valued property with that name.
@@ -178,8 +179,7 @@ public abstract class JsonProperties {
    * @param value The value for the property to add
    * @deprecated use {@link #addProp(String, Object)}
    */
-  @Deprecated
-  public void addProp(String name, JsonNode value) {
+   void addProp(String name, JsonNode value) {
     if (reserved.contains(name))
       throw new AvroRuntimeException("Can't set reserved property: " + name);
 
@@ -195,6 +195,12 @@ public abstract class JsonProperties {
 
   public void addProp(String name, Object value) {
     addProp(name, JacksonUtils.toJsonNode(value));
+  }
+
+  public void putAll(final JsonProperties np) {
+    for (Map.Entry<? extends String, ? extends JsonNode> e : np.props.entrySet()) {
+      addProp(e.getKey(), e.getValue());
+    }
   }
 
   /** Return the defined properties that have string values. */

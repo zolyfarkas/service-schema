@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.Objects;
 import org.apache.avro.util.Sets;
@@ -211,7 +212,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   @Override
-  public void addProp(String name, JsonNode value) {
+  void addProp(String name, JsonNode value) {
     hashCode = NO_HASHCODE;
     super.addProp(name, value);
   }
@@ -539,13 +540,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
         @Override
         protected Field createField(String name, Schema schema, String doc, JsonNode defaultValue) {
-          return new Field(name, schema, doc, defaultValue, true, Order.ASCENDING);
+          return new Field(name, schema, doc, defaultValue, true, true, Order.ASCENDING);
         }
 
         @Override
         protected Field createField(String name, Schema schema, String doc, JsonNode defaultValue, boolean validate,
             Order order) {
-          return new Field(name, schema, doc, defaultValue, validate, order);
+          return new Field(name, schema, doc, defaultValue, validate, true, order);
         }
       });
     }
@@ -557,59 +558,72 @@ public abstract class Schema extends JsonProperties implements Serializable {
       private Order() { this.name = this.name().toLowerCase(Locale.ENGLISH); }
     };
 
+    public static final Object NULL_DEFAULT_VALUE = new Object();
+
     private final String name;    // name of the field.
     private int position = -1;
     private final Schema schema;
     private final String doc;
     private final JsonNode defaultValue;
-    private final Object defaultVal;
+    private final Object defaultJavaVal;
     private final Order order;
     private Set<String> aliases;
 
-    /** @deprecated use {@link #Field(String, Schema, String, Object)} */
-    @Deprecated
-    public Field(String name, Schema schema, String doc,
-        JsonNode defaultValue) {
-      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), true, Order.ASCENDING);
-    }
 
-    @Deprecated
-    public Field(String name, Schema schema, String doc,
-        JsonNode defaultValue, Order order) {
-      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), true, order);
-    }
-
-    @Deprecated
-    public Field(String name, Schema schema, String doc,
-        JsonNode defaultValue, boolean validateDefault, Order order) {
-      this(name, schema, doc, defaultValue, JacksonUtils.toObject(defaultValue, schema), validateDefault, order);
-    }
-
-    /** @deprecated use {@link #Field(String, Schema, String, Object, Order)} */
-    @Deprecated
-    public Field(String name, Schema schema, String doc,
-        JsonNode defaultValue, Object defaultVal, boolean validateDefault, Order order) {
-      this(name, schema, doc, defaultValue, defaultVal, validateDefault, true, order);
-    }
-
-    public Field(String name, Schema schema, String doc,
-        JsonNode defaultValue, Object defaultVal, boolean validateDefault, boolean validateName, Order order) {
+    Field(String name, Schema schema, String doc,
+        JsonNode defaultValue, boolean validateDefault, boolean validateName, Order order) {
       super(FIELD_RESERVED);
       this.name = validateName ? validateName(name) : name;
       this.schema = schema;
       this.doc = doc;
       this.defaultValue = validateDefault ? validateDefault(name, schema, defaultValue) : defaultValue;
-      this.defaultVal = defaultVal == null && this.defaultValue != null ?
-              JacksonUtils.toObject(this.defaultValue, schema) : defaultVal;
+      this.defaultJavaVal = JacksonUtils.toObject(defaultValue, schema);
       this.order = order;
     }
 
+    public Field(String name, Schema schema, String doc,
+         Object defaultVal, boolean validateDefault, boolean validateName, Order order) {
+      super(FIELD_RESERVED);
+      this.name = validateName ? validateName(name) : name;
+      this.schema = schema;
+      this.doc = doc;
+      if (defaultVal == NULL_DEFAULT_VALUE) {
+        this.defaultValue =  NullNode.getInstance();
+        this.defaultJavaVal = defaultVal;
+      } else {
+        JsonNode jsonDefault = JacksonUtils.toJsonNode(defaultVal);
+        this.defaultValue = validateDefault ? validateDefault(name, schema, jsonDefault) : jsonDefault;
+        this.defaultJavaVal = defaultVal;
+      }
+      this.order = order;
+    }
+
+    /**
+     * Constructs a new Field instance with the same {@code name}, {@code doc},
+     * {@code defaultValue}, and {@code order} as {@code field} has with changing
+     * the schema to the specified one. It also copies all the {@code props} and
+     * {@code aliases}.
+     */
+    public Field(Field field, Schema schema) {
+      super(FIELD_RESERVED);
+      this.name = field.name;
+      this.schema = schema;
+      this.doc = field.doc;
+      this.defaultValue = field.defaultValue;
+      this.defaultJavaVal = field.defaultJavaVal;
+      this.order = field.order;
+      putAll(field);
+      if (field.aliases != null) {
+        aliases = new LinkedHashSet<>(field.aliases);
+      }
+    }
+
     public Field(String name, Schema schema) {
-      this(name, schema, (String) null, (JsonNode) null, true, Order.ASCENDING);
+      this(name, schema, (String) null, null, true, true, Order.ASCENDING);
     }
 
     public Field(String name, Schema schema, String doc) {
-      this(name, schema, doc, (JsonNode) null, true, Order.ASCENDING);
+      this(name, schema, doc,  null, true, true, Order.ASCENDING);
     }
 
     /**
@@ -628,7 +642,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
      */
     public Field(String name, Schema schema, String doc,
         Object defaultValue, Order order) {
-      this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), defaultValue, true, order);
+      this(name, schema, doc, defaultValue, true, true, order);
     }
 
     public String name() {
@@ -667,8 +681,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
      *  in {@link JsonProperties}
      */
     public Object defaultVal() {
-      return defaultVal;
+      return defaultJavaVal;
     }
+
     public Order order() { return order; }
     @Deprecated public Map<String,String> props() { return getProps(); }
     public void addAlias(String alias) {
@@ -688,7 +703,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       Field that = (Field) other;
       return (name.equals(that.name)) &&
         (schema.equals(that.schema)) &&
-        defaultValueEquals(that.defaultValue, that.defaultVal) &&
+        defaultValueEquals(that.defaultValue, that.defaultJavaVal) &&
         (order == that.order) &&
         props.equals(that.props);
     }
@@ -699,7 +714,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         return thatDefaultValue == null;
       if (thatDefaultValue == null)
         return false;
-      if (defaultVal.equals(thatJavaDefaultValue)) {
+      if (defaultJavaVal.equals(thatJavaDefaultValue)) {
         return true;
       }
       if (Double.isNaN(defaultValue.asDouble()))
@@ -1760,7 +1775,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
             defaultValue =
               new DoubleNode(Double.valueOf(defaultValue.textValue()));
           Field f = new Field(fieldName, fieldSchema,
-                              fieldDoc, defaultValue, null, validateDefaults, validateNames, order);
+                              fieldDoc, defaultValue, validateDefaults, validateNames, order);
           Iterator<String> i = field.fieldNames();
           while (i.hasNext()) {                       // add field props
             String prop = i.next();
