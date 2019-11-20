@@ -598,6 +598,15 @@ public abstract class Schema extends JsonProperties implements Serializable {
               JacksonUtils.toObject(this.defaultValue, schema) : defaultVal;
       this.order = order;
     }
+
+    public Field(String name, Schema schema) {
+      this(name, schema, (String) null, (JsonNode) null, true, Order.ASCENDING);
+    }
+
+    public Field(String name, Schema schema, String doc) {
+      this(name, schema, doc, (JsonNode) null, true, Order.ASCENDING);
+    }
+
     /**
      * @param defaultValue the default value for this field specified using the mapping
      * null means no default value.
@@ -616,7 +625,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         Object defaultValue, Order order) {
       this(name, schema, doc, JacksonUtils.toJsonNode(defaultValue), defaultValue, true, order);
     }
- 
+
     public String name() {
       return name;
     };
