@@ -234,7 +234,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
   /** Create a named record schema. */
   public static Schema createRecord(String name, String doc, String namespace,
                                     boolean isError) {
-    return new RecordSchema(new Name(name, namespace), doc, isError);
+    return createRecord(name, doc, namespace, isError, true);
+  }
+
+  public static Schema createRecord(String name, String doc, String namespace,
+                                    boolean isError, boolean validateName) {
+    return new RecordSchema(new Name(name, namespace, validateName), doc, isError);
   }
 
   /** Create a named record schema with fields already set. */

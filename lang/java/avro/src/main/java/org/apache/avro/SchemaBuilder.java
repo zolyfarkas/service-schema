@@ -383,11 +383,28 @@ public class SchemaBuilder {
     private final NameContext names;
     private String doc;
     private String[] aliases;
+    private boolean validateName;
 
     protected NamedBuilder(NameContext names, String name) {
       checkRequired(name, "Type must have a name");
       this.names = names;
       this.name = name;
+      this.validateName = true;
+    }
+
+    public boolean isValidateName() {
+      return validateName;
+    }
+
+    public final S setValidateName(final boolean validateName) {
+      this.validateName = validateName;
+      return self();
+    }
+
+
+    public final S noNameValidation() {
+      this.validateName = false;
+      return self();
     }
 
     /** configure this type's optional documentation string **/
@@ -1725,6 +1742,7 @@ public class SchemaBuilder {
 
   public final static class RecordBuilder<R> extends
       NamespacedBuilder<R, RecordBuilder<R>> {
+
     private RecordBuilder(Completion<R> context, NameContext names, String name) {
       super(context, names, name);
     }
@@ -1740,7 +1758,7 @@ public class SchemaBuilder {
     }
 
     public FieldAssembler<R> fields() {
-      Schema record = Schema.createRecord(name(), doc(), space(), false);
+      Schema record = Schema.createRecord(name(), doc(), space(), false,  isValidateName());
       // place the record in the name context, fields yet to be set.
       completeSchema(record);
       return new FieldAssembler<R>(
@@ -2128,7 +2146,7 @@ public class SchemaBuilder {
 
     private FieldAssembler<R> completeField(Schema schema, Object defaultVal) {
       try {
-      Field field = new Field(name(), schema, doc(), defaultVal, order);
+      Field field = new Field(name(), schema, doc(), defaultVal, true, isValidateName(), order);
       addPropsTo(field);
       addAliasesTo(field);
       return fields.addField(field);
