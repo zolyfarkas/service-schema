@@ -240,7 +240,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
   /** Create a named record schema with fields already set. */
   public static Schema createRecord(String name, String doc, String namespace,
                                     boolean isError, List<Field> fields) {
-    return new RecordSchema(new Name(name, namespace), doc, isError, fields);
+    return createRecord(name, doc, namespace, isError, fields, true);
+  }
+
+  /** Create a named record schema with fields already set and no name validation. */
+  public static Schema createRecord(String name, String doc, String namespace,
+                                    boolean isError, List<Field> fields, boolean validateName) {
+    return new RecordSchema(new Name(name, namespace, validateName), doc, isError, fields);
   }
 
   /** Create an enum schema. */
