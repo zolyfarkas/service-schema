@@ -130,12 +130,20 @@ public final class ExtendedJsonDecoder extends JsonDecoder
                         this.in = node.asParserOnFirstToken();
                         return null;
                     }
+                    for (String alias : fa.aliases) {
+                      node = currentReorderBuffer.savedFields.remove(alias);
+                      if (node != null) {
+                          currentReorderBuffer.origParser = in;
+                          this.in = node.asParserOnFirstToken();
+                          return null;
+                      }
+                    }
                 }
                 if (in.getCurrentToken() == JsonToken.FIELD_NAME) {
                     do {
                         String fn = in.getText();
                         in.nextToken();
-                        if (name.equals(fn)) {
+                        if (name.equals(fn) || fa.aliases.contains(fn)) {
                             return null;
                         } else {
                             if (currentReorderBuffer == null) {
