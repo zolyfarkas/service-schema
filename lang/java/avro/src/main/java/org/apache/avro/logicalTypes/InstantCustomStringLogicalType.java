@@ -34,8 +34,9 @@ public final class InstantCustomStringLogicalType extends AbstractLogicalType<In
   InstantCustomStringLogicalType(Schema schema, String format) {
     super(schema.getType(), Collections.EMPTY_SET, "instant",
             Collections.EMPTY_MAP, Instant.class);
-    this.parseFormatter = DateTimeFormatter.ofPattern(format);
-    this.outputFormatter = parseFormatter.withZone(ZoneId.of("Z"));
+    ZoneId zulu = ZoneId.of("Z");
+    this.parseFormatter = DateTimeFormatter.ofPattern(format).withZone(zulu);
+    this.outputFormatter = parseFormatter.withZone(zulu);
     this.format = format;
   }
 
