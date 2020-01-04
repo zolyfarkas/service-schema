@@ -323,4 +323,11 @@ public class ExtendedReflectData extends ReflectData {
     return super.createSchema(type, names);
   }
 
+  @Override
+  public String getSchemaName(Object datum) {
+    return super.getSchemaName(datum);
+  }
+
+
+
 }
