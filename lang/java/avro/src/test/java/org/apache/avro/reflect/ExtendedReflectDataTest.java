@@ -40,15 +40,6 @@ public class ExtendedReflectDataTest {
   }
 
   @Test
-  public void testParameterizedTypes() throws NoSuchMethodException {
-    ExtendedReflectData rdata = new ExtendedReflectData();
-    Method m = ExtendedReflectDataTest.class.getMethod("testMethod", new Class[] {Class.class});
-    Type rt = m.getGenericReturnType();
-    Schema createSchema = rdata.getSchema(rt, "T", String.class);
-    LOG.debug("schema", createSchema);
-  }
-
-  @Test
   public void testParameterizedTypes2() throws NoSuchMethodException {
     ExtendedReflectData rdata = new ExtendedReflectData();
     Method m = ExtendedReflectDataTest.class.getMethod("testMethod2", new Class[] {Class.class});
