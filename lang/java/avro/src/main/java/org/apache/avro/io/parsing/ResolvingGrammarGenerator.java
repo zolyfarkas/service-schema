@@ -153,8 +153,9 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       return Symbol.seq(Symbol.repeat(Symbol.MAP_END, es, Symbol.STRING), Symbol.MAP_START);
 
     } else if (action.writer.getType() == Schema.Type.UNION) {
-      if (((Resolver.WriterUnion) action).unionEquiv)
+      if (((Resolver.WriterUnion) action).unionEquiv) {
         return simpleGen(action.writer, seen);
+      }
       Resolver.Action[] branches = ((Resolver.WriterUnion) action).actions;
       Symbol[] symbols = new Symbol[branches.length];
       String[] labels = new String[branches.length];
@@ -169,9 +170,10 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
     } else if (action instanceof Resolver.EnumAdjust) {
       Resolver.EnumAdjust e = (Resolver.EnumAdjust) action;
       Object[] adjs = new Object[e.adjustments.length];
-      for (int i = 0; i < adjs.length; i++)
-        adjs[i] = (0 <= e.adjustments[i] ? new Integer(e.adjustments[i])
+      for (int i = 0; i < adjs.length; i++) {
+        adjs[i] = (0 <= e.adjustments[i] ? Integer.valueOf(e.adjustments[i])
             : "No match for " + e.writer.getEnumSymbols().get(i));
+      }
       return Symbol.seq(Symbol.enumAdjustAction(e.reader.getEnumSymbols().size(), adjs), Symbol.ENUM);
 
     } else if (action instanceof Resolver.RecordAdjust) {
@@ -180,14 +182,15 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
         final Resolver.RecordAdjust ra = (Resolver.RecordAdjust) action;
         int defaultCount = ra.readerOrder.length - ra.firstDefault;
         int count = 1 + ra.fieldActions.length + 3 * defaultCount;
-        Symbol[] production = new Symbol[count];
+        final Symbol[] production = new Symbol[count];
         result = Symbol.seq(production);
         seen.put(action, result);
         production[--count] = Symbol.fieldOrderAction(ra.readerOrder);
-        for (Resolver.Action wfa : ra.fieldActions)
+        for (Resolver.Action wfa : ra.fieldActions) {
           production[--count] = generate(wfa, seen);
+        }
         for (int i = ra.firstDefault; i < ra.readerOrder.length; i++) {
-          Schema.Field rf = ra.readerOrder[i];
+          final Schema.Field rf = ra.readerOrder[i];
           byte[] bb = getBinary(rf.schema(), Accessor.defaultValue(rf));
           production[--count] = Symbol.defaultStartAction(bb);
           production[--count] = simpleGen(rf.schema(), seen);
@@ -232,9 +235,10 @@ private Symbol simpleGen(Schema s, Map<Object, Symbol> seen) {
           Symbol.MAP_START);
 
     case UNION: {
-      List<Schema> subs = s.getTypes();
-      Symbol[] symbols = new Symbol[subs.size()];
-      String[] labels = new String[subs.size()];
+      final List<Schema> subs = s.getTypes();
+      int subsSize = subs.size();
+      final Symbol[] symbols = new Symbol[subsSize];
+      final String[] labels = new String[subsSize];
       int i = 0;
       for (Schema b : s.getTypes()) {
         symbols[i] = simpleGen(b, seen);
@@ -243,10 +247,11 @@ private Symbol simpleGen(Schema s, Map<Object, Symbol> seen) {
       return Symbol.seq(Symbol.alt(symbols, labels), Symbol.UNION);
     }
 
+
     case RECORD: {
       Symbol result = seen.get(s);
       if (result == null) {
-        Symbol[] production = new Symbol[s.getFields().size() + 1];
+        final Symbol[] production = new Symbol[s.getFields().size() + 1];
         result = Symbol.seq(production);
         seen.put(s, result);
         int i = production.length;

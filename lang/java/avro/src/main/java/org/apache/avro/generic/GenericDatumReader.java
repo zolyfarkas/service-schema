@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Conversion;
@@ -189,27 +190,33 @@ public class GenericDatumReader<D> implements DatumReader<D> {
    * representations.
    */
   protected Object readRecord(Object old, Schema expected, ResolvingDecoder in) throws IOException {
-    Object r = data.newRecord(old, expected);
-    Object state = data.getRecordState(r, expected);
+    Object record = data.newRecord(old, expected);
+    Object state = data.getRecordState(record, expected);
+    final List<Field> expectedFields = expected.getFields();
 
-    for (Field f : in.readFieldOrder()) {
-      int pos = f.pos();
-      String name = f.name();
+    for (Field field : in.readFieldOrder()) {
+      int pos = field.pos();
+      String name = field.name();
       Object oldDatum = null;
-      if (old!=null) {
-        oldDatum = data.getField(r, name, pos, state);
+      if (old != null) {
+        oldDatum = data.getField(record, name, pos, state);
       }
-      readField(r, f, oldDatum, in, state);
+      readField(record, field, oldDatum, in, state);
+
+      // In case the expected field isn't in the read field
+      if (!expectedFields.get(pos).equals(field)) {
+        data.setField(record, field.name(), field.pos(), data.getDefaultValue(expectedFields.get(pos)));
+      }
     }
 
-    return r;
+    return record;
   }
 
   /** Called to read a single field of a record. May be overridden for more
    * efficient or alternate implementations.*/
-  protected void readField(Object r, Field f, Object oldDatum,
+  protected void readField(Object record, Field field, Object oldDatum,
     ResolvingDecoder in, Object state) throws IOException {
-    data.setField(r, f.name(), f.pos(), read(oldDatum, f.schema(), in), state);
+    data.setField(record, field.name(), field.pos(), read(oldDatum, field.schema(), in), state);
   }
 
   /** Called to read an enum value. May be overridden for alternate enum
@@ -368,10 +375,12 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   protected Object readString(Object old, Schema expected,
                               Decoder in) throws IOException {
     Class stringClass = findStringClass(expected);
-    if (stringClass == String.class)
+    if (stringClass == String.class) {
       return in.readString();
-    if (stringClass == CharSequence.class)
+    }
+    if (stringClass == CharSequence.class) {
       return readString(old, in);
+    }
     return newInstanceFromString(stringClass, in.readString());
   }
 
@@ -473,8 +482,9 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   public static void skip(Schema schema, Decoder in) throws IOException {
     switch (schema.getType()) {
     case RECORD:
-      for (Field field : schema.getFields())
+      for (Field field : schema.getFields()) {
         skip(field.schema(), in);
+      }
       break;
     case ARRAY:
       Schema elementType = schema.getElementType();
