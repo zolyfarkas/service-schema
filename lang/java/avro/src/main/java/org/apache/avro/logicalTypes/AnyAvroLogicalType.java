@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.apache.avro.data.RawJsonString;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Decoder;
@@ -42,6 +44,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.ExtendedJsonDecoder;
+import org.apache.avro.io.ExtendedJsonEncoder;
 import org.apache.avro.io.JsonExtensionDecoder;
 import org.apache.avro.io.JsonExtensionEncoder;
 import org.apache.avro.reflect.ExtendedReflectData;
@@ -119,6 +122,9 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
         if (schema == null) {
           schema = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
         }
+        if (this.equals(schema.getLogicalType())) {
+          return toSer;
+        }
       }
       String strSchema = toString(schema);
       GenericRecord result = new GenericData.Record(uSchema);
@@ -157,8 +163,21 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
     if (dec instanceof JsonExtensionDecoder) {
       JsonExtensionDecoder pd = (JsonExtensionDecoder) dec;
       JsonNode theJson = pd.readValueAsTree(schema);
-      JsonNode get = theJson.get("avsc");
-      Schema anySchema = Schema.parse(get, new AvroNamesRefResolver(resolver), true, false, true);
+      JsonNode avscNode = theJson.get("avsc");
+      if (avscNode.isTextual()) {
+        String schemaText = avscNode.asText();
+        char fc = schemaText.charAt(0);
+        if (fc == '{' || fc == '"') {
+          Schema anySchema = new Schema.Parser(new AvroNamesRefResolver(resolver)).setValidate(false).parse(schemaText);
+          JsonNode cntnt = theJson.get("content");
+          String asText = cntnt.asText();
+          byte[] bytes = asText.getBytes(StandardCharsets.ISO_8859_1);
+          BinaryDecoder jdec = DecoderFactory.get().directBinaryDecoder(new ByteArrayInputStream(bytes), null);
+          DatumReader reader = new GenericDatumReader(anySchema, anySchema);
+          return Optional.of(reader.read(null, jdec));
+        }
+      }
+      Schema anySchema = Schema.parse(avscNode, new AvroNamesRefResolver(resolver), true, false, true);
       JsonNode cntnt = theJson.get("content");
       String jsonString = Schema.MAPPER.writeValueAsString(cntnt);
       ExtendedJsonDecoder jdec = new ExtendedJsonDecoder(anySchema, jsonString);
@@ -180,10 +199,18 @@ public final class AnyAvroLogicalType extends AbstractLogicalType<Object> {
         if (avsc == null) {
           avsc = ExtendedReflectData.get().createSchema(toSer.getClass(), toSer, new HashMap<>());
         }
+        if (this.equals(avsc.getLogicalType())) {
+          return false;
+        }
       }
       Map record = new HashMap(4);
       record.put("avsc", new RawJsonString(toString(avsc)));
-      record.put("content", toSer);
+      ByteArrayOutputStream bab = new ByteArrayOutputStream();
+      ExtendedJsonEncoder penc = new ExtendedJsonEncoder(avsc, bab);
+      ExtendedReflectDatumWriter wr = new ExtendedReflectDatumWriter(avsc);
+      wr.write(toSer, penc);
+      penc.flush();
+      record.put("content", new RawJsonString(new String(bab.toByteArray())));
       ((JsonExtensionEncoder) enc).writeValue(record, schema);
       return true;
     } else {
