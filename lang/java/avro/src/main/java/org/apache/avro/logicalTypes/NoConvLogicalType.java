@@ -20,7 +20,7 @@ import org.apache.avro.AbstractLogicalType;
 import org.apache.avro.Schema;
 
 /**
- * Decimal represents arbitrary-precision fixed-scale decimal numbers
+ * logical type implementation where no conversion is necessary.
  */
 public final class NoConvLogicalType<T> extends AbstractLogicalType<T> {
 
