@@ -17,13 +17,19 @@
  */
 package org.apache.avro;
 
+import java.io.BufferedReader;
 import static java.util.Arrays.asList;
 import static org.apache.avro.SchemaCompatibility.*;
 import static org.apache.avro.TestSchemas.*;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.avro.generic.GenericData;
 
 import org.apache.avro.generic.GenericData.EnumSymbol;
 import org.apache.avro.generic.GenericDatumReader;
@@ -31,6 +37,8 @@ import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.io.*;
 import org.apache.avro.util.Utf8;
 import org.junit.Assert;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -436,4 +444,65 @@ public class TestSchemaCompatibility {
     Assert.assertEquals(SchemaCompatibilityType.INCOMPATIBLE,
             SchemaCompatibility.checkReaderWriterCompatibility(schema2, schema1).getType());
   }
+
+
+  private Schema readSchemaFromResources(String name) throws IOException {
+    try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(name)) {
+      final String result = new BufferedReader(new InputStreamReader(inputStream)).lines()
+              .collect(Collectors.joining("\n"));
+      return new Schema.Parser().parse(result);
+    }
+  }
+
+  @Test
+  public void checkResolvingDecoder() throws IOException {
+    final Schema locationSchema = readSchemaFromResources("schema-location.json");
+    final Schema writeSchema = readSchemaFromResources("schema-location-write.json");
+
+    // For the read schema the long field has been removed
+    // And a new field has been added, called long_r2
+    // This one should be null.
+    final Schema readSchema = readSchemaFromResources("schema-location-read.json");
+
+    // Create some testdata
+    GenericData.Record record = new GenericData.Record(writeSchema);
+    GenericData.Record location = new GenericData.Record(locationSchema);
+
+    location.put("lat", 52.995143f);
+    location.put("long", -1.539054f);
+
+    HashMap<String, GenericData.Record> locations = new HashMap<>();
+    locations.put("l1", location);
+    record.put("location", locations);
+
+    // Write the record to bytes
+    byte[] payload;
+    try (ByteArrayOutputStream bbos = new ByteArrayOutputStream()) {
+      DatumWriter<GenericData.Record> datumWriter = new GenericDatumWriter<>(writeSchema);
+      Encoder enc = EncoderFactory.get().binaryEncoder(bbos, null);
+      datumWriter.write(record, enc);
+      enc.flush();
+
+      payload = bbos.toByteArray();
+    }
+
+    // Read the record, and decode it using the read with the long
+    // And project it using the other schema with the long_r2
+    BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(payload, null);
+    GenericDatumReader<GenericData.Record> reader = new GenericDatumReader<>();
+    reader.setSchema(writeSchema);
+    reader.setExpected(readSchema);
+
+    // Get the object we're looking for
+    GenericData.Record r = reader.read(null, decoder);
+    HashMap<Utf8, GenericData.Record> locs = (HashMap<Utf8, GenericData.Record>) r.get("location");
+    GenericData.Record loc = locs.get(new Utf8("l1"));
+
+    assertNotNull(loc.get("lat"));
+    // This is a new field, and should be null
+    assertNull(loc.get("long_r2"));
+  }
+
+
+
 }
