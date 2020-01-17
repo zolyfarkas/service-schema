@@ -17,7 +17,7 @@
  */
 package org.apache.avro;
 
-import com.fasterxml.jackson.core.util.BufferRecyclers;
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.IOException;
@@ -2622,11 +2622,11 @@ public class SchemaBuilder {
         bytes.get(data);
         bytes.reset(); // put the buffer back the way we got it
         s = new String(data, "ISO-8859-1");
-        char[] quoted = BufferRecyclers.getJsonStringEncoder().quoteAsString(s);
+        char[] quoted = JsonStringEncoder.getInstance().quoteAsString(s);
         s = "\"" + new String(quoted) + "\"";
       } else if (o instanceof byte[]) {
         s = new String((byte[]) o, "ISO-8859-1");
-        char[] quoted = BufferRecyclers.getJsonStringEncoder().quoteAsString(s);
+        char[] quoted = JsonStringEncoder.getInstance().quoteAsString(s);
         s = '\"' + new String(quoted) + '\"';
       } else {
         s = GenericData.get().toString(o);
