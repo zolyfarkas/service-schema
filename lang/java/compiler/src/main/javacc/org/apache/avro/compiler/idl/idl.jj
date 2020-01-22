@@ -1386,6 +1386,9 @@ void FieldDeclaration(List<Field> fields):
 }
 {
 (( ("mixin") mixinType = ReferenceType() {
+  if (mixinType.getType() != Schema.Type.RECORD) {
+    throw error("Invalid mixin '" + mixinType + "'", token);
+  }
   for (Field field : mixinType.getFields()) {
     Field nField = new Field(field, field.schema());
     fields.add(nField);
@@ -1566,9 +1569,7 @@ Schema ReferenceType():
     if ((name.indexOf('.') == -1) && namespace != null)
       name = namespace + "." + name;
     Schema type = names.get(name);
-    if (type == null)
-      //throw error("Undefined name '" + name + "'", token);
-    {
+    if (type == null) {
       type = SchemaResolver.unresolvedSchema(name);
     }
     return type;
