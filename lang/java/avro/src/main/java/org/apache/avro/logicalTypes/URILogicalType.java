@@ -38,7 +38,7 @@ public final class URILogicalType extends AbstractLogicalType<URI> {
       CharSequence strVal = (CharSequence) object;
       return new URI(strVal.toString());
     } catch (URISyntaxException ex) {
-      throw new AvroRuntimeException("Invalid URL " + object, ex);
+      throw new AvroRuntimeException("Invalid URI " + object, ex);
     }
   }
 
