@@ -25,8 +25,6 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Conversion;
@@ -95,6 +93,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   /** Set the reader's schema. */
   public void setExpected(Schema reader) {
     this.expected = reader;
+    this.resolver = getResolver(actual, expected);
   }
 
 
