@@ -65,7 +65,9 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     this(data);
     this.actual = writer;
     this.expected = reader;
-    this.resolver = getResolver(actual, expected);
+    if (actual != null && expected != null) {
+      this.resolver = getResolver(actual, expected);
+    }
   }
 
   protected GenericDatumReader(GenericData data) {
@@ -93,9 +95,10 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   /** Set the reader's schema. */
   public void setExpected(Schema reader) {
     this.expected = reader;
-    this.resolver = getResolver(actual, expected);
+    if (actual != null) {
+      this.resolver = getResolver(actual, expected);
+    }
   }
-
 
   static final ResolvingDecoder getResolver(Schema actual, Schema expected) {
     try {
