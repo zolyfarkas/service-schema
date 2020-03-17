@@ -18,12 +18,16 @@
 package org.apache.avro.generic;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Conversion;
 import org.apache.avro.Conversions;
@@ -38,10 +42,12 @@ import org.apache.avro.util.Optional;
 import org.apache.avro.util.Utf8;
 
 /** {@link DatumReader} for generic Java objects. */
+@NotThreadSafe
 public class GenericDatumReader<D> implements DatumReader<D> {
   private final GenericData data;
   private Schema actual;
   private Schema expected;
+  private ResolvingDecoder resolver;
 
   public GenericDatumReader() {
     this(null, null, GenericData.get());
@@ -61,6 +67,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     this(data);
     this.actual = writer;
     this.expected = reader;
+    this.resolver = getResolver(actual, expected);
   }
 
   protected GenericDatumReader(GenericData data) {
@@ -79,6 +86,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     if (expected == null) {
       expected = actual;
     }
+    this.resolver = getResolver(actual, expected);
   }
 
   /** Get the reader's schema. */
@@ -90,18 +98,25 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   }
 
 
-  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder)
-    throws IOException {
-    return DecoderFactory.get().resolvingDecoder(
-          Schema.applyAliases(actual, expected), expected, decoder);
+  static final ResolvingDecoder getResolver(Schema actual, Schema expected) {
+    try {
+      return DecoderFactory.get().resolvingDecoder(
+              Schema.applyAliases(actual, expected), expected, null);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public D read(D reuse, Decoder in) throws IOException {
-    ResolvingDecoder resolver = getResolver(actual, expected, in);
-    D result = (D) read(reuse, expected, resolver);
-    resolver.drain();
+    resolver.configure(in);
+    D result;
+    try {
+      result = (D) read(reuse, expected, resolver);
+    } finally {
+      resolver.drain();
+    }
     return result;
   }
 
