@@ -43,8 +43,7 @@ public final class RWSchemas {
 
   @Override
   public int hashCode() {
-    int hash =  Objects.hashCode(this.writer);
-    return 97 * hash + Objects.hashCode(this.reader);
+    return 97 * Objects.hashCode(this.writer) + Objects.hashCode(this.reader);
   }
 
   @Override
@@ -62,10 +61,7 @@ public final class RWSchemas {
     if (!Objects.equals(this.writer, other.writer)) {
       return false;
     }
-    if (!Objects.equals(this.reader, other.reader)) {
-      return false;
-    }
-    return true;
+    return Objects.equals(this.reader, other.reader);
   }
 
   @Override
