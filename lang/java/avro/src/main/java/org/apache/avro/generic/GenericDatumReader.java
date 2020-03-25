@@ -46,6 +46,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   private Schema actual;
   private Schema expected;
   private ResolvingDecoder resolver;
+  private Decoder decoder;
 
   public GenericDatumReader() {
     this(null, null, GenericData.get());
@@ -65,9 +66,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     this(data);
     this.actual = writer;
     this.expected = reader;
-    if (actual != null && expected != null) {
-      this.resolver = getResolver(actual, expected);
-    }
   }
 
   protected GenericDatumReader(GenericData data) {
@@ -86,7 +84,6 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     if (expected == null) {
       expected = actual;
     }
-    this.resolver = getResolver(actual, expected);
   }
 
   /** Get the reader's schema. */
@@ -95,15 +92,12 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   /** Set the reader's schema. */
   public void setExpected(Schema reader) {
     this.expected = reader;
-    if (actual != null) {
-      this.resolver = getResolver(actual, expected);
-    }
   }
 
-  static final ResolvingDecoder getResolver(Schema actual, Schema expected) {
+  static final ResolvingDecoder getResolver(Schema actual, Schema expected, Decoder decoder) {
     try {
       return DecoderFactory.get().resolvingDecoder(
-              Schema.applyAliases(actual, expected), expected, null);
+              Schema.applyAliases(actual, expected), expected, decoder);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
@@ -112,7 +106,10 @@ public class GenericDatumReader<D> implements DatumReader<D> {
   @Override
   @SuppressWarnings("unchecked")
   public D read(D reuse, Decoder in) throws IOException {
-    resolver.configure(in);
+    if (resolver == null || decoder != in) {
+      this.decoder = in;
+      this.resolver = getResolver(actual, expected, in);
+    }
     D result;
     try {
       result = (D) read(reuse, expected, resolver);
