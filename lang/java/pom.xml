@@ -43,7 +43,7 @@
     -->
     <hadoop1.version>1.2.1</hadoop1.version>
     <hadoop2.version>2.7.3</hadoop2.version>
-    <jackson.version>2.10.2</jackson.version>
+    <jackson.version>2.10.3</jackson.version>
     <jetty.version>6.1.26</jetty.version>
     <jetty-servlet-api.version>2.5-20081211</jetty-servlet-api.version>
     <jopt-simple.version>5.0.3</jopt-simple.version>
