@@ -1597,19 +1597,24 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public String space() { return space; }
     public void space(String space) { this.space = space; }
 
+    public Schema get(String o) {
+      Type primitive = PRIMITIVES.get(o);
+      if (primitive != null) {
+        return Schema.create(primitive);
+      }
+      Name name = new Name(o, space);
+      if (!containsKey(name)) {
+        // if not in default try anonymous
+        name = new Name(o, "");
+      }
+      return super.get(name);
+    }
+
     @Override
     public Schema get(Object o) {
       Name name;
       if (o instanceof String) {
-        String n = (String) o;
-        Type primitive = PRIMITIVES.get(n);
-        if (primitive != null) return Schema.create(primitive);
-        name = new Name(n, space);
-        Schema s = super.get(name);
-        if (s != null) {
-          return s;
-        }
-        name = new Name(n, "");         // try anonymous
+        return get((String) o);
       } else {
         name = (Name)o;
       }
