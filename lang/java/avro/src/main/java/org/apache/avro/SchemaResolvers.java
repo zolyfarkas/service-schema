@@ -39,7 +39,7 @@ public final class SchemaResolvers {
     ServiceLoader<SchemaResolverRegistration> regs = ServiceLoader.load(SchemaResolverRegistration.class);
     for (SchemaResolverRegistration reg : regs) {
       SchemaResolver ex = register(reg.getName(), reg.getResolver());
-      if (ex == null) {
+      if (ex != null) {
         Logger.getLogger(SchemaResolvers.class.getName())
                 .log(Level.WARNING, "Overwriting schema resolver {0} with {1}", new Object [] {ex, reg.getResolver()});
       }
