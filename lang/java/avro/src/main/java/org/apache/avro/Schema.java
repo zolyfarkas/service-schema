@@ -1718,6 +1718,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
   }
 
+  public static  Schema parse(JsonNode schema, Names names) {
+    return parse(schema, names,  LogicalTypes.isAllowUndefinedLogicalTypes(), true, true);
+  }
+
   /** @see #parse(String) */
   public static Schema parse(JsonNode schema, Names names,
           final boolean allowUndefinedLogicalTypes, final boolean validateNames, boolean validateDefaults) {
