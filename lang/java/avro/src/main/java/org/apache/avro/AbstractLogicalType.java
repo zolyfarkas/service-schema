@@ -1,33 +1,17 @@
 package org.apache.avro;
 
-import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.apache.avro.util.internal.JacksonUtils;
 
-public abstract class AbstractLogicalType<T> extends JsonProperties implements LogicalType<T> {
 
-  /**
-   * @deprecated use the other constructor.
-   */
-  @Deprecated
-  protected AbstractLogicalType(Schema.Type type, Set<String> reserved, String logicalTypeName,
-          Map<String, Object> properties) {
-    this(type, reserved, logicalTypeName, properties, (Class<T>) Object.class);
-  }
+public abstract class AbstractLogicalType<T> extends LogicalType<T> {
 
   protected AbstractLogicalType(Schema.Type type, Set<String> reserved, String logicalTypeName,
           Map<String, Object> properties, Class<T> javaClasZ) {
-    super(reserved);
     this.properties = new HashMap<String, Object>(properties);
-    for (Map.Entry<String, Object> prop : properties.entrySet()) {
-      props.put(prop.getKey(), JacksonUtils.toJsonNode(prop.getValue()));
-    }
-    this.properties.put("logicalType", logicalTypeName);
-    props.put("logicalType", TextNode.valueOf(logicalTypeName));
     this.logicalTypeName = logicalTypeName;
     this.type = type;
     this.javaClasZ = javaClasZ;
@@ -48,7 +32,7 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
     if (obj.getClass() != this.getClass()) return false;
     AbstractLogicalType other = (AbstractLogicalType) obj;
     // equal if properties are the same
-    return this.props.equals(other.props);
+    return this.properties.equals(other.properties);
   }
 
   @Override
@@ -58,7 +42,7 @@ public abstract class AbstractLogicalType<T> extends JsonProperties implements L
 
   @Override
   public int hashCode() {
-    return logicalTypeName.hashCode() + 7 * props.size();
+    return logicalTypeName.hashCode() + 7 * properties.size();
   }
 
   public String getName() {

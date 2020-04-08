@@ -105,11 +105,6 @@ public class TestProtocol {
           }
 
           @Override
-          public Set reserved() {
-            throw new UnsupportedOperationException();
-          }
-
-          @Override
           public Object getProperty(String propertyName) {
            return null;
           }

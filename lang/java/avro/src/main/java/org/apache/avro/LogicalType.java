@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.generic.GenericEnumSymbol;
@@ -22,30 +21,26 @@ import org.apache.avro.util.Optional;
  * exist.
  */
 @ParametersAreNonnullByDefault
-public interface LogicalType<T> {
+public abstract class LogicalType<T> {
 
-  String LOGICAL_TYPE_PROP = "logicalType";
+  public static final String LOGICAL_TYPE_PROP = "logicalType";
 
   /**
    * @return the name of the logical type.
    */
-  String getName();
+  public abstract String getName();
 
-  /**
-   * Return the set of properties that a reserved for this type
-   */
-  Set<String> reserved();
 
-  Object getProperty(String propertyName);
+  public abstract Object getProperty(String propertyName);
 
-  Map<String, Object> getProperties();
+  public abstract Map<String, Object> getProperties();
 
   /**
    * get java type
    */
-  Class<T> getLogicalJavaType();
+  public abstract Class<T> getLogicalJavaType();
 
-  default int computehashCode(T object) {
+  public int computehashCode(T object) {
     return object.hashCode();
   }
 
@@ -55,7 +50,7 @@ public interface LogicalType<T> {
    * @param object
    * @return
    */
-  default T deserialize(Object object) {
+  public T deserialize(Object object) {
     return (T) object;
   }
 
@@ -65,7 +60,7 @@ public interface LogicalType<T> {
    * @param object
    * @return
    */
-  default Object serialize(T object) {
+  public Object serialize(T object) {
     return object;
   }
 
@@ -75,7 +70,7 @@ public interface LogicalType<T> {
    * @return true if direct encoding was done.
    * @throws IOException
    */
-  default boolean tryDirectEncode(T object, final Encoder enc, final Schema schema) throws IOException {
+  public boolean tryDirectEncode(T object, final Encoder enc, final Schema schema) throws IOException {
     return false;
   }
 
@@ -85,26 +80,26 @@ public interface LogicalType<T> {
    * @throws IOException
    */
   @Nonnull
-  default Optional<T> tryDirectDecode(final Decoder enc, final Schema schema) throws IOException {
+  public Optional<T> tryDirectDecode(final Decoder enc, final Schema schema) throws IOException {
     return Optional.empty();
   }
 
-  default String getLogicalTypeName() {
+  public String getLogicalTypeName() {
     return getName();
   }
 
-  default Schema addToSchema(Schema schema) {
+  public Schema addToSchema(Schema schema) {
     validate(schema);
     schema.addProp(LOGICAL_TYPE_PROP, getName());
     schema.setLogicalType(this);
     return schema;
   }
 
-  default void validate(Schema schema) {
+  public void validate(Schema schema) {
     // no validation by default.
   }
 
-  default Conversion<T> getDefaultConversion() {
+  public Conversion<T> getDefaultConversion() {
     return new Conversion<T>() {
       @Override
       public Class<T> getConvertedType() {

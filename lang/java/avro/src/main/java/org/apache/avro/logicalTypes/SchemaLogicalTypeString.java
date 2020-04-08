@@ -37,8 +37,6 @@ public final class SchemaLogicalTypeString extends AbstractLogicalType<Schema> {
 
   private final SchemaResolver resolver;
 
-
-
   SchemaLogicalTypeString(final Schema.Type type, final String logicalTypeName, final SchemaResolver resolver) {
     super(type, Collections.EMPTY_SET, logicalTypeName, Collections.EMPTY_MAP, Schema.class);
     this.resolver = resolver;
