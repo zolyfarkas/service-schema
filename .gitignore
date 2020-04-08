@@ -12,3 +12,6 @@ target
 test-output
 /dist
 /lang/java/avro-joda/avro-joda-ext/nbproject/
+/lang/java/avro/nb-configuration.xml
+/release.properties
+/lang/java/compiler/dependency-reduced-pom.xml
