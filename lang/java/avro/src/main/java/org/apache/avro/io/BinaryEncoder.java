@@ -65,7 +65,7 @@ public abstract class BinaryEncoder extends Encoder {
         charsTmp = Arrays.getCharsTmp(strLength);
         string.getChars(0, strLength, charsTmp, 0);
       }
-      osw.write(charsTmp);
+      osw.write(charsTmp, 0, strLength);
       osw.flush();
       int bSize = bab.size();
       writeInt(bSize);
