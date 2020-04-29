@@ -51,11 +51,11 @@ public abstract class BinaryEncoder extends Encoder {
 
   @Override
   public void writeString(String string) throws IOException {
-    if (string.isEmpty()) {
+    int strLength = string.length();
+    if (0 == strLength) {
       writeZero();
       return;
     }
-    int strLength = string.length();
     try (ByteArrayBuilder bab = new ByteArrayBuilder(strLength);
          OutputStreamWriter osw = new OutputStreamWriter(bab, StandardCharsets.UTF_8)) {
       char[] charsTmp;
