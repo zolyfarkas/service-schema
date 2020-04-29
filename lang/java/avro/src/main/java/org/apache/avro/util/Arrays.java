@@ -15,7 +15,7 @@
  */
 package org.apache.avro.util;
 
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
 
 /**
  *
@@ -26,7 +26,11 @@ public final class Arrays {
   private Arrays() {
   }
 
-  private static final ThreadLocal<SoftReference<byte[]>> BYTES_TMP = new ThreadLocal<SoftReference<byte[]>>();
+  private static final ReferenceType REF_TYPE = ReferenceType.valueOf(System.getProperty("avro.strCache.refType",
+          "WEAK"));
+
+
+  private static final ThreadLocal<Reference<byte[]>> BYTES_TMP = new ThreadLocal<Reference<byte[]>>();
 
   /**
    * returns a thread local byte array of at least the size requested. use only for temporary purpose. This method needs
@@ -36,22 +40,22 @@ public final class Arrays {
    * @return
    */
   public static byte[] getBytesTmp(final int size) {
-    SoftReference<byte[]> sr = BYTES_TMP.get();
+    Reference<byte[]> sr = BYTES_TMP.get();
     byte[] result;
     if (sr == null) {
       result = new byte[size];
-      BYTES_TMP.set(new SoftReference<byte[]>(result));
+      BYTES_TMP.set(REF_TYPE.create(result));
     } else {
       result = sr.get();
       if (result == null || result.length < size) {
         result = new byte[size];
-        BYTES_TMP.set(new SoftReference<byte[]>(result));
+        BYTES_TMP.set(REF_TYPE.create(result));
       }
     }
     return result;
   }
 
-  private static final ThreadLocal<SoftReference<char[]>> CHARS_TMP = new ThreadLocal<SoftReference<char[]>>();
+  private static final ThreadLocal<Reference<char[]>> CHARS_TMP = new ThreadLocal<Reference<char[]>>();
 
   /**
    * returns a thread local char array of at least the requested size. Use only for temporary purpose.
@@ -60,16 +64,16 @@ public final class Arrays {
    * @return
    */
   public static char[] getCharsTmp(final int size) {
-    SoftReference<char[]> sr = CHARS_TMP.get();
+    Reference<char[]> sr = CHARS_TMP.get();
     char[] result;
     if (sr == null) {
       result = new char[size];
-      CHARS_TMP.set(new SoftReference<char []>(result));
+      CHARS_TMP.set(REF_TYPE.create(result));
     } else {
       result = sr.get();
       if (result == null || result.length < size) {
         result = new char[size];
-        CHARS_TMP.set(new SoftReference<char []>(result));
+        CHARS_TMP.set(REF_TYPE.create(result));
       }
     }
     return result;

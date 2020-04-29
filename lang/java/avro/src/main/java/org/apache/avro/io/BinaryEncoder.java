@@ -18,9 +18,11 @@
 package org.apache.avro.io;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
-import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import org.apache.avro.util.Arrays;
+import org.apache.avro.util.ByteArrayBuilder;
 import org.apache.avro.util.Strings;
 
 import org.apache.avro.util.Utf8;
@@ -49,16 +51,26 @@ public abstract class BinaryEncoder extends Encoder {
 
   @Override
   public void writeString(String string) throws IOException {
-    if (0 == string.length()) {
+    if (string.isEmpty()) {
       writeZero();
       return;
     }
-    CharsetEncoder utf8CharsetEncoder = Strings.getUTF8CharsetEncoder();
-    int nrChars = string.length();
-    byte[] tlArray = Arrays.getBytesTmp(Strings.getmaxNrBytes(utf8CharsetEncoder, nrChars));
-    int nrBytes = Strings.encode(utf8CharsetEncoder, Strings.steal(string), 0, nrChars, tlArray);
-    writeInt(nrBytes);
-    writeFixed(tlArray, 0, nrBytes);
+    int strLength = string.length();
+    try (ByteArrayBuilder bab = new ByteArrayBuilder(strLength);
+         OutputStreamWriter osw = new OutputStreamWriter(bab, StandardCharsets.UTF_8)) {
+      char[] charsTmp;
+      if (Strings.canSteal()) {
+        charsTmp = Strings.steal(string);
+      } else {
+        charsTmp = Arrays.getCharsTmp(strLength);
+        string.getChars(0, strLength, charsTmp, 0);
+      }
+      osw.write(charsTmp);
+      osw.flush();
+      int bSize = bab.size();
+      writeInt(bSize);
+      writeFixed(bab.getBuffer(), 0, bSize);
+    }
   }
 
   @Override

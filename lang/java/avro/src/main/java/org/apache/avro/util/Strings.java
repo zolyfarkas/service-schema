@@ -139,6 +139,10 @@ public final class Strings {
     }
   }
 
+  public static boolean canSteal() {
+    return CHARS_FIELD_GET != null;
+  }
+
   /**
    * Steal the underlying character array of a String.
    *
