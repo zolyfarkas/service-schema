@@ -1315,24 +1315,34 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   private static class UnionSchema extends Schema {
     private final List<Schema> types;
-    private final Map<String,Integer> indexByName
-      = new HashMap<String,Integer>();
+    private final Map<String,Integer> indexByName;
+
     public UnionSchema(LockableArrayList<Schema> types) {
       super(Type.UNION);
       this.types = types.lock();
       int index = 0;
+      indexByName = Maps.newHashMapWithExpectedSize(types.size());
       for (Schema type : types) {
-        if (type.getType() == Type.UNION)
-          throw new AvroRuntimeException("Nested union: "+this);
+        if (type.getType() == Type.UNION) {
+          throw new AvroRuntimeException("Nested union: " + this);
+        }
         String name = type.getFullName();
-        if (name == null)
+        if (name == null) {
           throw new AvroRuntimeException("Nameless in union:"+this);
-        if (indexByName.put(name, index++) != null)
+        }
+        if (indexByName.put(name, index++) != null) {
           throw new AvroRuntimeException("Duplicate in union:" + name);
+        }
       }
     }
-    public List<Schema> getTypes() { return types; }
-    public Integer getIndexNamed(String name) {      return indexByName.get(name); }
+
+    public List<Schema> getTypes() {
+      return types;
+    }
+
+    public Integer getIndexNamed(String name) {
+      return indexByName.get(name);
+    }
     public boolean equals(Object o) {
       if (o == this) return true;
       if (!(o instanceof UnionSchema)) return false;
@@ -1355,8 +1365,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
     public void toJson(Names names, JsonGenerator gen) throws IOException {
       gen.writeStartArray();
-      for (Schema type : types)
+      for (Schema type : types) {
         type.toJson(names, gen);
+      }
       gen.writeEndArray();
     }
   }
