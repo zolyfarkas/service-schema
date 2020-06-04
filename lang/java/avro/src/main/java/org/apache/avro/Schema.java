@@ -949,30 +949,20 @@ public abstract class Schema extends JsonProperties implements Serializable {
       fieldMap = Maps.newHashMapWithExpectedSize(size);
       LockableArrayList ff = new LockableArrayList(size);
       for (Field f : fields) {
-        if (f.position != -1) {
+        if (f.position != -1)
           throw new AvroRuntimeException("Field already used: " + f);
-        }
         f.position = i++;
-        addFieldName(fieldMap, f, f.name(), name);
-        for (String alias : f.aliases()) {
-          addFieldName(fieldMap, f, alias, name);
+        final Field existingField = fieldMap.put(f.name(), f);
+        if (existingField != null) {
+          throw new AvroRuntimeException(String.format(
+              "Duplicate field %s in record %s: %s and %s.",
+              f.name(), name, f, existingField));
         }
         ff.add(f);
       }
       this.fields = ff.lock();
       this.hashCode = NO_HASHCODE;
     }
-
-    private static void addFieldName(Map<String, Field> fieldMap, Field f,
-                                      String name, Schema.Name recordName) {
-       Field existingField = fieldMap.put(name, f);
-       if (existingField != null) {
-         throw new AvroRuntimeException(String.format(
-             "Duplicate field %s in record %s: %s and %s.",
-             f.name(), recordName, f, existingField));
-       }
-     }
-
     public boolean equals(Object o) {
       if (o == this) return true;
       if (!(o instanceof RecordSchema)) return false;
