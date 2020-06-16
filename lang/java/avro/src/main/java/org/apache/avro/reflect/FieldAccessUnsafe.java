@@ -74,7 +74,7 @@ class FieldAccessUnsafe extends FieldAccess {
 
   abstract static class UnsafeCachedField extends FieldAccessor {
     protected final long offset;
-    protected Field field;
+    protected final Field field;
     protected final boolean isStringable;
 
     UnsafeCachedField(Field f) {
@@ -331,7 +331,7 @@ class FieldAccessUnsafe extends FieldAccess {
 
   final static class UnsafeCustomEncodedField extends UnsafeCachedField {
 
-    private CustomEncoding<?> encoding;
+    private final CustomEncoding<?> encoding;
 
     UnsafeCustomEncodedField(Field f, CustomEncoding<?> encoding) {
       super(f);
