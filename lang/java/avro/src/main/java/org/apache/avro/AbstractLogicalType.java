@@ -11,13 +11,11 @@ public abstract class AbstractLogicalType<T> extends LogicalType<T> {
 
   protected AbstractLogicalType(Schema.Type type, Set<String> reserved, String logicalTypeName,
           Map<String, Object> properties, Class<T> javaClasZ) {
+    super(logicalTypeName);
     this.properties = new HashMap<String, Object>(properties);
-    this.logicalTypeName = logicalTypeName;
     this.type = type;
     this.javaClasZ = javaClasZ;
   }
-
-  protected final String logicalTypeName;
 
   protected final Map<String, Object> properties;
 
@@ -42,12 +40,9 @@ public abstract class AbstractLogicalType<T> extends LogicalType<T> {
 
   @Override
   public int hashCode() {
-    return logicalTypeName.hashCode() + 7 * properties.size();
+    return getName().hashCode() + 7 * properties.size();
   }
 
-  public String getName() {
-    return logicalTypeName;
-  }
 
   public Object getProperty(String propertyName) {
     return properties.get(propertyName);
@@ -64,8 +59,5 @@ public abstract class AbstractLogicalType<T> extends LogicalType<T> {
     Collections.addAll(reserved, properties);
     return reserved;
   }
-
-
-
 
 }

@@ -27,7 +27,7 @@
 
     <artifactId>avro-joda</artifactId>
 
-    <name>${artifactId} - ${version}</name>
+    <name>${project.artifactId} - ${project.version}</name>
     <url>http://avro.apache.org</url>
     <description>Avro joda logical type extensions</description>
     <packaging>pom</packaging>

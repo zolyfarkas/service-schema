@@ -28,7 +28,7 @@
   <artifactId>avro-parent</artifactId>
   <packaging>pom</packaging>
 
-  <name>${artifactId} - ${version}</name>
+  <name>${project.artifactId} - ${project.version}</name>
   <url>http://avro.apache.org</url>
   <description>Avro parent Java project</description>
 

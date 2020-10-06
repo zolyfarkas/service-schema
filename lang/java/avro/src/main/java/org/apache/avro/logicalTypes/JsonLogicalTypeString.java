@@ -34,7 +34,7 @@ public final class JsonLogicalTypeString<T> extends AbstractLogicalType<T> {
   JsonLogicalTypeString(final Schema.Type type, final String logicalTypeName, final Class<T> clasz) {
     super(type, Collections.EMPTY_SET, logicalTypeName, Collections.EMPTY_MAP, clasz);
     if (type != Schema.Type.STRING) {
-      throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
+      throw new IllegalArgumentException(logicalTypeName + " must be backed by string or bytes, not" + type);
     }
   }
 

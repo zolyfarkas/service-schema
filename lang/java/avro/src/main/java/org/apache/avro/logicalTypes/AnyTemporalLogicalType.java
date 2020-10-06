@@ -43,7 +43,7 @@ public final class AnyTemporalLogicalType extends AbstractLogicalType<Temporal> 
     super(type, Collections.EMPTY_SET, "any_temporal",
             Collections.EMPTY_MAP, Temporal.class);
     if (type != Schema.Type.STRING) {
-       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string, not" + type);
+       throw new IllegalArgumentException("any_temporal must be backed by string, not" + type);
     }
   }
 

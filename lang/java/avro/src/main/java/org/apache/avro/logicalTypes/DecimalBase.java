@@ -68,7 +68,7 @@ public abstract class DecimalBase extends AbstractLogicalType<BigDecimal> {
     super(type, RESERVED, "decimal", toAttributes(precision, scale, serRm, deserRm), BigDecimal.class);
     int pInt = precision == null ? 36 : precision.intValue();
     if (pInt <= 0) {
-      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " precision: "
+      throw new IllegalArgumentException("Invalid decimal precision: "
               + precision + " (must be positive)");
     }
     this.serRm = serRm == null

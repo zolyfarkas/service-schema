@@ -43,12 +43,12 @@ public final class AvroDecimal extends AbstractLogicalType<BigDecimal> {
     super(schema.getType(), RESERVED, "decimal", toAttributes(scale), BigDecimal.class);
     this.schema = schema;
     if (type != Schema.Type.BYTES && type != Schema.Type.FIXED) {
-       throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
+       throw new IllegalArgumentException("decimal must be backed by string or bytes, not" + type);
     }
     if (scale == null) {
       scale = 0;
     } else if (scale.intValue() < 0) {
-      throw new IllegalArgumentException("Invalid " + this.logicalTypeName + " scale: "
+      throw new IllegalArgumentException("Invalid decimal scale: "
               + scale + " (must be positive)");
     }
     this.scale = scale.intValue();

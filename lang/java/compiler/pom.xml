@@ -27,7 +27,7 @@
 
   <artifactId>avro-compiler</artifactId>
 
-  <name>${artifactId} - ${version}</name>
+  <name>${project.artifactId} - ${project.version}</name>
   <packaging>bundle</packaging>
   <url>http://avro.apache.org</url>
   <description>Compilers for Avro IDL and Avro Specific Java API</description>

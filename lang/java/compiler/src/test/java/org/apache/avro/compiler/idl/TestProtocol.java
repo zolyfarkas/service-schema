@@ -22,7 +22,6 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.LogicalTypes;
@@ -98,11 +97,7 @@ public class TestProtocol {
 
       @Override
       public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-        return new LogicalType() {
-          @Override
-          public String getName() {
-            return "date";
-          }
+        return new LogicalType("date") {
 
           @Override
           public Object getProperty(String propertyName) {

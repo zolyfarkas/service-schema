@@ -40,7 +40,7 @@ public final class BigIntegerBytes extends AbstractLogicalType<java.math.BigInte
     super(type, Collections.EMPTY_SET, "bigint", BigIntegerFactory.toAttributes(precision),
             java.math.BigInteger.class);
     if (type != Schema.Type.BYTES) {
-      throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
+      throw new IllegalArgumentException("bigint must be backed by string or bytes, not" + type);
     }
     this.precision = precision;
   }

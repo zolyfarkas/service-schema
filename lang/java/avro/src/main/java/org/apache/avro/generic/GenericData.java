@@ -74,7 +74,8 @@ public class GenericData {
     CharSequence, String, Utf8
   };
 
-  protected static final String STRING_PROP = "avro.java.string";
+
+  public static final String STRING_PROP = "avro.java.string";
   protected static final String STRING_TYPE_STRING = "String";
 
   private final ClassLoader classLoader;

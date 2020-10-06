@@ -37,7 +37,7 @@ public final class BigIntegerString extends AbstractLogicalType<java.math.BigInt
   BigIntegerString(Schema.Type type, @Nullable Integer precision) {
     super(type, Collections.EMPTY_SET, "bigint", BigIntegerFactory.toAttributes(precision), java.math.BigInteger.class);
     if (type != Schema.Type.STRING) {
-      throw new IllegalArgumentException(this.logicalTypeName + " must be backed by string or bytes, not" + type);
+      throw new IllegalArgumentException("bigint must be backed by string or bytes, not" + type);
     }
     this.precision = precision;
   }

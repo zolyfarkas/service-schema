@@ -3,14 +3,18 @@ package org.apache.avro;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.specific.SpecificData;
 import org.apache.avro.util.Optional;
 
 /**
@@ -25,20 +29,39 @@ public abstract class LogicalType<T> {
 
   public static final String LOGICAL_TYPE_PROP = "logicalType";
 
+  private static final String[] INCOMPATIBLE_PROPS = new String[] { GenericData.STRING_PROP, SpecificData.CLASS_PROP,
+      SpecificData.KEY_CLASS_PROP, SpecificData.ELEMENT_PROP };
+
+
+  private final String name;
+
+  public LogicalType(String logicalTypeName) {
+    this.name = logicalTypeName.intern();
+  }
+
   /**
    * @return the name of the logical type.
    */
-  public abstract String getName();
+  public final String getName() {
+    return name;
+  }
 
 
-  public abstract Object getProperty(String propertyName);
+  public Object getProperty(String propertyName) {
+    return null;
+  }
 
-  public abstract Map<String, Object> getProperties();
+  public Map<String, Object> getProperties() {
+    return Collections.EMPTY_MAP;
+  }
 
   /**
    * get java type
    */
-  public abstract Class<T> getLogicalJavaType();
+  @Nullable
+  public Class<T> getLogicalJavaType() {
+    return null;
+  }
 
   public int computehashCode(T object) {
     return object.hashCode();
@@ -96,7 +119,11 @@ public abstract class LogicalType<T> {
   }
 
   public void validate(Schema schema) {
-    // no validation by default.
+    for (String incompatible : INCOMPATIBLE_PROPS) {
+      if (schema.getProp(incompatible) != null) {
+        throw new IllegalArgumentException(LOGICAL_TYPE_PROP + " cannot be used with " + incompatible);
+      }
+    }
   }
 
   public Conversion<T> getDefaultConversion() {

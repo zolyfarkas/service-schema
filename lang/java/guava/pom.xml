@@ -27,7 +27,7 @@
 
   <artifactId>avro-guava-dependencies</artifactId>
 
-  <name>${artifactId} - ${version}</name>
+  <name>${project.artifactId} - ${project.version}</name>
   <url>http://avro.apache.org</url>
   <description>Temporary artifact of guava dependencies</description>
   <packaging>jar</packaging>

@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import org.apache.avro.logicalTypes.AnyAvroLogicalTypeFactory;
 import org.apache.avro.logicalTypes.AnyTemporalLogicalTypeFactory;
 import org.apache.avro.logicalTypes.BigIntegerFactory;
+import org.apache.avro.logicalTypes.DateIntLogicalType;
 import org.apache.avro.logicalTypes.DateLogicalTypeFactory;
 import org.apache.avro.logicalTypes.DecimalFactory;
 import org.apache.avro.logicalTypes.InstantLogicalTypeFactory;
@@ -44,6 +45,18 @@ import org.apache.avro.logicalTypes.UuidLogicalTypeFactory;
 
 
 public class LogicalTypes {
+
+
+  private static final String DECIMAL = "decimal";
+  private static final String UUID = "uuid";
+  private static final String DATE = "date";
+  private static final String TIME_MILLIS = "time-millis";
+  private static final String TIME_MICROS = "time-micros";
+  private static final String TIMESTAMP_MILLIS = "timestamp-millis";
+  private static final String TIMESTAMP_MICROS = "timestamp-micros";
+  private static final String LOCAL_TIMESTAMP_MILLIS = "local-timestamp-millis";
+  private static final String LOCAL_TIMESTAMP_MICROS = "local-timestamp-micros";
+
 
   private static final Map<String, org.apache.avro.LogicalTypeFactory> REGISTERED_TYPES =
       new ConcurrentHashMap<>();
@@ -77,6 +90,148 @@ public class LogicalTypes {
   public static LogicalType uuid() {
     return UuidLogicalTypeFactory.uuid();
   }
+
+  private static final Date DATE_TYPE = new Date();
+
+  public static LogicalType date() {
+    return DATE_TYPE;
+  }
+
+  private static final TimeMillis TIME_MILLIS_TYPE = new TimeMillis();
+
+  public static TimeMillis timeMillis() {
+    return TIME_MILLIS_TYPE;
+  }
+
+  private static final TimeMicros TIME_MICROS_TYPE = new TimeMicros();
+
+  public static TimeMicros timeMicros() {
+    return TIME_MICROS_TYPE;
+  }
+
+  private static final TimestampMillis TIMESTAMP_MILLIS_TYPE = new TimestampMillis();
+
+  public static TimestampMillis timestampMillis() {
+    return TIMESTAMP_MILLIS_TYPE;
+  }
+
+  private static final TimestampMicros TIMESTAMP_MICROS_TYPE = new TimestampMicros();
+
+  public static TimestampMicros timestampMicros() {
+    return TIMESTAMP_MICROS_TYPE;
+  }
+
+  private static final LocalTimestampMillis LOCAL_TIMESTAMP_MILLIS_TYPE = new LocalTimestampMillis();
+
+  public static LocalTimestampMillis localTimestampMillis() {
+    return LOCAL_TIMESTAMP_MILLIS_TYPE;
+  }
+
+  private static final LocalTimestampMicros LOCAL_TIMESTAMP_MICROS_TYPE = new LocalTimestampMicros();
+
+  public static LocalTimestampMicros localTimestampMicros() {
+    return LOCAL_TIMESTAMP_MICROS_TYPE;
+  }
+
+
+  /** Date represents a date without a time */
+  public static class Date extends DateIntLogicalType {
+    private Date() {
+      super(Schema.create(Schema.Type.INT));
+    }
+  }
+
+  /** TimeMillis represents a time in milliseconds without a date */
+  public static class TimeMillis extends LogicalType {
+    private TimeMillis() {
+      super(TIME_MILLIS);
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      if (schema.getType() != Schema.Type.INT) {
+        throw new IllegalArgumentException("Time (millis) can only be used with an underlying int type");
+      }
+    }
+  }
+
+  /** TimeMicros represents a time in microseconds without a date */
+  public static class TimeMicros extends LogicalType {
+    private TimeMicros() {
+      super(TIME_MICROS);
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      if (schema.getType() != Schema.Type.LONG) {
+        throw new IllegalArgumentException("Time (micros) can only be used with an underlying long type");
+      }
+    }
+  }
+
+  /** TimestampMillis represents a date and time in milliseconds */
+  public static class TimestampMillis extends LogicalType {
+    private TimestampMillis() {
+      super(TIMESTAMP_MILLIS);
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      if (schema.getType() != Schema.Type.LONG) {
+        throw new IllegalArgumentException("Timestamp (millis) can only be used with an underlying long type");
+      }
+    }
+  }
+
+  /** TimestampMicros represents a date and time in microseconds */
+  public static class TimestampMicros extends LogicalType {
+    private TimestampMicros() {
+      super(TIMESTAMP_MICROS);
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      if (schema.getType() != Schema.Type.LONG) {
+        throw new IllegalArgumentException("Timestamp (micros) can only be used with an underlying long type");
+      }
+    }
+  }
+
+  public static class LocalTimestampMillis extends LogicalType {
+    private LocalTimestampMillis() {
+      super(LOCAL_TIMESTAMP_MILLIS);
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      if (schema.getType() != Schema.Type.LONG) {
+        throw new IllegalArgumentException("Local timestamp (millis) can only be used with an underlying long type");
+      }
+    }
+  }
+
+  public static class LocalTimestampMicros extends LogicalType {
+    private LocalTimestampMicros() {
+      super(LOCAL_TIMESTAMP_MICROS);
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      if (schema.getType() != Schema.Type.LONG) {
+        throw new IllegalArgumentException("Local timestamp (micros) can only be used with an underlying long type");
+      }
+    }
+  }
+
+
+
+
 
   /**
    * factory for avro official compatibility.

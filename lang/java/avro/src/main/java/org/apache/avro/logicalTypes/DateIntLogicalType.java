@@ -23,9 +23,9 @@ import org.apache.avro.Schema;
 /**
  * Date representation, representing the number of days since epoch.
  */
-public final class DateIntLogicalType extends AbstractLogicalType<LocalDate> {
+public class DateIntLogicalType extends AbstractLogicalType<LocalDate> {
 
-  DateIntLogicalType(Schema schema) {
+  public DateIntLogicalType(Schema schema) {
     super(schema.getType(), Collections.EMPTY_SET, "date",
             Collections.EMPTY_MAP, LocalDate.class);
   }
