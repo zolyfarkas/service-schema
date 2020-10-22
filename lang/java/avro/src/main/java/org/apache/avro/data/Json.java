@@ -57,6 +57,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.RawSerializer;
+import java.io.UncheckedIOException;
 
 /** Utilities for reading and writing arbitrary Json data in Avro format. */
 public class Json {
@@ -66,7 +67,7 @@ public class Json {
   public static final Schema SCHEMA;
   static {
     try {
-      SCHEMA = Schema.parse
+      SCHEMA = new Schema.Parser().parse
         (Json.class.getResourceAsStream("/org/apache/avro/data/Json.avsc"));
     } catch (IOException e) {
       throw new AvroRuntimeException(e);
@@ -81,8 +82,9 @@ public class Json {
   public static class Writer implements DatumWriter<JsonNode> {
 
     @Override public void setSchema(Schema schema) {
-      if (!SCHEMA.equals(schema))
-        throw new RuntimeException("Not the Json schema: "+schema);
+      if (!SCHEMA.equals(schema)) {
+        throw new AvroRuntimeException("Not the Json schema: "+schema);
+      }
     }
 
     @Override
@@ -165,12 +167,12 @@ public class Json {
    */
   public static Object parseJson(String s) {
     try {
-      return JacksonUtils.toObject(Schema.MAPPER.readTree(Schema.FACTORY.createJsonParser(
+      return JacksonUtils.toObject(Schema.MAPPER.readTree(Schema.FACTORY.createParser(
           new StringReader(s))));
     } catch (JsonParseException e) {
-      throw new RuntimeException(e);
+      throw new AvroRuntimeException(e);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 
@@ -371,6 +373,11 @@ public class Json {
 
     public RawJsonStringSerialize() {
       super(RawJsonString.class);
+    }
+
+    @Override
+    public void serialize(RawJsonString value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+      jgen.writeRawValue(value.getRaw(), 0, value.getLength());
     }
 
   }

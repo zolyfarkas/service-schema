@@ -18,12 +18,17 @@
 
 package org.apache.avro;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.util.Optional;
 
 /**
  * Conversion between generic and logical type instances.
@@ -173,5 +178,42 @@ public abstract class Conversion<T> {
   public IndexedRecord toRecord(T value, Schema schema, LogicalType type) {
     throw new UnsupportedOperationException("toRecord is not supported for " + type.getName());
   }
+
+
+  // following are extension to be contributed upwards at some point. (if they prove themselves)
+  /**
+   * Ability to use a custom hashCode for
+   * @param object
+   * @return
+   */
+  public int computehashCode(T object) {
+    return object.hashCode();
+  }
+
+  /**
+   * Special encoding logic for a logical type.
+   * this will be useful to basically do something smarter for a specific encoding.
+   * like for decimal on json encoding instead of "dhfgsjhdfgd" to use 122345
+   *
+   * @param object
+   * @param enc
+   * @return true if direct encoding was done.
+   * @throws IOException
+   */
+  public boolean tryDirectEncode(T object, final Encoder enc, final Schema schema) throws IOException {
+    return false;
+  }
+
+  /**
+   * Special decoding logic for a logical type.
+   * @param enc
+   * @return null if no direct decode available.
+   * @throws IOException
+   */
+  @Nonnull
+  public Optional<T> tryDirectDecode(final Decoder enc, final Schema schema) throws IOException {
+    return Optional.empty();
+  }
+
 
 }

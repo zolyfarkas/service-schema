@@ -19,11 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Map;
-import org.apache.avro.LogicalType;
-import org.apache.avro.LogicalTypeFactory;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
@@ -89,45 +84,6 @@ public class TestProtocol {
 
   @Test
   public void testToString2() throws ParseException, MalformedURLException, IOException {
-    LogicalTypes.register(new LogicalTypeFactory() {
-      @Override
-      public String getLogicalTypeName() {
-        return "date";
-      }
-
-      @Override
-      public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-        return new LogicalType("date") {
-
-          @Override
-          public Object getProperty(String propertyName) {
-           return null;
-          }
-
-          @Override
-          public Map getProperties() {
-            return Collections.EMPTY_MAP;
-          }
-
-          @Override
-          public Class getLogicalJavaType() {
-            return LocalDate.class;
-          }
-
-          @Override
-          public Object deserialize(Object object) {
-            throw new UnsupportedOperationException();
-          }
-
-          @Override
-          public Object serialize(Object object) {
-            throw new UnsupportedOperationException();
-          }
-        };
-      }
-    });
-
-
     File file = new File(".");
     String currentWorkPath = file.getAbsolutePath();
     String testIdl = currentWorkPath + File.separator + "src" + File.separator + "test"

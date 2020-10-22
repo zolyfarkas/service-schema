@@ -56,7 +56,7 @@ public abstract class BinaryEncoder extends Encoder {
       writeZero();
       return;
     }
-    try (ByteArrayBuilder bab = new ByteArrayBuilder(strLength);
+    try (ByteArrayBuilder bab = new ByteArrayBuilder(strLength, x -> Arrays.getBytesTmp(x));
          OutputStreamWriter osw = new OutputStreamWriter(bab, StandardCharsets.UTF_8)) {
       char[] charsTmp;
       if (Strings.canSteal()) {

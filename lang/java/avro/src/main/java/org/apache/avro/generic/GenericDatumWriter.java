@@ -74,14 +74,12 @@ public class GenericDatumWriter<D> implements DatumWriter<D> {
     throws IOException {
       LogicalType lType = schema.getLogicalType();
       if (lType != null) {
-          if (lType.tryDirectEncode(datum, out, schema)) {
-            return;
-          } else {
-            Conversion<?> conversion = getData().getConversionByClass(datum.getClass(), lType);
-            if (conversion != null) {
-              datum = convert(schema, lType, conversion, datum);
+          Conversion<Object> conv = getData().getConversionFor(lType);
+          if (conv != null) {
+            if (conv.tryDirectEncode(datum, out, schema)) {
+              return;
             } else {
-              datum = lType.serialize(datum);
+              datum = convert(schema, lType, conv, datum);
             }
           }
       }

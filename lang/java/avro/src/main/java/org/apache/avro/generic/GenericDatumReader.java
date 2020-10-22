@@ -124,21 +124,18 @@ public class GenericDatumReader<D> implements DatumReader<D> {
       ResolvingDecoder in) throws IOException {
     LogicalType logicalType = expected.getLogicalType();
     if (logicalType != null) {
-      Optional<Object> decoded = logicalType.tryDirectDecode(in, expected);
-      if (decoded.isPresent()) {
-        return decoded.get();
+      Conversion<Object> conv = getData().getConversionFor(logicalType);
+      if (conv != null) {
+        Optional<Object> decoded = conv.tryDirectDecode(in, expected);
+        if (decoded.isPresent()) {
+          return decoded.get();
+        }
+        Object result = readWithoutConversion(old, expected, in);
+        result = convert(result, expected, logicalType, conv);
+        return result;
       }
-      Object result = readWithoutConversion(old, expected, in);
-      Conversion<?> conversion = getData().getConversionFor(logicalType);
-      if (conversion != null) {
-        result = convert(result, expected, logicalType, conversion);
-      } else {
-        result = logicalType.deserialize(result);
-      }
-      return result;
-    } else {
-      return readWithoutConversion(old, expected, in);
     }
+    return readWithoutConversion(old, expected, in);
   }
 
  protected Object readWithoutConversion(Object old, Schema expected, ResolvingDecoder in) throws IOException {

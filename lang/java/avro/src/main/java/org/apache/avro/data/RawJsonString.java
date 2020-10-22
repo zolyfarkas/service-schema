@@ -15,25 +15,30 @@
  */
 package org.apache.avro.data;
 
-/**
- *
- * @author Zoltan Farkas
- */
+
 public final class RawJsonString {
 
-  private final String raw;
+  private final char[] raw;
 
-  public RawJsonString(final String raw) {
+  private final int length;
+
+  public RawJsonString(final char[] raw, final int length) {
     this.raw = raw;
+    this.length = length;
   }
 
-  public String getRaw() {
+  public char[] getRaw() {
     return raw;
   }
+
+  public int getLength() {
+    return length;
+  }
+
 
   @Override
   public String toString() {
-    return raw;
+    return new String(raw, 0, length);
   }
 
 }

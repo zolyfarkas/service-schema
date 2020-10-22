@@ -18,6 +18,9 @@
 
 package org.apache.avro;
 
+import java.math.BigDecimal;
+import static java.math.BigDecimal.ROUND_UNNECESSARY;
+import java.math.BigInteger;
 import org.apache.avro.generic.GenericEnumSymbol;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.generic.IndexedRecord;
@@ -25,11 +28,67 @@ import org.apache.avro.generic.IndexedRecord;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.avro.data.TimeConversions;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.logical_types.converters.AnyAvroConverter;
+import org.apache.avro.logical_types.converters.BigIntegerConverter;
+import org.apache.avro.logical_types.converters.DateConverter;
+import org.apache.avro.logical_types.converters.Decimal2Converter;
+import org.apache.avro.logical_types.converters.InstantConverter;
+import org.apache.avro.logical_types.converters.JsonAnyConversion;
+import org.apache.avro.logical_types.converters.JsonArrayConversion;
+import org.apache.avro.logical_types.converters.JsonRecordConversion;
+import org.apache.avro.logical_types.converters.SchemaConverter;
+import org.apache.avro.logical_types.converters.TemporalConverter;
+import org.apache.avro.logical_types.converters.URIConverter;
+import org.apache.avro.logical_types.converters.URLConverter;
+import org.apache.avro.util.CopyOnWriteMap;
 
 
-public class Conversions {
+public final class Conversions {
+
+  private static final CopyOnWriteMap<String, Conversion<?>> DEFAULT_CONVERSIONS;
+
+  static {
+    Map<String, Conversion<?>> map = new HashMap<>();
+    registerConversion(map, new UUIDConversion());
+    registerConversion(map, new org.apache.avro.logical_types.converters.DecimalConverter());
+    registerConversion(map, new Decimal2Converter());
+    registerConversion(map, new TimeConversions.TimeMicrosConversion());
+    registerConversion(map, new TimeConversions.TimeMillisConversion());
+    registerConversion(map, new TimeConversions.TimestampMicrosConversion());
+    registerConversion(map, new TimeConversions.TimestampMillisConversion());
+    registerConversion(map, new TimeConversions.LocalTimestampMicrosConversion());
+    registerConversion(map, new TimeConversions.LocalTimestampMillisConversion());
+    registerConversion(map, new DateConverter());
+    registerConversion(map, new AnyAvroConverter());
+    registerConversion(map, new BigIntegerConverter());
+    registerConversion(map, new InstantConverter());
+    registerConversion(map, new JsonAnyConversion());
+    registerConversion(map, new JsonArrayConversion());
+    registerConversion(map, new JsonRecordConversion());
+    registerConversion(map, new SchemaConverter());
+    registerConversion(map, new TemporalConverter());
+    registerConversion(map, new URIConverter());
+    registerConversion(map, new URLConverter());
+    DEFAULT_CONVERSIONS = new CopyOnWriteMap<>(map);
+  }
+
+  public static Map<String, Conversion<?>> defaultConversions() {
+    return DEFAULT_CONVERSIONS.copy();
+  }
+
+  private static void registerConversion(Map<String, Conversion<?>> map, Conversion<?> conv) {
+    if (map.put(conv.getLogicalTypeName(), conv) != null) {
+      throw new ExceptionInInitializerError("Duplicate conversion registration: " + conv);
+    }
+  }
+
+  private Conversions() { }
+
 
   public static class UUIDConversion extends Conversion<UUID> {
     @Override
@@ -55,6 +114,93 @@ public class Conversions {
     @Override
     public CharSequence toCharSequence(UUID value, Schema schema, LogicalType type) {
       return value.toString();
+    }
+
+  }
+
+  public static class DecimalConversion extends Conversion<BigDecimal> {
+
+    @Override
+    public Class<BigDecimal> getConvertedType() {
+      return BigDecimal.class;
+    }
+
+    @Override
+    public Schema getRecommendedSchema() {
+      throw new UnsupportedOperationException("No recommended schema for decimal (scale is required)");
+    }
+
+    @Override
+    public String getLogicalTypeName() {
+      return "decimal";
+    }
+
+    @Override
+    public BigDecimal fromBytes(ByteBuffer value, Schema schema, LogicalType type) {
+      int scale = ((LogicalTypes.Decimal) type).getScale();
+      // always copy the bytes out because BigInteger has no offset/length ctor
+      byte[] bytes = new byte[value.remaining()];
+      value.duplicate().get(bytes);
+      return new BigDecimal(new BigInteger(bytes), scale);
+    }
+
+    @Override
+    public ByteBuffer toBytes(BigDecimal value, Schema schema, LogicalType type) {
+      value = validate((LogicalTypes.Decimal) type, value);
+
+      return ByteBuffer.wrap(value.unscaledValue().toByteArray());
+    }
+
+    @Override
+    public BigDecimal fromFixed(GenericFixed value, Schema schema, LogicalType type) {
+      int scale = ((LogicalTypes.Decimal) type).getScale();
+      return new BigDecimal(new BigInteger(value.bytes()), scale);
+    }
+
+    @Override
+    public GenericFixed toFixed(BigDecimal value, Schema schema, LogicalType type) {
+      value = validate((LogicalTypes.Decimal) type, value);
+
+      byte fillByte = (byte) (value.signum() < 0 ? 0xFF : 0x00);
+      byte[] unscaled = value.unscaledValue().toByteArray();
+      byte[] bytes = new byte[schema.getFixedSize()];
+      int offset = bytes.length - unscaled.length;
+
+      // Fill the front of the array and copy remaining with unscaled values
+      Arrays.fill(bytes, 0, offset, fillByte);
+      System.arraycopy(unscaled, 0, bytes, offset, bytes.length - offset);
+
+      return new GenericData.Fixed(schema, bytes);
+    }
+
+    private static BigDecimal validate(final LogicalTypes.Decimal decimal, BigDecimal value) {
+      final int scale = decimal.getScale();
+      final int valueScale = value.scale();
+
+      boolean scaleAdjusted = false;
+      if (valueScale != scale) {
+        try {
+          value = value.setScale(scale, ROUND_UNNECESSARY);
+          scaleAdjusted = true;
+        } catch (ArithmeticException aex) {
+          throw new AvroTypeException(
+              "Cannot encode decimal with scale " + valueScale + " as scale " + scale + " without rounding");
+        }
+      }
+
+      int precision = decimal.getPrecision();
+      int valuePrecision = value.precision();
+      if (valuePrecision > precision) {
+        if (scaleAdjusted) {
+          throw new AvroTypeException("Cannot encode decimal with precision " + valuePrecision + " as max precision "
+              + precision + ". This is after safely adjusting scale from " + valueScale + " to required " + scale);
+        } else {
+          throw new AvroTypeException(
+              "Cannot encode decimal with precision " + valuePrecision + " as max precision " + precision);
+        }
+      }
+
+      return value;
     }
   }
 
@@ -110,8 +256,9 @@ public class Conversions {
         return conversion.fromDouble((Double) datum, schema, type);
       case BOOLEAN:
         return conversion.fromBoolean((Boolean) datum, schema, type);
+      default:
+        throw new UnsupportedOperationException("Invalid schema with logical type: " + schema);
       }
-      return datum;
     } catch (ClassCastException e) {
       throw new AvroRuntimeException(
           "Cannot convert " + datum + ":" + datum.getClass().getSimpleName() + ": expected generic type", e);
@@ -148,31 +295,70 @@ public class Conversions {
       Class<T> fromClass = conversion.getConvertedType();
       switch (schema.getType()) {
       case RECORD:
+        if (datum instanceof IndexedRecord) {
+          return datum;
+        }
         return conversion.toRecord(fromClass.cast(datum), schema, type);
       case ENUM:
+        if (datum instanceof GenericEnumSymbol) {
+          return datum;
+        }
         return conversion.toEnumSymbol(fromClass.cast(datum), schema, type);
       case ARRAY:
+        if (datum.getClass().isArray()) {
+          return datum;
+        }
         return conversion.toArray(fromClass.cast(datum), schema, type);
       case MAP:
+        if (datum instanceof Map) {
+          return datum;
+        }
         return conversion.toMap(fromClass.cast(datum), schema, type);
       case FIXED:
+        if (datum instanceof GenericFixed) {
+          return datum;
+        }
         return conversion.toFixed(fromClass.cast(datum), schema, type);
       case STRING:
+        if (datum instanceof CharSequence) {
+          return datum;
+        }
         return conversion.toCharSequence(fromClass.cast(datum), schema, type);
       case BYTES:
+        if (datum instanceof ByteBuffer) {
+          return datum;
+        } else if (datum instanceof byte[]) {
+          return ByteBuffer.wrap((byte[]) datum);
+        }
         return conversion.toBytes(fromClass.cast(datum), schema, type);
       case INT:
+        if (datum instanceof Number) {
+          return ((Number) datum).intValue();
+        }
         return conversion.toInt(fromClass.cast(datum), schema, type);
       case LONG:
+        if (datum instanceof Number) {
+          return ((Number) datum).longValue();
+        }
         return conversion.toLong(fromClass.cast(datum), schema, type);
       case FLOAT:
+        if (datum instanceof Number) {
+          return ((Number) datum).floatValue();
+        }
         return conversion.toFloat(fromClass.cast(datum), schema, type);
       case DOUBLE:
+        if (datum instanceof Number) {
+          return ((Number) datum).doubleValue();
+        }
         return conversion.toDouble(fromClass.cast(datum), schema, type);
       case BOOLEAN:
+         if (datum instanceof Boolean) {
+          return datum;
+        }
         return conversion.toBoolean(fromClass.cast(datum), schema, type);
+      default:
+        throw new UnsupportedOperationException("Invalid schema with logical type: " + schema);
       }
-      return datum;
     } catch (ClassCastException e) {
       throw new AvroRuntimeException(
           "Cannot convert " + datum + ":" + datum.getClass().getSimpleName() + ": expected logical type", e);

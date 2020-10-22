@@ -607,7 +607,7 @@ public class SpecificCompiler {
   public String javaType(Schema schema) {
       LogicalType logicalType = schema.getLogicalType();
       if (logicalType != null) {
-          return logicalType.getLogicalJavaType().getName();
+          return GenericData.get().getConversionFor(logicalType).getConvertedType().getName();
       } else {
          return javaTypeInternal(schema);
       }

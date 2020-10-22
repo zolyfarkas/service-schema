@@ -55,7 +55,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.io.UncheckedIOException;
 import java.util.Objects;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.util.Sets;
 import org.apache.avro.util.internal.Accessor;
 
@@ -302,22 +305,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
   public LogicalType getLogicalType() { return logicalType; }
 
   /** Set the logical type annotation for this schema */
-  public void setLogicalType(LogicalType<?> logicalType) {
+  void setLogicalType(LogicalType logicalType) {
     if (this.logicalType != null) {
       throw new IllegalArgumentException(
           "Cannot replace existing logical type in " + this + " with " + logicalType);
     }
     this.logicalType = logicalType;
-    for (Map.Entry<String, Object> prop : logicalType.getProperties().entrySet()) {
-      String key = prop.getKey();
-      Object value = prop.getValue();
-      String pVal = this.getProp(key);
-      if (pVal == null) {
-        this.addProp(key, value);
-      } else if (!pVal.equals(value)) {
-        throw new IllegalStateException("Cannot set logicalType property, existing " + pVal + " to " + value);
-      }
-    }
     this.hashCode = NO_HASHCODE;
   }
 
@@ -1657,15 +1650,18 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   private static String validateName(String name) {
     int length = name.length();
-    if (length == 0)
+    if (length == 0) {
       throw new SchemaParseException("Empty name");
+    }
     char first = name.charAt(0);
-    if (!(Character.isLetter(first) || first == '_'))
-      throw new SchemaParseException("Illegal initial character: "+name);
+    if (!(Character.isLetter(first) || first == '_')) {
+      throw new SchemaParseException("Illegal initial character: " + name);
+    }
     for (int i = 1; i < length; i++) {
       char c = name.charAt(i);
-      if (!(Character.isLetterOrDigit(c) || c == '_'))
-        throw new SchemaParseException("Illegal character in: "+name);
+      if (!(Character.isLetterOrDigit(c) || c == '_')) {
+        throw new SchemaParseException("Illegal character in: " + name);
+      }
     }
     return name;
   }
@@ -1683,11 +1679,21 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   private static boolean isValidDefault(Schema schema, JsonNode defaultValue) {
     LogicalType lType = schema.getLogicalType();
-    if (lType != null && Number.class.isAssignableFrom(lType.getLogicalJavaType()) && defaultValue.isNumber()) {
-      return true;
+    if (lType != null) {
+      try {
+        ExtendedJsonDecoder dec = new ExtendedJsonDecoder(schema, defaultValue.toString());
+        GenericDatumReader reader = new GenericDatumReader(schema);
+        reader.read(null, dec);
+        return true;
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      } catch (AvroRuntimeException ex) {
+        return false;
+      }
     }
-    if (defaultValue == null)
+    if (defaultValue == null) {
       return false;
+    }
     switch (schema.getType()) {
     case STRING:
     case BYTES:
@@ -1706,28 +1712,36 @@ public abstract class Schema extends JsonProperties implements Serializable {
     case ARRAY:
       if (!defaultValue.isArray())
         return false;
-      for (JsonNode element : defaultValue)
-        if (!isValidDefault(schema.getElementType(), element))
+      for (JsonNode element : defaultValue) {
+        if (!isValidDefault(schema.getElementType(), element)) {
           return false;
+        }
+      }
       return true;
     case MAP:
-      if (!defaultValue.isObject())
+      if (!defaultValue.isObject()) {
         return false;
-      for (JsonNode value : defaultValue)
-        if (!isValidDefault(schema.getValueType(), value))
+      }
+      for (JsonNode value : defaultValue) {
+        if (!isValidDefault(schema.getValueType(), value)) {
           return false;
+        }
+      }
       return true;
     case UNION:                                   // union default: first branch
       return isValidDefault(schema.getTypes().get(0), defaultValue);
     case RECORD:
-      if (!defaultValue.isObject())
+      if (!defaultValue.isObject()) {
         return false;
-      for (Field field : schema.getFields())
+      }
+      for (Field field : schema.getFields()) {
         if (!isValidDefault(field.schema(),
                             defaultValue.has(field.name())
                             ? defaultValue.get(field.name())
-                            : field.defaultValue()))
+                            : field.defaultValue())) {
           return false;
+        }
+      }
       return true;
     default:
       return false;

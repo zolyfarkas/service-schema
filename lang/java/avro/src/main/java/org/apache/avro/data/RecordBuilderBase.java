@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.avro.AvroRuntimeException;
-import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.Schema.Type;
@@ -125,39 +124,7 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public Object defaultValue(Field  field) throws IOException {
-    Object defaultValue = field.defaultVal();
-    if (defaultValue == null) {
-          throw new AvroRuntimeException("Field " + field + " not set and has no default value");
-    }
-    return javaDefaultValue(defaultValue, field.schema());
-  }
-
-  public static Object javaDefaultValue(Object defaultValue, Schema schema1) {
-    if (Schema.NULL_VALUE.equals(defaultValue)) {
-      return null;
-    }
-    if (Type.ENUM == schema1.getType()) {
-      Class enumClass;
-      try {
-        enumClass = Class.forName(schema1.getFullName());
-      } catch (ClassNotFoundException ex) {
-        return new GenericData.EnumSymbol(schema1, defaultValue);
-      }
-      return Enum.valueOf(enumClass, (String) defaultValue);
-    }
-    LogicalType logicalType = schema1.getLogicalType();
-    if (logicalType != null) {
-      return logicalType.deserialize(defaultValue);
-    } else if (schema1.getType() == Type.UNION) {
-      logicalType = schema1.getTypes().get(0).getLogicalType();
-      if (logicalType != null) {
-        return logicalType.deserialize(defaultValue);
-      } else {
-        return GenericData.get().deepCopy(schema1, defaultValue);
-      }
-    } else {
-      return GenericData.get().deepCopy(schema1, defaultValue);
-    }
+    return data.deepCopy(field.schema(), data.getDefaultValue(field));
   }
 
   @Override
@@ -181,10 +148,12 @@ public abstract class RecordBuilderBase<T extends IndexedRecord>
     if (!Arrays.equals(fieldSetFlags, other.fieldSetFlags))
       return false;
     if (schema == null) {
-      if (other.schema != null)
+      if (other.schema != null) {
         return false;
-    } else if (!schema.equals(other.schema))
+      }
+    } else if (!schema.equals(other.schema)) {
       return false;
+    }
     return true;
   }
 }

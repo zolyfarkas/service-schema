@@ -10,7 +10,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.logicalTypes.TestAnyLogicalType;
+import org.apache.avro.logical_types.TestAnyLogicalType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

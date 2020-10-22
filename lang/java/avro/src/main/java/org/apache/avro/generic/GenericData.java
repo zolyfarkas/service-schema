@@ -23,6 +23,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Year;
+import java.time.YearMonth;
+import java.time.ZonedDateTime;
 import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +49,7 @@ import org.apache.avro.AvroMissingFieldException;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Conversion;
+import org.apache.avro.Conversions;
 import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
@@ -57,6 +63,7 @@ import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.util.Utf8;
 import org.apache.avro.util.internal.Accessor;
+import org.threeten.extra.YearQuarter;
 
 
 /**
@@ -87,8 +94,9 @@ public class GenericData {
   public static void setStringType(Schema s, StringType stringType) {
     // Utf8 is the default and implements CharSequence, so we only need to add
     // a property when the type is String
-    if (stringType == StringType.String)
+    if (stringType == StringType.String) {
       s.addProp(GenericData.STRING_PROP, GenericData.STRING_TYPE_STRING);
+    }
   }
 
   /** Return the singleton instance. */
@@ -111,12 +119,22 @@ public class GenericData {
     return classLoader;
   }
 
-  private Map<String, Conversion<?>> conversions = new HashMap<>();
+  private Map<String, Conversion<?>> conversions = Conversions.defaultConversions();
 
-  private Map<Class<?>, Map<String, Conversion<?>>> conversionsByClass = new IdentityHashMap<>();
+  public void clearConversions() {
+    conversions.clear();
+  }
 
-  public Collection<Conversion<?>> getConversions() {
-    return conversions.values();
+  public void defaultConversions() {
+    conversions = Conversions.defaultConversions();
+  }
+
+  public Collection<Conversion<Object>> getConversions() {
+    return (Collection) conversions.values();
+  }
+
+  public Conversion<?> removeLogicalConversion(String typeName) {
+    return conversions.remove(typeName);
   }
 
   /**
@@ -126,29 +144,11 @@ public class GenericData {
    * @param conversion a logical type Conversion.
    */
   public void addLogicalTypeConversion(Conversion<?> conversion) {
-    conversions.put(conversion.getLogicalTypeName(), conversion);
-    Class<?> type = conversion.getConvertedType();
-    Map<String, Conversion<?>> conversions = conversionsByClass.get(type);
-    if (conversions == null) {
-      conversions = new LinkedHashMap<>();
-      conversionsByClass.put(type, conversions);
+    if (conversions.put(conversion.getLogicalTypeName(), conversion) != null) {
+      throw new UnsupportedOperationException("Cannont register a second converter for a logical Type: "
+              + conversion);
     }
-    conversions.put(conversion.getLogicalTypeName(), conversion);
-  }
 
-  /**
-   * Returns the first conversion found for the given class.
-   *
-   * @param datumClass a Class
-   * @return the first registered conversion for the class, or null
-   */
-  @SuppressWarnings("unchecked")
-  public <T> Conversion<T> getConversionByClass(Class<T> datumClass) {
-    Map<String, Conversion<?>> conversions = conversionsByClass.get(datumClass);
-    if (conversions != null) {
-      return (Conversion<T>) conversions.values().iterator().next();
-    }
-    return null;
   }
 
   /**
@@ -161,11 +161,12 @@ public class GenericData {
   @SuppressWarnings("unchecked")
   @Nullable
   public <T> Conversion<T> getConversionByClass(Class<T> datumClass, LogicalType logicalType) {
-    Map<String, Conversion<?>> conversions = conversionsByClass.get(datumClass);
-    if (conversions != null) {
-      return (Conversion<T>) conversions.get(logicalType.getName());
+    Conversion<?> conv = conversions.get(logicalType.getName());
+    if (conv.getConvertedType() == datumClass) {
+      return (Conversion<T>) conv;
+    } else {
+      return null;
     }
-    return null;
   }
 
   /**
@@ -753,16 +754,25 @@ public class GenericData {
       return Schema.createFixed(null, null, null,
                                 ((GenericFixed)datum).bytes().length);
     }
-    else if (isString(datum)) return Schema.create(Type.STRING);
-    else if (isBytes(datum)) return Schema.create(Type.BYTES);
-    else if (isInteger(datum))    return Schema.create(Type.INT);
-    else if (isLong(datum))       return Schema.create(Type.LONG);
-    else if (isFloat(datum))      return Schema.create(Type.FLOAT);
-    else if (isDouble(datum))     return Schema.create(Type.DOUBLE);
-    else if (isBoolean(datum))    return Schema.create(Type.BOOLEAN);
-    else if (datum == null)               return Schema.create(Type.NULL);
-
-    else throw new AvroTypeException("Can't create schema for: "+datum);
+    else if (isString(datum)) {
+      return Schema.create(Type.STRING);
+    } else if (isBytes(datum)) {
+      return Schema.create(Type.BYTES);
+    } else if (isInteger(datum)) {
+      return Schema.create(Type.INT);
+    } else if (isLong(datum)) {
+      return Schema.create(Type.LONG);
+    } else if (isFloat(datum)) {
+      return Schema.create(Type.FLOAT);
+    } else if (isDouble(datum)) {
+      return Schema.create(Type.DOUBLE);
+    } else if (isBoolean(datum)) {
+      return Schema.create(Type.BOOLEAN);
+    } else if (datum == null) {
+      return Schema.create(Type.NULL);
+    } else {
+      throw new AvroTypeException("Can't create schema for: "+datum);
+    }
   }
 
   /** Called by {@link GenericDatumReader#readRecord} to set a record fields
@@ -801,13 +811,17 @@ public class GenericData {
     List<Schema> types = union.getTypes();
     int i = 0;
     for (Schema schema : types) {
-      if (datum == null && schema.getType() == Type.NULL) {
-        return i;
-      }
-      LogicalType ltype = schema.getLogicalType();
-      if (ltype != null) {
-        if (ltype.getLogicalJavaType().isAssignableFrom(datum.getClass())) {
+      if (datum == null) {
+        if (schema.getType() == Type.NULL) {
           return i;
+        }
+      } else {
+        LogicalType ltype = schema.getLogicalType();
+        if (ltype != null) {
+          Conversion<?> conv = getConversionByClass(datum.getClass(), ltype);
+          if (conv != null) {
+            return i;
+          }
         }
       }
       i++;
@@ -982,10 +996,15 @@ public class GenericData {
   /** Compute a hash code according to a schema, consistent with {@link
    * #compare(Object,Object,Schema)}. */
   public int hashCode(Object o, Schema s) {
-    if (o == null) return 0; // incomplete datum
+    if (o == null) { // incomplete datum
+      return 0;
+    }
     LogicalType logicalType = s.getLogicalType();
     if (logicalType != null) {
-      return logicalType.computehashCode(o);
+      Conversion<Object> conv = (Conversion) getConversionByClass(o.getClass(), logicalType);
+      if (conv != null) {
+        return conv.computehashCode(o);
+      }
     }
     int hashCode;
     switch (s.getType()) {
@@ -1157,6 +1176,13 @@ public class GenericData {
     IMMUTABLES.add(String.class.getName());
     IMMUTABLES.add(BigDecimal.class.getName());
     IMMUTABLES.add(BigInteger.class.getName());
+    IMMUTABLES.add(LocalDate.class.getName());
+    IMMUTABLES.add(Instant.class.getName());
+    IMMUTABLES.add(ZonedDateTime.class.getName());
+    IMMUTABLES.add(LocalDateTime.class.getName());
+    IMMUTABLES.add(YearMonth.class.getName());
+    IMMUTABLES.add(YearQuarter.class.getName());
+    IMMUTABLES.add(Year.class.getName());
     IMMUTABLES.add("org.joda.time.LocalDate");
     IMMUTABLES.add("org.joda.time.DateTime");
     IMMUTABLES.add("org.joda.time.Instant");
@@ -1173,12 +1199,18 @@ public class GenericData {
     if (value == null) {
       return null;
     }
+    Class<? extends Object> vClass = value.getClass();
+    if (IMMUTABLES.contains(vClass.getName())) {
+      return value;
+    }
     LogicalType logicalType = schema.getLogicalType();
     if (logicalType != null) {
-      if (IMMUTABLES.contains(value.getClass().getName())) {
-        return value;
+      Conversion<?> conv =  getConversionByClass(vClass, logicalType);
+      if (conv != null) {
+        return (T) Conversions.convertToLogicalType(
+                Conversions.convertToRawType(value, schema, logicalType, conv),
+                schema, logicalType, conv);
       }
-      return (T) logicalType.deserialize(logicalType.serialize(value));
     }
     switch (schema.getType()) {
       case ARRAY:

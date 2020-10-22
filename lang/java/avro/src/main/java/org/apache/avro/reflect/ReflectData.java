@@ -791,7 +791,7 @@ public class ReflectData extends SpecificData {
     org.apache.avro.reflect.LogicalType lt = field.getAnnotation(org.apache.avro.reflect.LogicalType.class);
     if (lt != null) {
       schema.addProp("logicalType", lt.value());
-      schema.setLogicalType(LogicalTypes.fromSchema(schema));
+      LogicalTypes.fromSchema(schema).addToSchema(schema);
     }
     return schema;
   }

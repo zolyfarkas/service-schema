@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.function.IntFunction;
 
 /**
  * Utility class to avoid replicating byte arrays for no good reason.
@@ -43,9 +44,16 @@ public final class ByteArrayBuilder extends OutputStream {
    */
   private int count;
 
+  private IntFunction<byte[]> allocator;
+
   public byte[] getBuffer() {
     return buf;
   }
+
+  public ByteArrayBuilder(final int size) {
+    this(size, x -> new byte[x]);
+  }
+
 
   /**
    * Creates a new byte array output stream, with a buffer capacity of the specified size, in bytes.
@@ -53,12 +61,13 @@ public final class ByteArrayBuilder extends OutputStream {
    * @param size the initial size.
    * @exception IllegalArgumentException if size is negative.
    */
-  public ByteArrayBuilder(final int size) {
+  public ByteArrayBuilder(final int size, IntFunction<byte[]> allocator) {
     if (size < 0) {
       throw new IllegalArgumentException("Negative initial size: "
               + size);
     }
-    buf = Arrays.getBytesTmp(size);
+    this.allocator = allocator;
+    buf = allocator.apply(size);
   }
 
   /**
@@ -94,7 +103,7 @@ public final class ByteArrayBuilder extends OutputStream {
     }
 
     byte[] old = buf;
-    buf = Arrays.getBytesTmp(newCapacity);
+    buf = allocator.apply(newCapacity);
     System.arraycopy(old, 0, buf, 0, old.length);
   }
 

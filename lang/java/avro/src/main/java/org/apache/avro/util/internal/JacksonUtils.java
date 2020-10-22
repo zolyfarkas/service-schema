@@ -166,7 +166,7 @@ public final class JacksonUtils {
     if (schema != null) {
       LogicalType lt = schema.getLogicalType();
       if (lt != null) {
-        Class logicalJavaType = lt.getLogicalJavaType();
+        Class logicalJavaType = GenericData.get().getConversionFor(lt).getConvertedType();
         if (logicalJavaType == Integer.class) {
           return jsonNode.asInt();
         } else if (logicalJavaType == Long.class) {

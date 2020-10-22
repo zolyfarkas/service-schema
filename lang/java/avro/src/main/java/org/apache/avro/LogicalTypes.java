@@ -26,22 +26,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.apache.avro.logicalTypes.AnyAvroLogicalTypeFactory;
-import org.apache.avro.logicalTypes.AnyTemporalLogicalTypeFactory;
-import org.apache.avro.logicalTypes.BigIntegerFactory;
-import org.apache.avro.logicalTypes.DateIntLogicalType;
-import org.apache.avro.logicalTypes.DateLogicalTypeFactory;
-import org.apache.avro.logicalTypes.DecimalFactory;
-import org.apache.avro.logicalTypes.InstantLogicalTypeFactory;
-import org.apache.avro.logicalTypes.JsonAnyLogicalTypeFactory;
-import org.apache.avro.logicalTypes.JsonArrayLogicalTypeFactory;
-import org.apache.avro.logicalTypes.JsonRecordLogicalTypeFactory;
-import org.apache.avro.logicalTypes.SchemaLogicalTypeFactory;
-import org.apache.avro.logicalTypes.TimestampMicrosLogicalTypeFactory;
-import org.apache.avro.logicalTypes.TimestampMillisLogicalTypeFactory;
-import org.apache.avro.logicalTypes.URILogicalTypeFactory;
-import org.apache.avro.logicalTypes.URLLogicalTypeFactory;
-import org.apache.avro.logicalTypes.UuidLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.AnyAvroLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.TemporalLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.BigIntegerFactory;
+import org.apache.avro.logical_types.factories.DateLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.DecimalFactory;
+import org.apache.avro.logical_types.factories.InstantLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.JsonAnyLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.JsonArrayLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.JsonRecordLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.LocalTimestampMicrosLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.LocalTimestampMillisLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.SchemaLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.TimeMicrosLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.TimeMillisLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.TimestampMicrosLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.TimestampMillisLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.URILogicalTypeFactory;
+import org.apache.avro.logical_types.factories.URLLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.UuidLogicalTypeFactory;
 
 
 public class LogicalTypes {
@@ -58,7 +61,35 @@ public class LogicalTypes {
   private static final String LOCAL_TIMESTAMP_MICROS = "local-timestamp-micros";
 
 
-  private static final Map<String, org.apache.avro.LogicalTypeFactory> REGISTERED_TYPES =
+  private static final LogicalType UUID_TYPE = new LogicalType("uuid");
+  private static final Date DATE_TYPE = new Date();
+  private static final TimeMillis TIME_MILLIS_TYPE = new TimeMillis();
+  private static final TimeMicros TIME_MICROS_TYPE = new TimeMicros();
+  private static final TimestampMillis TIMESTAMP_MILLIS_TYPE = new TimestampMillis();
+  private static final TimestampMicros TIMESTAMP_MICROS_TYPE = new TimestampMicros();
+  private static final LocalTimestampMillis LOCAL_TIMESTAMP_MILLIS_TYPE = new LocalTimestampMillis();
+  private static final LocalTimestampMicros LOCAL_TIMESTAMP_MICROS_TYPE = new LocalTimestampMicros();
+
+
+  public interface LogicalTypeFactory {
+    LogicalType fromSchema(Schema schema);
+
+    default String getTypeName() {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  /** Create a Decimal LogicalType with the given precision and scale 0 */
+  public static Decimal decimal(int precision) {
+    return decimal(precision, 0);
+  }
+
+  /** Create a Decimal LogicalType with the given precision and scale */
+  public static Decimal decimal(int precision, int scale) {
+    return new Decimal(precision, scale);
+  }
+
+  private static final Map<String, LogicalTypeFactory> REGISTERED_TYPES =
       new ConcurrentHashMap<>();
 
 
@@ -69,7 +100,7 @@ public class LogicalTypes {
      register(new JsonArrayLogicalTypeFactory());
      register(new JsonAnyLogicalTypeFactory());
      register(new AnyAvroLogicalTypeFactory());
-     register(new AnyTemporalLogicalTypeFactory());
+     register(new TemporalLogicalTypeFactory());
      register(new DateLogicalTypeFactory());
      register(new InstantLogicalTypeFactory());
      register(new UuidLogicalTypeFactory());
@@ -78,9 +109,14 @@ public class LogicalTypes {
      register(new SchemaLogicalTypeFactory());
      register(new TimestampMillisLogicalTypeFactory());
      register(new TimestampMicrosLogicalTypeFactory());
-     ServiceLoader<org.apache.avro.LogicalTypeFactory> factories
-             = ServiceLoader.load(org.apache.avro.LogicalTypeFactory.class);
-     Iterator<org.apache.avro.LogicalTypeFactory> iterator = factories.iterator();
+     register(new UuidLogicalTypeFactory());
+     register(new TimeMicrosLogicalTypeFactory());
+     register(new TimeMillisLogicalTypeFactory());
+     register(new LocalTimestampMicrosLogicalTypeFactory());
+     register(new LocalTimestampMillisLogicalTypeFactory());
+     ServiceLoader<LogicalTypeFactory> factories
+             = ServiceLoader.load(LogicalTypeFactory.class);
+     Iterator<LogicalTypeFactory> iterator = factories.iterator();
      while (iterator.hasNext()) {
         register(iterator.next());
      }
@@ -88,56 +124,156 @@ public class LogicalTypes {
   }
 
   public static LogicalType uuid() {
-    return UuidLogicalTypeFactory.uuid();
+    return UUID_TYPE;
   }
-
-  private static final Date DATE_TYPE = new Date();
 
   public static LogicalType date() {
     return DATE_TYPE;
   }
 
-  private static final TimeMillis TIME_MILLIS_TYPE = new TimeMillis();
-
   public static TimeMillis timeMillis() {
     return TIME_MILLIS_TYPE;
   }
-
-  private static final TimeMicros TIME_MICROS_TYPE = new TimeMicros();
 
   public static TimeMicros timeMicros() {
     return TIME_MICROS_TYPE;
   }
 
-  private static final TimestampMillis TIMESTAMP_MILLIS_TYPE = new TimestampMillis();
-
   public static TimestampMillis timestampMillis() {
     return TIMESTAMP_MILLIS_TYPE;
   }
-
-  private static final TimestampMicros TIMESTAMP_MICROS_TYPE = new TimestampMicros();
 
   public static TimestampMicros timestampMicros() {
     return TIMESTAMP_MICROS_TYPE;
   }
 
-  private static final LocalTimestampMillis LOCAL_TIMESTAMP_MILLIS_TYPE = new LocalTimestampMillis();
-
   public static LocalTimestampMillis localTimestampMillis() {
     return LOCAL_TIMESTAMP_MILLIS_TYPE;
   }
-
-  private static final LocalTimestampMicros LOCAL_TIMESTAMP_MICROS_TYPE = new LocalTimestampMicros();
 
   public static LocalTimestampMicros localTimestampMicros() {
     return LOCAL_TIMESTAMP_MICROS_TYPE;
   }
 
 
+  /** Decimal represents arbitrary-precision fixed-scale decimal numbers */
+  public static class Decimal extends LogicalType {
+    private static final String PRECISION_PROP = "precision";
+    private static final String SCALE_PROP = "scale";
+
+    private final int precision;
+    private final int scale;
+
+    private Decimal(int precision, int scale) {
+      super(DECIMAL);
+      this.precision = precision;
+      this.scale = scale;
+    }
+
+    private Decimal(Schema schema) {
+      super("decimal");
+      if (!hasProperty(schema, PRECISION_PROP)) {
+        throw new IllegalArgumentException("Invalid decimal: missing precision");
+      }
+
+      this.precision = getInt(schema, PRECISION_PROP);
+
+      if (hasProperty(schema, SCALE_PROP)) {
+        this.scale = getInt(schema, SCALE_PROP);
+      } else {
+        this.scale = 0;
+      }
+    }
+
+    @Override
+    public Schema addToSchema(Schema schema) {
+      super.addToSchema(schema);
+      schema.addProp(PRECISION_PROP, precision);
+      schema.addProp(SCALE_PROP, scale);
+      return schema;
+    }
+
+    public int getPrecision() {
+      return precision;
+    }
+
+    public int getScale() {
+      return scale;
+    }
+
+    @Override
+    public void validate(Schema schema) {
+      super.validate(schema);
+      // validate the type
+      if (schema.getType() != Schema.Type.FIXED && schema.getType() != Schema.Type.BYTES) {
+        throw new IllegalArgumentException("Logical type decimal must be backed by fixed or bytes");
+      }
+      if (precision <= 0) {
+        throw new IllegalArgumentException("Invalid decimal precision: " + precision + " (must be positive)");
+      } else if (precision > maxPrecision(schema)) {
+        throw new IllegalArgumentException("fixed(" + schema.getFixedSize() + ") cannot store " + precision
+            + " digits (max " + maxPrecision(schema) + ")");
+      }
+      if (scale < 0) {
+        throw new IllegalArgumentException("Invalid decimal scale: " + scale + " (must be positive)");
+      } else if (scale > precision) {
+        throw new IllegalArgumentException(
+            "Invalid decimal scale: " + scale + " (greater than precision: " + precision + ")");
+      }
+    }
+
+    private long maxPrecision(Schema schema) {
+      if (schema.getType() == Schema.Type.BYTES) {
+        // not bounded
+        return Integer.MAX_VALUE;
+      } else if (schema.getType() == Schema.Type.FIXED) {
+        int size = schema.getFixedSize();
+        return Math.round(Math.floor(Math.log10(2) * (8 * size - 1)));
+      } else {
+        // not valid for any other type
+        return 0;
+      }
+    }
+
+    private boolean hasProperty(Schema schema, String name) {
+      return (schema.getObjectProp(name) != null);
+    }
+
+    private int getInt(Schema schema, String name) {
+      Object obj = schema.getObjectProp(name);
+      if (obj instanceof Integer) {
+        return (Integer) obj;
+      }
+      throw new IllegalArgumentException(
+          "Expected int " + name + ": " + (obj == null ? "null" : obj + ":" + obj.getClass().getSimpleName()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (o == null || getClass() != o.getClass())
+        return false;
+
+      Decimal decimal = (Decimal) o;
+
+      if (precision != decimal.precision)
+        return false;
+      return scale == decimal.scale;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = precision;
+      result = 31 * result + scale;
+      return result;
+    }
+  }
+
   /** Date represents a date without a time */
-  public static class Date extends DateIntLogicalType {
+  public static class Date extends LogicalType {
     private Date() {
-      super(Schema.create(Schema.Type.INT));
+      super(DATE);
     }
   }
 
@@ -230,38 +366,12 @@ public class LogicalTypes {
   }
 
 
-
-
-
-  /**
-   * factory for avro official compatibility.
-   */
-  public interface LogicalTypeFactory  {
-    LogicalType fromSchema(Schema schema);
-  }
-
   public static void register(String logicalTypeName, LogicalTypeFactory factory) {
-    register(new org.apache.avro.LogicalTypeFactory() {
-      @Override
-      public String getLogicalTypeName() {
-        return logicalTypeName;
-      }
-
-      @Override
-      public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public LogicalType fromSchema(Schema schema) {
-        return factory.fromSchema(schema);
-      }
-
-    });
+    register(logicalTypeName, factory);
   }
 
-  public static void register(@Nonnull org.apache.avro.LogicalTypeFactory factory) {
-    LogicalTypeFactory ex = REGISTERED_TYPES.put(factory.getLogicalTypeName(), factory);
+  public static void register(@Nonnull LogicalTypeFactory factory) {
+    LogicalTypeFactory ex = REGISTERED_TYPES.put(factory.getTypeName(), factory);
     if (ex != null) {
       Logger.getLogger(LogicalTypes.class.getName())
               .log(Level.INFO, "Logical Type {0} is being overwritten with {1}", new Object [] {ex, factory});
@@ -308,7 +418,7 @@ public class LogicalTypes {
   public static LogicalType fromSchema(Schema schema, final boolean allowUndefinedLogicalTypes) {
     String typeName = (String) schema.getProp(LogicalType.LOGICAL_TYPE_PROP);
     if (typeName != null) {
-      org.apache.avro.LogicalTypeFactory ltf = REGISTERED_TYPES.get(typeName);
+      LogicalTypeFactory ltf = REGISTERED_TYPES.get(typeName);
       if (ltf != null) {
         return ltf.fromSchema(schema);
       } else {

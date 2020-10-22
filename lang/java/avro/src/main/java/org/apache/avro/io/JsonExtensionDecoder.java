@@ -15,8 +15,8 @@
  */
 package org.apache.avro.io;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.util.TokenBuffer;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,7 +32,7 @@ public interface JsonExtensionDecoder {
 
   JsonNode readValueAsTree(final Schema schema) throws IOException;
 
-  TokenBuffer bufferValue(final Schema schema) throws IOException;
+  JsonParser bufferValue(final Schema schema) throws IOException;
 
   BigInteger readBigInteger(final Schema schema) throws IOException;
 

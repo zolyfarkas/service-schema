@@ -113,11 +113,11 @@ public class RandomData implements Iterable<Object> {
   }
 
   private static Utf8 randomUtf8(Random rand, int maxLength) {
-    Utf8 utf8 = new Utf8().setLength(rand.nextInt(maxLength));
-    for (int i = 0; i < utf8.getLength(); i++) {
-      utf8.getBytes()[i] = (byte)('a'+rand.nextInt('z'-'a'));
+    byte[] bytes = new byte[maxLength];
+    for (int i = 0; i < maxLength; i++) {
+      bytes[i] = (byte)('a'+rand.nextInt('z'-'a'));
     }
-    return utf8;
+    return new Utf8(bytes);
   }
 
   private static ByteBuffer randomBytes(Random rand, int maxLength) {
@@ -132,7 +132,7 @@ public class RandomData implements Iterable<Object> {
       System.out.println("Usage: RandomData <schemafile> <outputfile> <count> [codec]");
       System.exit(-1);
     }
-    Schema sch = Schema.parse(new File(args[0]));
+    Schema sch = new Schema.Parser().parse(new File(args[0]));
     DataFileWriter<Object> writer =
       new DataFileWriter<Object>(new GenericDatumWriter<Object>());
     writer.setCodec(CodecFactory.fromString(args.length >= 4 ? args[3] : "null"));

@@ -46,6 +46,7 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.BinaryDecoder;
+import org.threeten.extra.YearQuarter;
 
 /** Utilities for generated Java classes and interfaces. */
 public class SpecificData extends GenericData {
@@ -93,6 +94,12 @@ public class SpecificData extends GenericData {
     stringableClasses.add(java.net.URI.class);
     stringableClasses.add(java.net.URL.class);
     stringableClasses.add(java.io.File.class);
+    stringableClasses.add(java.time.LocalDate.class);
+    stringableClasses.add(java.time.ZonedDateTime.class);
+    stringableClasses.add(java.time.Instant.class);
+    stringableClasses.add(java.time.MonthDay.class);
+    stringableClasses.add(java.time.Year.class);
+    stringableClasses.add(YearQuarter.class);
   }
 
   /** For subclasses.  Applications normally use {@link SpecificData#get()}. */

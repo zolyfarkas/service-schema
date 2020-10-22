@@ -35,7 +35,7 @@ import org.apache.avro.LogicalType;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
-import org.apache.avro.logicalTypes.DecimalBytesLogicalType;
+import org.apache.avro.logical_types.converters.Decimal2Converter;
 
 /**
  * This class extends the JsonDecoder to:
@@ -312,7 +312,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       case VALUE_NUMBER_FLOAT:
         BigDecimal decimalValue = in.getDecimalValue();
         in.nextToken();
-        return DecimalBytesLogicalType.toBytes(decimalValue);
+        return Decimal2Converter.toBytes(decimalValue);
       default:
         throw error("bytes");
     }
@@ -374,12 +374,12 @@ public final class ExtendedJsonDecoder extends JsonDecoder
   public <T> T readValue(final Schema schema, final Class<T> clasz) throws IOException {
     advanceBy(schema);
     if (in.getCurrentToken() == JsonToken.VALUE_STRING) {
-      // probably encoded with recular encoder, will be best effort here.
-      // this is a horendous way
+      // probably encoded with regular encoder, will be best effort here.
+      // this is a horendous
       String text = in.getText();
       T result;
       LogicalType lt = schema.getLogicalType();
-      if (lt != null && "json_any".equals(lt.getLogicalTypeName())) {
+      if (lt != null && "json_any".equals(lt.getName())) {
           result = (T) text;
       } else {
         switch (schema.getType()) {
@@ -461,11 +461,9 @@ public final class ExtendedJsonDecoder extends JsonDecoder
   }
 
   @Override
-  public TokenBuffer bufferValue(Schema schema) throws IOException {
+  public JsonParser bufferValue(Schema schema) throws IOException {
     advanceBy(schema);
-    TokenBuffer result = TokenBuffer.asCopyOfValue(in);
-    in.nextToken();
-    return result;
+    return TokenBuffer.asCopyOfValue(in).asParserOnFirstToken();
   }
 
   @Override
