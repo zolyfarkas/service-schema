@@ -19,7 +19,6 @@ import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
-import org.apache.avro.logical_types.Temporal;
 import org.apache.avro.logical_types.URLLogicalType;
 
 /**
@@ -35,7 +34,7 @@ public class URLLogicalTypeFactory implements LogicalTypeFactory {
   @Override
   public LogicalType fromSchema(final Schema schema) {
     if (schema.getType() == Schema.Type.STRING) {
-      return Temporal.instance();
+      return URLLogicalType.instance();
     } else {
       throw new AvroRuntimeException("Unsupported schema for URL " + schema);
     }
