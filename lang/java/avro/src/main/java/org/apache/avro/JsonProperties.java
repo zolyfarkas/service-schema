@@ -180,17 +180,19 @@ public abstract class JsonProperties {
    * @deprecated use {@link #addProp(String, Object)}
    */
    void addProp(String name, JsonNode value) {
-    if (reserved.contains(name))
+    if (reserved.contains(name)) {
       throw new AvroRuntimeException("Can't set reserved property: " + name);
+    }
 
-    if (value == null)
+    if (value == null) {
       throw new AvroRuntimeException("Can't set a property to null: " + name);
+    }
 
-    JsonNode old = props.get(name);
-    if (old == null)
-      props.put(name, value);
-    else if (!old.equals(value))
-      throw new AvroRuntimeException("Can't overwrite property: " + name + " old = " + old + ", value = " + value );
+    JsonNode old = props.put(name, value);
+    if (old != null && !old.equals(value)) {
+      throw new AvroRuntimeException("Can't overwrite property: " + name + " old = " + old + ", value = "
+              + value + ", for  " + this);
+    }
   }
 
   public void addProp(String name, Object value) {
