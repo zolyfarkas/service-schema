@@ -1,14 +1,16 @@
 package org.apache.avro.logical_types.converters;
 
+import java.util.List;
+
 
 /**
  * @author Zoltan Farkas
  */
-public class JsonArrayConversion extends JsonConversions<Object[]> {
+public class JsonArrayConversion extends JsonConversions<List<Object>> {
 
   @SuppressWarnings("unchecked")
   public JsonArrayConversion() {
-    super("json_array", (Class) Object[].class);
+    super("json_array", (Class) List.class);
   }
 
 }

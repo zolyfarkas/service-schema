@@ -29,7 +29,7 @@ public class JsonRecord extends LogicalType {
   }
 
   private JsonRecord() {
-    super("json_any");
+    super("json_record");
   }
 
 }

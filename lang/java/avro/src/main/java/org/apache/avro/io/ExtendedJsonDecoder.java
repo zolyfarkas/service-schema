@@ -463,7 +463,9 @@ public final class ExtendedJsonDecoder extends JsonDecoder
   @Override
   public JsonParser bufferValue(Schema schema) throws IOException {
     advanceBy(schema);
-    return TokenBuffer.asCopyOfValue(in).asParserOnFirstToken();
+    JsonParser parser = TokenBuffer.asCopyOfValue(in).asParserOnFirstToken();
+    in.nextToken();
+    return parser;
   }
 
   @Override

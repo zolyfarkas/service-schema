@@ -580,11 +580,12 @@ public class SpecificCompiler {
       result = Schema.createUnion(types);
       break;
     }
-    for (Map.Entry<String,JsonNode> p : s.getJsonProps().entrySet())
+    for (Map.Entry<String,JsonNode> p : s.getJsonProps().entrySet()) {
       result.addProp(p.getKey(), p.getValue());   // copy props
+    }
     final LogicalType logicalType = s.getLogicalType();
     if (result != s && logicalType != null) {
-      result.setLogicalType(logicalType);
+      logicalType.addToSchema(result);
     }
     seen.put(s, result);
     return result;

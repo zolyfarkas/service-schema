@@ -29,7 +29,7 @@ public class JsonArray extends LogicalType {
   }
 
   private JsonArray() {
-    super("json_any");
+    super("json_array");
   }
 
 }

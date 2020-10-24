@@ -17,6 +17,7 @@ package org.apache.avro.logical_types.factories;
 
 import java.math.RoundingMode;
 import javax.annotation.Nullable;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
 import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
@@ -59,6 +60,14 @@ public class Decimal2Factory implements LogicalTypeFactory {
 
   public static LogicalType newDecimal2LogicalType(String typeName, Schema schema,
           Number precision, Number scale) {
+    switch (schema.getType()) {
+      case BYTES:
+      case STRING:
+      case RECORD:
+        break;
+      default:
+        throw new AvroRuntimeException("Unsupported avro type for decimal: " + schema);
+    }
     boolean usePlainString = USE_PLAIN_STRING;
     Object ups = schema.getObjectProp("usePlainString");
     if (ups != null) {

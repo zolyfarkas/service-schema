@@ -109,7 +109,6 @@ public class LogicalTypes {
      register(new SchemaLogicalTypeFactory());
      register(new TimestampMillisLogicalTypeFactory());
      register(new TimestampMicrosLogicalTypeFactory());
-     register(new UuidLogicalTypeFactory());
      register(new TimeMicrosLogicalTypeFactory());
      register(new TimeMillisLogicalTypeFactory());
      register(new LocalTimestampMicrosLogicalTypeFactory());

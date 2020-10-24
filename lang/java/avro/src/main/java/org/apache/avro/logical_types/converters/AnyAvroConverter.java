@@ -107,10 +107,11 @@ public class AnyAvroConverter extends Conversion<Object> {
       if (!"content".equals(parser.currentName())) {
         throw new AvroRuntimeException("Unexpected field: " + parser.currentName());
       }
-      parser.nextToken();
-      ExtendedJsonDecoder jdec = new ExtendedJsonDecoder(anySchema, parser, true);
+      ExtendedJsonDecoder jdec = new ExtendedJsonDecoder(anySchema,
+              parser, true);
       DatumReader reader = new GenericDatumReader(anySchema, anySchema);
-      return Optional.of(reader.read(null, jdec));
+      Object read = reader.read(null, jdec);
+      return Optional.of(read);
     } else {
       return Optional.empty();
     }
@@ -174,7 +175,7 @@ public class AnyAvroConverter extends Conversion<Object> {
           return (IndexedRecord) value;
         }
       }
-      AnyAvro lt = (AnyAvro) schema.getLogicalType();
+      AnyAvro lt = (AnyAvro) rschema.getLogicalType();
       String strSchema = toString(schema, new AvroNamesRefResolver(lt.getResolver())).toString();
       GenericRecord result = new GenericData.Record(rschema);
       result.put(lt.getAvscIdx(), strSchema);

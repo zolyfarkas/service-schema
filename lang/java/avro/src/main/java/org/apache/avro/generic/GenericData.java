@@ -162,7 +162,7 @@ public class GenericData {
   @Nullable
   public <T> Conversion<T> getConversionByClass(Class<T> datumClass, LogicalType logicalType) {
     Conversion<?> conv = conversions.get(logicalType.getName());
-    if (conv.getConvertedType() == datumClass) {
+    if (conv.getConvertedType().isAssignableFrom(datumClass)) {
       return (Conversion<T>) conv;
     } else {
       return null;
@@ -1057,7 +1057,7 @@ public class GenericData {
     if (o1 == o2) return 0;
     if (s.getLogicalType() != null) {
       if (equals) {
-        return (Objects.equals(o1, o2) ? 0 : 1);
+        return (Objects.deepEquals(o1, o2) ? 0 : 1);
       } else {
         if (o1 instanceof Comparable && o2 instanceof Comparable) {
           return ((Comparable) o1).compareTo(o2);
