@@ -146,6 +146,7 @@ public class TestInstantLogicalType {
 
  @Test
   public void testTSMillisRecord1() throws IOException {
+    GenericData.get().clearConversions();
     Schema anyRecord = Schema.create(Schema.Type.LONG);
     anyRecord.addProp(LogicalType.LOGICAL_TYPE_PROP, "timestamp-millis");
     LogicalType lt = LogicalTypes.fromSchema(anyRecord);
@@ -159,7 +160,6 @@ public class TestInstantLogicalType {
     record.put("instant", Instant.now().toEpochMilli());
       String writeAvroExtendedJson = AvroUtils.writeAvroExtendedJson(record);
     System.out.println(writeAvroExtendedJson);
-    GenericData.get().clearConversions();
     GenericRecord back = AvroUtils.readAvroExtendedJson(new StringReader(writeAvroExtendedJson), testSchema);
     Assert.assertEquals(record.toString(), back.toString());
     GenericData.get().defaultConversions();

@@ -106,7 +106,7 @@ public class JsonConversions<T> extends Conversion<T> {
     try {
       return Schema.MAPPER.readValue(new CharSequenceReader(value), clasz);
     } catch (IOException ex) {
-      throw new UncheckedIOException("Cannot deserialize " + value, ex);
+      throw new UncheckedIOException("Cannot deserialize: " + value + ", as " + clasz, ex);
     }
   }
 

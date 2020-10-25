@@ -295,34 +295,16 @@ public final class Conversions {
       Class<T> fromClass = conversion.getConvertedType();
       switch (schema.getType()) {
       case RECORD:
-        if (datum instanceof IndexedRecord) {
-          return datum;
-        }
         return conversion.toRecord(fromClass.cast(datum), schema, type);
       case ENUM:
-        if (datum instanceof GenericEnumSymbol) {
-          return datum;
-        }
         return conversion.toEnumSymbol(fromClass.cast(datum), schema, type);
       case ARRAY:
-        if (datum.getClass().isArray()) {
-          return datum;
-        }
         return conversion.toArray(fromClass.cast(datum), schema, type);
       case MAP:
-        if (datum instanceof Map) {
-          return datum;
-        }
         return conversion.toMap(fromClass.cast(datum), schema, type);
       case FIXED:
-        if (datum instanceof GenericFixed) {
-          return datum;
-        }
         return conversion.toFixed(fromClass.cast(datum), schema, type);
       case STRING:
-        if (datum instanceof CharSequence) {
-          return datum;
-        }
         return conversion.toCharSequence(fromClass.cast(datum), schema, type);
       case BYTES:
         if (datum instanceof ByteBuffer) {
@@ -332,29 +314,14 @@ public final class Conversions {
         }
         return conversion.toBytes(fromClass.cast(datum), schema, type);
       case INT:
-        if (datum instanceof Number) {
-          return ((Number) datum).intValue();
-        }
         return conversion.toInt(fromClass.cast(datum), schema, type);
       case LONG:
-        if (datum instanceof Number) {
-          return ((Number) datum).longValue();
-        }
         return conversion.toLong(fromClass.cast(datum), schema, type);
       case FLOAT:
-        if (datum instanceof Number) {
-          return ((Number) datum).floatValue();
-        }
         return conversion.toFloat(fromClass.cast(datum), schema, type);
       case DOUBLE:
-        if (datum instanceof Number) {
-          return ((Number) datum).doubleValue();
-        }
         return conversion.toDouble(fromClass.cast(datum), schema, type);
       case BOOLEAN:
-         if (datum instanceof Boolean) {
-          return datum;
-        }
         return conversion.toBoolean(fromClass.cast(datum), schema, type);
       default:
         throw new UnsupportedOperationException("Invalid schema with logical type: " + schema);
