@@ -37,9 +37,13 @@ public class InstantLogicalTypeFactory implements LogicalTypeFactory {
     switch (type) {
       case STRING:
         String format = schema.getProp("format");
-        return new InstantLogicalType(format, null, null, null);
+        if (format == null) {
+          return InstantLogicalType.instance();
+        } else {
+          return new InstantLogicalType(format, null, null, null);
+        }
       case LONG:
-        return new InstantLogicalType(null, null, null, null);
+         return InstantLogicalType.instance();
       case RECORD:
         Schema.Field millisField = schema.getField("millis");
         if (millisField != null) {

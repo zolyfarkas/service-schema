@@ -25,6 +25,12 @@ import org.apache.avro.Schema;
  */
 public class InstantLogicalType extends LogicalType {
 
+  private static final InstantLogicalType DEFAULT_INSTANCE = new InstantLogicalType(null, null, null, null);
+
+  public static InstantLogicalType instance() {
+    return DEFAULT_INSTANCE;
+  }
+
   private final String format;
 
   private final DateTimeFormatter formatter;
@@ -65,7 +71,7 @@ public class InstantLogicalType extends LogicalType {
   public Integer getMillisIdx() {
     return millisIdx;
   }
-  
+
   @Override
   public Schema addToSchema(Schema schema) {
       super.addToSchema(schema);
