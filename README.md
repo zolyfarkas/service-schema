@@ -157,10 +157,10 @@ will serialize in json to:
 
 ### 14) mixin support in AVDL.
 
+### 15) temporal logical type support, which is the equivalent of union{year, yearmonth, yearquarter, date, date time}.
+
 ## Examples for above  in action:
 
- * [fred-schema](https://github.com/zolyfarkas/fred-schema)
- * [quandl-schema](https://github.com/zolyfarkas/quandl-schema)
  * [core-schema](https://github.com/zolyfarkas/core-schema)
  * [generic examples](https://github.com/zolyfarkas/avro-schema-examples)
 
