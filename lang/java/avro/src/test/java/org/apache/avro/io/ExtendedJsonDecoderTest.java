@@ -21,16 +21,22 @@ import com.google.common.io.Resources;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 import org.junit.Assert;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.avro.generic.ExtendedGenericDatumWriter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
+import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.spf4j.base.avro.LogLevel;
+import org.spf4j.base.avro.LogRecord;
 
 public class ExtendedJsonDecoderTest {
 
@@ -118,6 +124,29 @@ public class ExtendedJsonDecoderTest {
     GenericDatumReader reader = new GenericDatumReader(schema, schema);
     GenericRecord testData = (GenericRecord) reader.read(null, decoder);
     return testData;
+  }
+
+
+  @Test
+  public void  testSchemaParsing() throws IOException {
+    Assert.assertEquals("[]", LogRecord.getClassSchema().getField("xtra").defaultVal());
+  }
+
+  @Test
+  public void  testDefaultValueSerialization() throws IOException {
+
+    LogRecord rec = new LogRecord("origin", "trId", LogLevel.DEBUG,
+            Instant.MIN, "logger", "thr", "message", Collections.emptyList()
+            , Collections.emptyMap(), null);
+
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    ExtendedJsonEncoder encoder = new ExtendedJsonEncoder(rec.getSchema(), bos);
+    GenericDatumWriter writer = new ExtendedGenericDatumWriter(rec.getSchema());
+    writer.write(rec, encoder);
+    encoder.flush();
+    System.out.println(bos.toString());
+    Assert.assertThat(bos.toString(), Matchers.not(Matchers.containsString("\"throwable\":null")));
+
   }
 
 

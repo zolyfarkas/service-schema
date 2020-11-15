@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
+import static org.apache.avro.Schema.Field.NULL_DEFAULT_VALUE;
 
 /**
  * Extension of the AVRO GenericDatumWriter that does the following extras over the base class
@@ -32,18 +33,21 @@ public class ExtendedGenericDatumWriter<D> extends GenericDatumWriter<D> {
         super(root, data);
     }
 
-   public static boolean equals(Object a, Object b) {
-     if (a == b) {
+   public static boolean equals(Object a, Object defaultValue) {
+     if (a == defaultValue) {
        return true;
      }
-     boolean result = a != null && a.equals(b);
+     if (NULL_DEFAULT_VALUE == defaultValue && a == null) {
+       return true;
+     }
+     boolean result = a != null && a.equals(defaultValue);
      if (result) {
        return true;
      }
-     if ((a instanceof Enum || a instanceof GenericEnumSymbol) && b != null) {
-       return a.toString().equals(b.toString());
-     } else if (a instanceof CharSequence && b instanceof CharSequence) {
-       return equals((CharSequence) a, (CharSequence) b);
+     if ((a instanceof Enum || a instanceof GenericEnumSymbol) && defaultValue != null) {
+       return a.toString().equals(defaultValue.toString());
+     } else if (a instanceof CharSequence && defaultValue instanceof CharSequence) {
+       return equals((CharSequence) a, (CharSequence) defaultValue);
      } else {
        return false;
      }

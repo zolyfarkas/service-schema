@@ -399,7 +399,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   /** If this is a record, enum or fixed, returns its namespace, if any. */
   public String getNamespace() {
-    throw new AvroRuntimeException("Not a named type: "+this);
+    throw new AvroRuntimeException("Not a named type: " + this);
   }
 
   /** If this is a record, enum or fixed, returns its namespace-qualified name,
@@ -505,7 +505,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return false;
     }
     Schema that = (Schema) o;
-    if (!(this.type == that.type)) return false;
+    if (this.type != that.type) return false;
     return equalCachedHash(that)
         && props.equals(that.props);
   }
@@ -526,7 +526,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
            || (other.hashCode == NO_HASHCODE);
   }
 
-  private static final Set<String> FIELD_RESERVED = new HashSet<String>();
+  private static final Set<String> FIELD_RESERVED = new HashSet<>();
   static {
     Collections.addAll(FIELD_RESERVED,
                        "default","doc","name","order","type","aliases");
@@ -559,10 +559,13 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public enum Order {
       ASCENDING, DESCENDING, IGNORE;
       private String name;
-      private Order() { this.name = this.name().toLowerCase(Locale.ENGLISH); }
-    };
 
-    public static final Object NULL_DEFAULT_VALUE = new Object();
+      private Order() {
+        this.name = this.name().toLowerCase(Locale.ENGLISH);
+      }
+    }
+
+    public static final Object NULL_DEFAULT_VALUE = JsonProperties.NULL_VALUE;
 
     private final String name;    // name of the field.
     private int position = -1;
