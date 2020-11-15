@@ -651,7 +651,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
     public String name() {
       return name;
-    };
+    }
 
     /** The position of this field within the record. */
     public int pos() {
