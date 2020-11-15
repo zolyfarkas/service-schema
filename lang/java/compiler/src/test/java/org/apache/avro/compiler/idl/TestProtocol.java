@@ -33,6 +33,10 @@ import org.junit.Test;
  */
 public class TestProtocol {
 
+  static {
+    System.setProperty("avro.defaultToStandardDecimalFormat", "true");
+  }
+
     @Test
     public void test() throws ParseException, IOException {
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();

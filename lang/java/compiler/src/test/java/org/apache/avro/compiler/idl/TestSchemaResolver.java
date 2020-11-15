@@ -28,6 +28,10 @@ import org.junit.Test;
 public class TestSchemaResolver {
 
 
+  static {
+    System.setProperty("avro.defaultToStandardDecimalFormat", "true");
+  }
+
   @Test
   public void testResolving() throws ParseException, MalformedURLException, IOException {
     File file = new File(".");

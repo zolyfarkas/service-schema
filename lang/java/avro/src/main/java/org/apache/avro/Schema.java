@@ -1690,7 +1690,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         return true;
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
-      } catch (AvroRuntimeException ex) {
+      } catch (RuntimeException ex) {
         return false;
       }
     }
@@ -1713,8 +1713,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
     case NULL:
       return defaultValue.isNull();
     case ARRAY:
-      if (!defaultValue.isArray())
+      if (!defaultValue.isArray()) {
         return false;
+      }
       for (JsonNode element : defaultValue) {
         if (!isValidDefault(schema.getElementType(), element)) {
           return false;
