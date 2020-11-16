@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.zip.Deflater;
 
 import org.apache.avro.AvroRuntimeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Encapsulates the ability to specify and configure a compression codec.
@@ -40,7 +38,6 @@ import org.slf4j.LoggerFactory;
  * {@link #addCodec(String, CodecFactory)}.
  */
 public abstract class CodecFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(CodecFactory.class);
 
   /** Null codec, for no compression. */
   public static CodecFactory nullCodec() {
@@ -65,12 +62,7 @@ public abstract class CodecFactory {
 
   /** Snappy codec. */
   public static CodecFactory snappyCodec() {
-    try {
       return new SnappyCodec.Option();
-    } catch (Throwable t) {
-      LOG.debug("Snappy was not available", t);
-      return null;
-    }
   }
 
   /** bzip2 codec. */
