@@ -1,0 +1,167 @@
+@namespace("org.spf4j.service.avro")
+protocol Service {
+
+    import idl "core.avdl";
+
+    /** a record to describe a service error */
+    @beta
+    record ServiceError {
+      /** a error code, Defaults to internal serve error */
+      int code = 500;
+      /** a string describing the type of the error, ex: the exception type */
+      string type = "";
+      /** a error message */
+      string message;
+      /** additional structured information regarding this error, null if no additional info is provided */
+      union {null, org.spf4j.base.avro.Any} payload = null;
+      /**
+       * optional (when null) debug detail, will be missing when:
+       * a client does not desire it.
+       * when  client is  not entitled to access it(across security boundaries, etc).
+       */
+      union {null, org.spf4j.base.avro.DebugDetail} detail = null;
+    }
+
+    /** A health status */
+    @beta
+    enum HealthStatus {
+      HEALTHY,
+      UNKNOWN,
+      UNHEALTHY
+    } = UNKNOWN;
+
+   /** A component health record */
+    @beta
+    record HealthRecord {
+
+      /** the origin of this health record */
+      string origin = "";
+
+      /** the path of the component that this record applies to, "" for implicit(context known) */
+      string name = "";
+
+      /** The health state of this component */
+      HealthStatus status = "UNKNOWN";
+
+      /**
+       * optional (when null) debug detail, will be missing when:
+       *
+       * a client does not desire it. component is healthy.
+       * when  client is  not entitled to access it.
+       * across security boundaries.
+       */
+      union {null, org.spf4j.base.avro.DebugDetail} detail = null;
+
+      /** the health of the sub-components, if any */
+      array<HealthRecord> componentsHealth = [];
+
+    }
+
+    /** a path entry */
+    @beta
+    record HealthCheckInfo {
+
+      /** name, ""  when implicit (root) */
+      string name  = "";
+
+      /** health check description */
+      string description = "";
+
+      /** component infos if available */
+      array<HealthCheckInfo> componentInfos = [];
+
+    }
+
+    /** network protocol */
+    @beta
+    enum NetworkProtocol {TCP, UDP, SCTP, UNKNOWN} = UNKNOWN;
+
+    /** a network service descriptor: ex: (http, 80, tcp)*/
+    @beta
+    record NetworkService {
+      /** service name */
+      string name;
+      /** port number */
+      int port;
+      /** network protocol */
+      NetworkProtocol netProtocol;
+    }
+
+    /** process information */
+    @beta
+    record ProcessInfo {
+      /** a string uniquely identifying the process instance */
+      string instanceId;
+      /** Process name */
+      string name = "";
+      /** the host name */
+      string hostName;
+      /** the process PID */
+      int processId;
+      /** the java runtime version */
+      string jreVersion;
+      /** the application version */
+      string appVersion;
+      /** the build id, version control revision ID/Number */
+      string buildId = "";
+      /** build time-stamp, null when not available (missing from app manifest) */
+      union {null, @logicalType("instant") string} buildTimeStamp = null;
+      /** network services served by this process */
+      array<NetworkService> networkServices = [];
+    }
+
+    /** Cluster information */
+    @beta
+    record ClusterInfo {
+       /** application info */
+      org.spf4j.base.avro.ApplicationInfo appInfo;
+
+      /** processes info */
+      array<ProcessInfo> processes;
+    }
+
+
+    /** File type */
+    @beta
+    enum FileType {
+      UNKNOWN, REGULAR, DIRECTORY
+    } = UNKNOWN;
+
+
+    /** File entry */
+    @beta
+    record FileEntry {
+      /** file type */
+      FileType type = "REGULAR";
+      /** file name */
+      string name;
+      /** file size */
+      long size = -1;
+      /** last modified, null when  attr is not available/supported */
+      union {null, @logicalType("instant") string} lastModified = null;
+    }
+
+    /**
+     * HTTP method enum. [rfc7231](https://tools.ietf.org/html/rfc7231#section-4)
+     * [rfc5789](https://tools.ietf.org/html/rfc5789#section-2)
+     */
+    @beta
+    enum HttpMethod {GET, HEAD,  PUT, POST, DELETE, PATCH, OPTIONS, CONNECT, TRACE, UNKNOWN} = UNKNOWN;
+
+    /**
+     * A REST reference(link), [see](https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design)
+     */
+    @beta
+    record Link {
+      /** relationship */
+      string rel =  "self";
+      /** the URI of the entity */
+      string @logicalType("uri") href;
+      /** the HTTP method */
+      HttpMethod action = "UNKNOWN";
+      /** The supported media types */
+      array<org.spf4j.base.avro.MediaType> types = [];
+    }
+
+
+}
