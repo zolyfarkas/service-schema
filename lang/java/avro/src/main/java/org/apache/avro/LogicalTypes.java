@@ -37,6 +37,7 @@ import org.apache.avro.logical_types.factories.JsonArrayLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.JsonRecordLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.LocalTimestampMicrosLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.LocalTimestampMillisLogicalTypeFactory;
+import org.apache.avro.logical_types.factories.RegexpLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.SchemaLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.TimeMicrosLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.TimeMillisLogicalTypeFactory;
@@ -106,6 +107,7 @@ public class LogicalTypes {
      register(new UuidLogicalTypeFactory());
      register(new URLLogicalTypeFactory());
      register(new URILogicalTypeFactory());
+     register(new RegexpLogicalTypeFactory());
      register(new SchemaLogicalTypeFactory());
      register(new TimestampMillisLogicalTypeFactory());
      register(new TimestampMicrosLogicalTypeFactory());

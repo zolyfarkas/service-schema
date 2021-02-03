@@ -41,6 +41,7 @@ import org.apache.avro.logical_types.converters.InstantConverter;
 import org.apache.avro.logical_types.converters.JsonAnyConversion;
 import org.apache.avro.logical_types.converters.JsonArrayConversion;
 import org.apache.avro.logical_types.converters.JsonRecordConversion;
+import org.apache.avro.logical_types.converters.RegexpConverter;
 import org.apache.avro.logical_types.converters.SchemaConverter;
 import org.apache.avro.logical_types.converters.TemporalConverter;
 import org.apache.avro.logical_types.converters.URIConverter;
@@ -74,6 +75,7 @@ public final class Conversions {
     registerConversion(map, new TemporalConverter());
     registerConversion(map, new URIConverter());
     registerConversion(map, new URLConverter());
+    registerConversion(map, new RegexpConverter());
     DEFAULT_CONVERSIONS = new CopyOnWriteMap<>(map);
   }
 
