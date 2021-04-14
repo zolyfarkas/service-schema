@@ -7,7 +7,7 @@ Learn more about Avro, please visit our website at:
 
 ## Overview
 
-  * 1.9.0.14p - latest version, based on jackson 2.9+
+  * 1.10.0.0p - latest version, based on jackson 2.9+
   * 1.8.1.50p - latest version, based on jackson 1.9
 
  This fork, contains numerous fixes, and features not implement (but reported) in the original project.
@@ -23,23 +23,21 @@ Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfark
 This fork is published to bintray, and you can use it by adding the repositories:
 
             <repositories>
-                <repository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-zolyfarkas-core</id>
-                    <name>bintray</name>
-                    <url>https://dl.bintray.com/zolyfarkas/core</url>
-                </repository>
+              <repository>
+                <id>github</id>
+                <url>https://maven.pkg.github.com/zolyfarkas/*</url>
+                <snapshots>
+                  <enabled>true</enabled>
+                </snapshots>
+              </repository>
             </repositories>
             <pluginRepositories>
                 <pluginRepository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-zolyfarkas-core</id>
-                    <name>bintray-plugins</name>
-                    <url>https://dl.bintray.com/zolyfarkas/core</url>
+                  <id>github</id>
+                  <url>https://maven.pkg.github.com/zolyfarkas/*</url>
+                  <snapshots>
+                    <enabled>true</enabled>
+                  </snapshots>
                 </pluginRepository>
             </pluginRepositories>
 
