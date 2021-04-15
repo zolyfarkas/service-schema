@@ -7,11 +7,11 @@ Learn more about Avro, please visit our website at:
 
 ## Overview
 
-  * 1.10.0.0p - latest version, based on jackson 2.9+
+  * 1.10.0.1p - latest version, based on jackson 2.9+, aims to be api compatible with avro 1.10.
   * 1.8.1.50p - latest version, based on jackson 1.9
 
  This fork, contains numerous fixes, and features not implement (but reported) in the original project.
- THis fork focuses only on the java implementation. For non-java part please see official fork or other forks.
+ This fork focuses only on the java implementation. For non-java part please see official fork or other forks.
 
 Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j-avro.png)](https://gitter.im/spf4j-avro/Lobby)
 
@@ -20,7 +20,8 @@ Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfark
 
  [ ![Download latest](https://api.bintray.com/packages/zolyfarkas/core/avro/images/download.svg) ](https://bintray.com/zolyfarkas/core/avro/_latestVersion)
 
-This fork is published to bintray, and you can use it by adding the repositories:
+This fork is published to github packages, and you can use it by adding the repositories to your pom.xml
+ ([see](https://docs.github.com/en/packages/guides/configuring-apache-maven-for-use-with-github-packages) for more info):
 
             <repositories>
               <repository>
@@ -43,13 +44,17 @@ This fork is published to bintray, and you can use it by adding the repositories
 
  and reference the avro lib as:
 
-
             <dependency>
               <groupId>org.apache.avro</groupId>
               <artifactId>avro</artifactId>
-              <version>1.9.0.11p</version>
+              <version>1.10.0.1p</version>
               <type>pom</type>
             </dependency>
+
+
+  previous versions have been published to bintray,
+  and should be available there (if I interpret the deco text correctly) until Feb 1st, 2022.
+
 
 
 ## Features implemented in this fork on the java side:
@@ -156,6 +161,8 @@ will serialize in json to:
 ### 14) mixin support in AVDL.
 
 ### 15) temporal logical type support, which is the equivalent of union{year, yearmonth, yearquarter, date, date time}.
+
+### 16) regex logical type support.
 
 ## Examples for above  in action:
 
