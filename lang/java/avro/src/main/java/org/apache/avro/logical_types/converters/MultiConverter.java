@@ -16,7 +16,7 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.util.Optional;
 
 /**
- * An converter adapter, for conversion shitching based on logical type.
+ * An converter adapter, for conversion switching based on logical type.
  * @author Zoltan Farkas
  */
 public class MultiConverter<T> extends Conversion<T> {
