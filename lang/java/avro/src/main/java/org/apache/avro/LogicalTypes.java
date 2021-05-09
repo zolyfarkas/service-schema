@@ -31,6 +31,7 @@ import org.apache.avro.logical_types.factories.TemporalLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.BigIntegerFactory;
 import org.apache.avro.logical_types.factories.DateLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.DecimalFactory;
+import org.apache.avro.logical_types.factories.DurationLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.InstantLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.JsonAnyLogicalTypeFactory;
 import org.apache.avro.logical_types.factories.JsonArrayLogicalTypeFactory;
@@ -107,6 +108,7 @@ public class LogicalTypes {
      register(new UuidLogicalTypeFactory());
      register(new URLLogicalTypeFactory());
      register(new URILogicalTypeFactory());
+     register(new DurationLogicalTypeFactory());
      register(new RegexpLogicalTypeFactory());
      register(new SchemaLogicalTypeFactory());
      register(new TimestampMillisLogicalTypeFactory());

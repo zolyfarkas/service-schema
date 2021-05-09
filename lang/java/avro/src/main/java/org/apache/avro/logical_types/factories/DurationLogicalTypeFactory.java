@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.avro.joda;
+package org.apache.avro.logical_types.factories;
 
-import java.util.Map;
+import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.LogicalType;
-import org.apache.avro.LogicalTypeFactory;
+import org.apache.avro.LogicalTypes.LogicalTypeFactory;
 import org.apache.avro.Schema;
+import org.apache.avro.logical_types.DurationLogicalType;
 
 /**
- *
  * @author zfarkas
  */
-public class IsoDateFactory implements LogicalTypeFactory {
+public class DurationLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
-  public String getLogicalTypeName() {
-    return "isodate";
+  public String getTypeName() {
+    return DurationLogicalType.instance().getName();
   }
 
   @Override
-  public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    throw new UnsupportedOperationException();
+  public LogicalType fromSchema(final Schema schema) {
+    if (schema.getType() == Schema.Type.STRING) {
+      return DurationLogicalType.instance();
+    } else {
+      throw new AvroRuntimeException("Unsupported schema for URL " + schema);
+    }
   }
-
-  @Override
-  public LogicalType fromSchema(Schema schema) {
-    return new IsoDate(schema);
-  }
-
 
 }

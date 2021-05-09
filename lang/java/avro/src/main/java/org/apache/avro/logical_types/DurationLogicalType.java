@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.avro.joda;
+package org.apache.avro.logical_types;
 
-import java.util.Map;
 import org.apache.avro.LogicalType;
-import org.apache.avro.LogicalTypeFactory;
-import org.apache.avro.Schema;
 
-/**
- *
- * @author zfarkas
- */
-public class IsoIntervalFactory implements LogicalTypeFactory {
+public final class DurationLogicalType extends LogicalType {
 
+  public static final DurationLogicalType INSTANCE = new DurationLogicalType();
 
-  private static final IsoInterval INSTANCE = new IsoInterval(Schema.Type.STRING);
-
-  @Override
-  public String getLogicalTypeName() {
-    return INSTANCE.getLogicalTypeName();
+  public static DurationLogicalType instance() {
+    return INSTANCE;
   }
 
-  @Override
-  public LogicalType create(Schema.Type schemaType, Map<String, Object> attributes) {
-    return INSTANCE;
+  private DurationLogicalType() {
+    super("duration");
   }
 
 }
