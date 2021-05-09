@@ -33,10 +33,11 @@ public class DurationLogicalTypeFactory implements LogicalTypeFactory {
 
   @Override
   public LogicalType fromSchema(final Schema schema) {
-    if (schema.getType() == Schema.Type.STRING) {
+    Schema.Type type = schema.getType();
+    if (type == Schema.Type.STRING || type == Schema.Type.LONG) {
       return DurationLogicalType.instance();
     } else {
-      throw new AvroRuntimeException("Unsupported schema for URL " + schema);
+      throw new AvroRuntimeException("Unsupported schema for duration: " + schema);
     }
   }
 

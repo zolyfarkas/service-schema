@@ -33,8 +33,6 @@ public class DurationConverter extends Conversion<Duration> {
   }
 
 
-
-
   @Override
   public Class<Duration> getConvertedType() {
     return Duration.class;
