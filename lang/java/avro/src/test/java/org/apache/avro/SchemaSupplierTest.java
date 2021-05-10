@@ -38,15 +38,16 @@ public class SchemaSupplierTest {
             .items(recSchema);
     StringWriter stringWriter = new StringWriter();
     JsonGenerator jgen = Schema.FACTORY.createGenerator(stringWriter);
-    schema.toJson(new TestResolver(recSchema), jgen);
+    schema.toJson(new AvroNamesRefResolver(new TestResolver(recSchema)), jgen);
     jgen.flush();
     System.out.println(stringWriter.toString());
-    Schema result = new Schema.Parser(new TestResolver(recSchema)).parse(stringWriter.toString());
+    Schema result = new Schema.Parser(new AvroNamesRefResolver(
+            new TestResolver(recSchema))).parse(stringWriter.toString());
     Assert.assertEquals(schema, result);
 
   }
 
-  private static class TestResolver extends Schema.Names {
+  private static class TestResolver implements  SchemaResolver {
 
     private final Schema recSchema;
 

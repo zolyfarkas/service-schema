@@ -1,6 +1,11 @@
 
 package org.apache.avro;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.util.function.Function;
+
 /**
  * @author Zoltan Farkas
  */
@@ -18,19 +23,15 @@ public final class AvroNamesRefResolver extends Schema.Names {
   }
 
   @Override
-  public String getId(Schema schema) {
-    return sResolver.getId(schema);
+  public boolean customWrite(Schema schema, JsonGenerator gen) throws IOException {
+    return this.sResolver.customWrite(schema, gen);
   }
 
   @Override
-  public Schema resolveSchema(String id) {
-    return sResolver.resolveSchema(id);
+  public Schema customRead(Function<String, JsonNode> object) {
+    return this.sResolver.customRead(object);
   }
 
-  @Override
-  public String getSchemaRefJsonAttr() {
-    return sResolver.getJsonAttrName();
-  }
 
   @Override
   public String toString() {

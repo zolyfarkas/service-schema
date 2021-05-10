@@ -57,6 +57,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.io.UncheckedIOException;
 import java.util.Objects;
+import java.util.function.Function;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.util.Sets;
@@ -837,15 +838,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       } else if (name.name != null) {
         names.put(name, this);
       }
-      String id = names.getId(this);
-      if (id != null) {
-        gen.writeStartObject();
-        gen.writeFieldName(names.getSchemaRefJsonAttr());
-        gen.writeString(id);
-        gen.writeEndObject();
-        return true;
-      }
-      return false;
+      return names.customWrite(this, gen);
     }
     public void writeName(Names names, JsonGenerator gen) throws IOException {
       name.writeName(names, gen);
@@ -1642,17 +1635,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
       return result;
     }
 
-    public Schema resolveSchema(String id) {
+    public Schema customRead(Function<String, JsonNode> object) {
       throw new UnsupportedOperationException();
     }
 
-    public String getId(Schema schema) {
-      return null;
+    public boolean customWrite(Schema schema, JsonGenerator gen) throws IOException {
+      return false;
     }
 
-    public String getSchemaRefJsonAttr() {
-      return "$ref";
-    }
   }
 
   private static String validateName(String name) {
@@ -1769,9 +1759,9 @@ public abstract class Schema extends JsonProperties implements Serializable {
         throw new SchemaParseException("Undefined name: "+schema);
       return result;
     } else if (schema.isObject()) {
-      JsonNode ref = schema.get(names.getSchemaRefJsonAttr());
-      if (ref != null) {
-        return names.resolveSchema(ref.asText());
+      Schema custom = names.customRead(schema::get);
+      if (custom != null) {
+        return custom;
       }
       Schema result;
       String type = getRequiredText(schema, "type", "No type");
