@@ -26,6 +26,10 @@ public interface SchemaResolver {
     }
   };
 
+  default String getJsonAttrName() {
+    return "$ref";
+  }
+
   default void registerAsDefault() {
     SchemaResolvers.registerDefault(this);
   }

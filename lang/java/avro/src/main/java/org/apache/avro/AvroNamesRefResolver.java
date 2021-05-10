@@ -28,6 +28,11 @@ public final class AvroNamesRefResolver extends Schema.Names {
   }
 
   @Override
+  public String getSchemaRefJsonAttr() {
+    return sResolver.getJsonAttrName();
+  }
+
+  @Override
   public String toString() {
     return "AvroNamesRefResolver{" + "sResolver=" + sResolver + '}';
   }

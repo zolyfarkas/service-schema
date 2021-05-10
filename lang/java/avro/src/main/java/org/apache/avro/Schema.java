@@ -840,7 +840,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       String id = names.getId(this);
       if (id != null) {
         gen.writeStartObject();
-        gen.writeFieldName("$ref");
+        gen.writeFieldName(names.getSchemaRefJsonAttr());
         gen.writeString(id);
         gen.writeEndObject();
         return true;
@@ -1649,6 +1649,10 @@ public abstract class Schema extends JsonProperties implements Serializable {
     public String getId(Schema schema) {
       return null;
     }
+
+    public String getSchemaRefJsonAttr() {
+      return "$ref";
+    }
   }
 
   private static String validateName(String name) {
@@ -1765,7 +1769,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
         throw new SchemaParseException("Undefined name: "+schema);
       return result;
     } else if (schema.isObject()) {
-      JsonNode ref = schema.get("$ref");
+      JsonNode ref = schema.get(names.getSchemaRefJsonAttr());
       if (ref != null) {
         return names.resolveSchema(ref.asText());
       }
