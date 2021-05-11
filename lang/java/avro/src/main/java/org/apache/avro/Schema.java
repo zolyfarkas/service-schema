@@ -55,6 +55,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.function.Function;
@@ -1489,6 +1490,14 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
     public Schema parse(InputStream in) throws IOException {
       return parse(in, LogicalTypes.isAllowUndefinedLogicalTypes());
+    }
+
+    public Schema parse(Reader in) throws IOException {
+      return parse(in, LogicalTypes.isAllowUndefinedLogicalTypes());
+    }
+
+    public Schema parse(Reader in, boolean allowUndefinedLogicalTypes) throws IOException {
+      return parse(FACTORY.createParser(in), allowUndefinedLogicalTypes);
     }
 
     /** Parse a schema from the provided stream.
