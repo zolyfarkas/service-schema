@@ -178,15 +178,25 @@ public final class JacksonUtils {
         }  else if  (logicalJavaType == Double.class) {
           return jsonNode.asDouble();
         } else if  (logicalJavaType == Float.class) {
-          return jsonNode.asDouble();
+          return (float) jsonNode.asDouble();
         }
       }
     }
     if (jsonNode.isInt()) {
-      if (schema == null || schema.getType() == Schema.Type.INT) {
+      if (schema == null) {
         return jsonNode.asInt();
-      } else if (schema.getType() == Schema.Type.LONG) {
-        return jsonNode.asLong();
+      }
+      switch (schema.getType()) {
+        case INT:
+          return jsonNode.asInt();
+        case LONG:
+          return jsonNode.asLong();
+        case DOUBLE:
+          return jsonNode.asDouble();
+        case FLOAT:
+          return (float) jsonNode.asDouble();
+        default:
+          throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isLong()) {
       return jsonNode.asLong();
@@ -197,19 +207,31 @@ public final class JacksonUtils {
         return (float) jsonNode.asDouble();
       }
     } else if (jsonNode.isDouble()) {
-      if (schema == null || schema.getType() == Schema.Type.DOUBLE) {
+      if (schema == null) {
         return jsonNode.asDouble();
-      } else if (schema.getType() == Schema.Type.FLOAT) {
-        return (float) jsonNode.asDouble();
+      }
+      switch (schema.getType()) {
+        case DOUBLE:
+          return jsonNode.asDouble();
+        case FLOAT:
+          return (float) jsonNode.asDouble();
+        default:
+          throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isTextual()) {
-      if (schema == null || schema.getType() == Schema.Type.STRING ||
-          schema.getType() == Schema.Type.ENUM) {
+      if (schema == null) {
         return jsonNode.asText();
-      } else if (schema.getType() == Schema.Type.BYTES) {
-        return jsonNode.textValue().getBytes(BYTES_CHARSET);
-      } else if (schema.getType() == Schema.Type.FIXED) {
-        return new Fixed(schema, jsonNode.textValue().getBytes(BYTES_CHARSET));
+      }
+      switch (schema.getType()) {
+        case STRING:
+        case ENUM:
+          return jsonNode.asText();
+        case BYTES:
+          return jsonNode.textValue().getBytes(BYTES_CHARSET);
+        case FIXED:
+          return new Fixed(schema, jsonNode.textValue().getBytes(BYTES_CHARSET));
+        default:
+          throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isArray()) {
       List l = new ArrayList(jsonNode.size());
@@ -221,13 +243,20 @@ public final class JacksonUtils {
       Map m = Maps.newLinkedHashMapWithExpectedSize(jsonNode.size());
       for (Iterator<String> it = jsonNode.fieldNames(); it.hasNext(); ) {
         String key = it.next();
-        Schema s = null;
+        Schema s;
         if (schema == null) {
           s = null;
-        } else if (schema.getType() == Schema.Type.MAP) {
-          s = schema.getValueType();
-        } else if (schema.getType() == Schema.Type.RECORD) {
-          s = schema.getField(key).schema();
+        } else {
+          switch (schema.getType()) {
+            case MAP:
+              s = schema.getValueType();
+              break;
+            case RECORD:
+              s = schema.getField(key).schema();
+              break;
+            default:
+              s = null;
+          }
         }
         Object value = toObject(jsonNode.get(key), s);
         m.put(key, value);
