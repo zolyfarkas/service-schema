@@ -64,6 +64,11 @@
          <name>GitHub zolyfarkas avro Apache Maven Packages</name>
          <url>https://maven.pkg.github.com/zolyfarkas/avro</url>
        </repository>
+       <snapshotRepository>
+         <id>github</id>
+         <name>GitHub zolyfarkas avro Apache Maven Packages</name>
+         <url>https://maven.pkg.github.com/zolyfarkas/avro</url>
+       </snapshotRepository>
     </distributionManagement>
 
 
