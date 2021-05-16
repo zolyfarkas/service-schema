@@ -1,0 +1,18 @@
+@namespace("org.spf4j.service.avro")
+protocol Execution {
+
+    import idl "execution.avdl";
+
+    /** a record to describe a HttP request policy */
+    @beta
+    record HttpExecutionPolicy {
+      mixin org.spf4j.failsafe.avro.ExecutionPolicy;
+      /** connection timeout */
+      @logicalType("duration") string connectTimeout = "PT4S";
+      /** Connection pooling attributes/policies.*/
+      @logicalType("duration") string poolMaxIdle = "PT1S";
+
+    }
+   
+
+}

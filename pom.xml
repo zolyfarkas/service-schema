@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.spf4j.avro</groupId>
     <artifactId>schema-parent-pom</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
   </parent>
 
   <properties>
@@ -36,7 +36,8 @@
     <avro.allowUndefinedLogicalTypes>false</avro.allowUndefinedLogicalTypes>
     <avro.validator.validFieldNames>ts,id</avro.validator.validFieldNames>
     <!-- <avro.useSchemaReferencesForAvsc>true</avro.useSchemaReferencesForAvsc> -->
-    <core.schema.version>1.0.3-SNAPSHOT</core.schema.version>
+    <core.schema.version>1.0.4-SNAPSHOT</core.schema.version>
+    <avro.version>1.10.0.2p-SNAPSHOT</avro.version>
   </properties>
 
 
