@@ -96,7 +96,7 @@ public class JsonDecoder extends ParsingDecoder
    */
   private JsonDecoder configure(@Nonnull InputStream in) throws IOException {
     parser.reset();
-    this.in = Schema.FACTORY.createJsonParser(in);
+    this.in = Schema.FACTORY.createParser(in);
     this.in.nextToken();
     return this;
   }
@@ -115,7 +115,7 @@ public class JsonDecoder extends ParsingDecoder
    */
   public JsonDecoder configure(@Nonnull String in) throws IOException {
     parser.reset();
-    this.in = Schema.FACTORY.createJsonParser(in);
+    this.in = Schema.FACTORY.createParser(in);
     this.in.nextToken();
     return this;
   }
@@ -141,9 +141,12 @@ public class JsonDecoder extends ParsingDecoder
   public boolean readBoolean() throws IOException {
     advance(Symbol.BOOLEAN);
     JsonToken t = in.getCurrentToken();
-    if (t == JsonToken.VALUE_TRUE || t == JsonToken.VALUE_FALSE) {
+    if (t == JsonToken.VALUE_TRUE) {
       in.nextToken();
-      return t == JsonToken.VALUE_TRUE;
+      return true;
+    } else if (t == JsonToken.VALUE_FALSE) {
+      in.nextToken();
+      return false;
     } else {
       throw error("boolean");
     }
