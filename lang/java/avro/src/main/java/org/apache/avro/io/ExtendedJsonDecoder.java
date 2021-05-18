@@ -30,7 +30,7 @@ import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import org.apache.avro.LogicalType;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
@@ -70,7 +70,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
 
     public ExtendedJsonDecoder(final Schema schema, final String in)
             throws IOException {
-        this(schema, new ByteArrayInputStream(in.getBytes(Charset.forName("UTF-8"))));
+        this(schema, new ByteArrayInputStream(in.getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
@@ -97,7 +97,7 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       lin.nextToken();
       parser.pushSymbol(Symbol.UNION_END);
     } else {
-      throw (AvroTypeException) error("start-union");
+      throw error("start-union");
     }
     int n = a.findLabel(label);
     if (n < 0) {
@@ -438,17 +438,6 @@ public final class ExtendedJsonDecoder extends JsonDecoder
           }
           break;
       }
-  }
-
-  private void skipSymbols(Symbol rootSymbol) throws IOException {
-    for (int i = rootSymbol.production.length - 1; i > 0; i--) {
-      Symbol s = rootSymbol.production[i];
-      if (s.kind == Symbol.Kind.TERMINAL) {
-        parser.skipTerminal(s);
-      } else if (s.production != null && s.production.length > 0) {
-        skipSymbols(s);
-      }
-    }
   }
 
 
