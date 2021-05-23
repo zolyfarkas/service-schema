@@ -159,10 +159,11 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       Resolver.Action[] branches = ((Resolver.WriterUnion) action).actions;
       Symbol[] symbols = new Symbol[branches.length];
       String[] labels = new String[branches.length];
+      List<Schema> types = action.writer.getTypes();
       int i = 0;
       for (Resolver.Action branch : branches) {
         symbols[i] = generate(branch, seen);
-        labels[i] = action.writer.getTypes().get(i).getFullName();
+        labels[i] = types.get(i).getFullName();
         i++;
       }
       return Symbol.seq(Symbol.alt(symbols, labels), Symbol.WRITER_UNION_ACTION);
@@ -171,7 +172,8 @@ public class ResolvingGrammarGenerator extends ValidatingGrammarGenerator {
       Resolver.EnumAdjust e = (Resolver.EnumAdjust) action;
       Object[] adjs = new Object[e.adjustments.length];
       for (int i = 0; i < adjs.length; i++) {
-        adjs[i] = (0 <= e.adjustments[i] ? Integer.valueOf(e.adjustments[i])
+        int adjustment = e.adjustments[i];
+        adjs[i] = (0 <= adjustment ? Integer.valueOf(adjustment)
             : "No match for " + e.writer.getEnumSymbols().get(i));
       }
       return Symbol.seq(Symbol.enumAdjustAction(e.reader.getEnumSymbols().size(), adjs), Symbol.ENUM);
@@ -222,7 +224,7 @@ private Symbol simpleGen(Schema s, Map<Object, Symbol> seen) {
       return Symbol.STRING;
 
     case FIXED:
-      return Symbol.seq(new Symbol.IntCheckAction(s.getFixedSize()), Symbol.FIXED);
+      return Symbol.seq(Symbol.intCheckAction(s.getFixedSize()), Symbol.FIXED);
 
     case ENUM:
       return Symbol.seq(Symbol.enumAdjustAction(s.getEnumSymbols().size(), null), Symbol.ENUM);
