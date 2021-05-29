@@ -285,12 +285,12 @@ public abstract class Schema extends JsonProperties implements Serializable {
 
   /** Create a union schema. */
   public static Schema createUnion(List<Schema> types) {
-    return new UnionSchema(new LockableArrayList<Schema>(types));
+    return new UnionSchema(new LockableArrayList<>(types));
   }
 
   /** Create a union schema. */
   public static Schema createUnion(Schema... types) {
-    return createUnion(new LockableArrayList<Schema>(types));
+    return createUnion(new LockableArrayList<>(types));
   }
 
   /** Create a union schema. */
@@ -329,7 +329,11 @@ public abstract class Schema extends JsonProperties implements Serializable {
    * <tt>null</tt> is returned.
    */
   public Field getField(String fieldname) {
-    throw new AvroRuntimeException("Not a record: "+this);
+    throw new AvroRuntimeException("Not a record: " + this);
+  }
+
+  public Set<Field> getFieldsByNameOrAlias(@Nonnull String fieldnameoralias) {
+    throw new AvroRuntimeException("Not a record: " + this);
   }
 
   /**
@@ -697,7 +701,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
     @Deprecated public Map<String,String> props() { return getProps(); }
     public void addAlias(String alias) {
       if (aliases == null)
-        this.aliases = new LinkedHashSet<String>();
+        this.aliases = new LinkedHashSet<>(2);
       aliases.add(alias);
     }
     /** Return the defined aliases as an unmodifieable Set. */
@@ -894,6 +898,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
   private static class RecordSchema extends NamedSchema {
     private List<Field> fields;
     private Map<String, Field> fieldMap;
+    private Map<String, Set<Field>> fieldByAliasMap;
     private final boolean isError;
     public RecordSchema(Name name, String doc, boolean isError) {
       super(Type.RECORD, name, doc);
@@ -923,6 +928,16 @@ public abstract class Schema extends JsonProperties implements Serializable {
     }
 
     @Override
+    public Set<Field> getFieldsByNameOrAlias(@Nonnull String fieldnameoralias) {
+      if (fields == null)
+        throw new AvroRuntimeException("Schema fields not set yet for " + this + ", cannot get " + fieldnameoralias);
+      if (fieldByAliasMap == null) {
+        return Collections.singleton(fieldMap.get(fieldnameoralias));
+      }
+      return fieldByAliasMap.get(fieldnameoralias);
+    }
+
+    @Override
     public List<Field> getFields() {
       if (fields == null)
         throw new AvroRuntimeException("Schema fields not set yet for " + this);
@@ -938,21 +953,42 @@ public abstract class Schema extends JsonProperties implements Serializable {
       int size = fields.size();
       fieldMap = Maps.newHashMapWithExpectedSize(size);
       LockableArrayList ff = new LockableArrayList(size);
+      int nrAliasses = 0;
       for (Field f : fields) {
         if (f.position != -1)
           throw new AvroRuntimeException("Field already used: " + f);
         f.position = i++;
-        final Field existingField = fieldMap.put(f.name(), f);
+        Field existingField = fieldMap.put(f.name(), f);
         if (existingField != null) {
           throw new AvroRuntimeException(String.format(
               "Duplicate field %s in record %s: %s and %s.",
               f.name(), name, f, existingField));
         }
+        nrAliasses += f.aliases().size();
         ff.add(f);
       }
+      if (nrAliasses > 0) {
+        fieldByAliasMap = Maps.newHashMapWithExpectedSize(size + nrAliasses);
+        for (Field f : fields) {
+          fieldByAliasMap.put(f.name(), Collections.singleton(f));
+          for (String alias : f.aliases()) {
+            Set<Field> existingFields = fieldByAliasMap.put(alias, Collections.singleton(f));
+            if (existingFields != null) {
+              Set<Field> newSet = Sets.newHashSetWithExpectedSize(existingFields.size() + 1);
+              newSet.add(f);
+              newSet.addAll(existingFields);
+              fieldByAliasMap.put(alias, newSet);
+            }
+          }
+        }
+      } else {
+        fieldByAliasMap = null;
+      }
+
       this.fields = ff.lock();
       this.hashCode = NO_HASHCODE;
     }
+
     public boolean equals(Object o) {
       if (o == this) return true;
       if (!(o instanceof RecordSchema)) return false;
