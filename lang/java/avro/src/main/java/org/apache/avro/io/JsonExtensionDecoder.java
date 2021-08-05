@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 
 /**
@@ -34,8 +35,12 @@ public interface JsonExtensionDecoder {
 
   JsonParser bufferValue(final Schema schema) throws IOException;
 
+  /** NUll if no number is next */
+  @Nullable
   BigInteger readBigInteger(final Schema schema) throws IOException;
 
+  /** Null if no number is next*/
+  @Nullable
   BigDecimal readBigDecimal(final Schema schema) throws IOException;
 
 }

@@ -62,4 +62,12 @@ public abstract class Optional<T> {
     };
   }
 
+  public static <T> Optional<T> ofNullIsEmpty(@Nullable final T value) {
+    if (value == null) {
+      return EMPTY;
+    } else {
+      return of(value);
+    }
+  }
+
 }

@@ -32,7 +32,7 @@ public class BigIntegerConverter extends Conversion<BigInteger> {
   @Override
   public Optional<BigInteger> tryDirectDecode(Decoder dec, Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
-      return Optional.of(((JsonExtensionDecoder) dec).readBigInteger(schema));
+      return Optional.ofNullIsEmpty(((JsonExtensionDecoder) dec).readBigInteger(schema));
     } else {
       return Optional.empty();
     }

@@ -169,11 +169,12 @@ public final class Decimal2Converter extends Conversion<BigDecimal> {
   @Override
   public Optional<BigDecimal> tryDirectDecode(Decoder dec, final Schema schema) throws IOException {
     if (dec instanceof JsonExtensionDecoder) {
-      return Optional.of(readScale(((JsonExtensionDecoder) dec).readBigDecimal(schema),
-              (Decimal2) schema.getLogicalType()));
-    } else {
-      return Optional.empty();
+      BigDecimal bigD = ((JsonExtensionDecoder) dec).readBigDecimal(schema);
+      if (bigD != null) {
+        return Optional.of(readScale(bigD, (Decimal2) schema.getLogicalType()));
+      }
     }
+    return Optional.empty();
   }
 
   @Override

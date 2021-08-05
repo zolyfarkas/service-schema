@@ -1709,85 +1709,89 @@ public abstract class Schema extends JsonProperties implements Serializable {
   }
 
   private static JsonNode validateDefault(String fieldName, Schema schema,
-                                          JsonNode defaultValue) {
-    if ((defaultValue != null)
-        && !isValidDefault(schema, defaultValue)) { // invalid default
-      String message = "Invalid default for field "+fieldName
-        +": "+defaultValue+" not a "+schema;
-      throw new AvroTypeException(message);     // throw exception
+          JsonNode defaultValue) {
+    if (defaultValue != null) {
+      try {
+        validateDefault(schema, defaultValue);
+      } catch (RuntimeException e) {
+        throw new AvroTypeException("Invalid default for field " + fieldName
+                + ": " + defaultValue + " not a " + schema, e);     // throw exception
+      }
     }
     return defaultValue;
   }
 
-  private static boolean isValidDefault(Schema schema, JsonNode defaultValue) {
+  private static void validateDefault(Schema schema, JsonNode defaultValue) {
     LogicalType lType = schema.getLogicalType();
     if (lType != null) {
       try {
         ExtendedJsonDecoder dec = new ExtendedJsonDecoder(schema, defaultValue.toString());
         GenericDatumReader reader = new GenericDatumReader(schema);
         reader.read(null, dec);
-        return true;
+        return;
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
-      } catch (RuntimeException ex) {
-        return false;
       }
-    }
-    if (defaultValue == null) {
-      return false;
     }
     switch (schema.getType()) {
-    case STRING:
-    case BYTES:
-    case ENUM:
-    case FIXED:
-      return defaultValue.isTextual();
-    case INT:
-    case LONG:
-    case FLOAT:
-    case DOUBLE:
-      return defaultValue.isNumber();
-    case BOOLEAN:
-      return defaultValue.isBoolean();
-    case NULL:
-      return defaultValue.isNull();
-    case ARRAY:
-      if (!defaultValue.isArray()) {
-        return false;
-      }
-      for (JsonNode element : defaultValue) {
-        if (!isValidDefault(schema.getElementType(), element)) {
-          return false;
+      case STRING:
+      case BYTES:
+      case ENUM:
+      case FIXED:
+        if (!defaultValue.isTextual()) {
+          throw new AvroTypeException("Default value must be testual");
         }
-      }
-      return true;
-    case MAP:
-      if (!defaultValue.isObject()) {
-        return false;
-      }
-      for (JsonNode value : defaultValue) {
-        if (!isValidDefault(schema.getValueType(), value)) {
-          return false;
+        break;
+      case INT:
+      case LONG:
+      case FLOAT:
+      case DOUBLE:
+        if (!defaultValue.isNumber()) {
+          throw new AvroTypeException("Default value must be number");
         }
-      }
-      return true;
-    case UNION:                                   // union default: first branch
-      return isValidDefault(schema.getTypes().get(0), defaultValue);
-    case RECORD:
-      if (!defaultValue.isObject()) {
-        return false;
-      }
-      for (Field field : schema.getFields()) {
-        if (!isValidDefault(field.schema(),
-                            defaultValue.has(field.name())
-                            ? defaultValue.get(field.name())
-                            : field.defaultValue())) {
-          return false;
+        break;
+      case BOOLEAN:
+        if (!defaultValue.isBoolean()) {
+          throw new AvroTypeException("Default value must be boolean");
         }
-      }
-      return true;
-    default:
-      return false;
+        break;
+      case NULL:
+        if (!defaultValue.isNull()) {
+          throw new AvroTypeException("Default value must be null");
+        }
+        break;
+      case ARRAY:
+        if (!defaultValue.isArray()) {
+          throw new AvroTypeException("Default value must be array");
+        }
+        for (JsonNode element : defaultValue) {
+          validateDefault(schema.getElementType(), element);
+        }
+        break;
+      case MAP:
+        if (!defaultValue.isObject()) {
+          throw new AvroTypeException("Default value must be object");
+        }
+        for (JsonNode value : defaultValue) {
+          validateDefault(schema.getValueType(), value);
+        }
+        break;
+      case UNION:                                   // union default: first branch
+        validateDefault(schema.getTypes().get(0), defaultValue);
+        break;
+      case RECORD:
+        if (!defaultValue.isObject()) {
+          throw new AvroTypeException("Default value must be object");
+        }
+        for (Field field : schema.getFields()) {
+          validateDefault(field.schema(),
+                  defaultValue.has(field.name())
+                  ? defaultValue.get(field.name())
+                  : field.defaultValue());
+        }
+        break;
+      default:
+        throw new IllegalStateException("Unsupported schema type: " + schema);
     }
   }
 

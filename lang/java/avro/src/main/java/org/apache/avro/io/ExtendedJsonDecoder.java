@@ -323,39 +323,31 @@ public final class ExtendedJsonDecoder extends JsonDecoder
 
   @Override
   public BigInteger readBigInteger(final Schema schema) throws IOException {
-    advanceBy(schema);
     JsonToken currentToken = in.getCurrentToken();
     BigInteger result;
-    switch (currentToken) {
-      case VALUE_STRING:
-        result = new BigInteger(in.getText());
-        break;
-      case VALUE_NUMBER_INT:
+    if (currentToken == JsonToken.VALUE_NUMBER_INT) {
         result = in.getBigIntegerValue();
-        break;
-      default:
-        throw new AvroTypeException("Invalid token type " + currentToken + ", expecting a int");
+    } else {
+       return null;
     }
+    advanceBy(schema);
     in.nextToken();
     return result;
   }
 
   @Override
   public BigDecimal readBigDecimal(final Schema schema) throws IOException {
-    advanceBy(schema);
     JsonToken currentToken = in.getCurrentToken();
     BigDecimal result;
     switch (currentToken) {
-      case VALUE_STRING:
-        result = new BigDecimal(in.getText());
-        break;
       case VALUE_NUMBER_INT:
       case VALUE_NUMBER_FLOAT:
         result = in.getDecimalValue();
         break;
       default:
-        throw new AvroTypeException("Invalid token type " + currentToken + ", expecting " + schema);
+        return null;
     }
+    advanceBy(schema);
     in.nextToken();
     return result;
   }
