@@ -3,7 +3,53 @@ protocol Execution {
 
     import idl "execution.avdl";
 
-    /** a record to describe a HttP request policy */
+    /** 
+     * the destination policy mappings.
+     * the default HttpExecution policy is available via config: "http.exec.policy.default"
+     * this record contains mappings from endpoint matchers 2.
+     * this mapping should be retrieved from "http.endpoint.policies".
+     */
+    @beta
+    record EndpointsPolicies {
+      /** the configured endpoint policies. */
+      array<EndpointPolicyRule> policies = [];
+    }
+
+    /** a mapping entry that matches an endpoint to policies */
+    @beta
+    record EndpointPolicyRule {
+      /** A matcher that will match endpoints */
+      EndpointRequestMatcher matcher;
+      /** Policies that should apply to the matched endpoints */
+      EndpointPolicies policies;
+    }
+
+
+    /** identifies a endpoint on this host */
+    @beta
+    record EndpointRequestMatcher {
+      /** destination suffix. example: service.com */
+      @logicalType("regexp") string host = ".*";
+      /** the tcp port to match. -1 to match all */
+      int port = -1;
+      /** path to match. example: a/b/c */
+      @logicalType("regexp") string path = ".*";
+      /** the http methods to match, empty array to match all */
+      array<string> methods = ["GET", "PUT", "POST", "DELETE", "PATCH"];
+      /** the http headers to match */
+      map<@logicalType("regexp") string> headers = {};
+      /** the query parameters to match */
+      map<@logicalType("regexp") string> queryParameters = {};
+    }
+
+    /** identifies endpoint policies. execution, selection, routing... */
+    @beta
+    record EndpointPolicies {
+      /** http execution policy configuration reference. (config name) */
+      string httpExecutionPolicyRef;
+    }
+
+    /** Http execution policy */
     @beta
     record HttpExecutionPolicy {
       mixin org.spf4j.failsafe.avro.ExecutionPolicy;
@@ -11,8 +57,19 @@ protocol Execution {
       @logicalType("duration") string connectTimeout = "PT4S";
       /** Connection pooling attributes/policies.*/
       @logicalType("duration") string poolMaxIdle = "PT1S";
-
+      /** Shadow traffic is this is not null */
+      union {null, TrafficConfig} shadowTraffic = null;
+      /** Split traffic is this is not null */
+      union {null, TrafficConfig} splitTraffic = null;
     }
-   
+
+    /** configuration for shadowed traffic */
+    @beta
+    record TrafficConfig {
+      /** Shadow destinations host:port */
+      array<string> destinations = [];
+      /** shadow ratio */
+      double ratio = 0.0;
+    }
 
 }
