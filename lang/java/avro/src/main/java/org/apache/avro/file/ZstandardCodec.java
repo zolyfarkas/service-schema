@@ -23,8 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.avro.util.Streams;
 
 public class ZstandardCodec extends Codec {
 
@@ -76,7 +75,7 @@ public class ZstandardCodec extends Codec {
     InputStream bytesIn = new ByteArrayInputStream(compressedData.array(), computeOffset(compressedData),
         compressedData.remaining());
     try (InputStream ios = ZstandardLoader.input(bytesIn)) {
-      IOUtils.copy(ios, baos);
+      Streams.copy(ios, baos);
     }
     return ByteBuffer.wrap(baos.toByteArray());
   }
