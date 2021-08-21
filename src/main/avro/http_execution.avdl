@@ -57,19 +57,19 @@ protocol Execution {
       @logicalType("duration") string connectTimeout = "PT4S";
       /** Connection pooling attributes/policies.*/
       @logicalType("duration") string poolMaxIdle = "PT1S";
-      /** Shadow traffic is this is not null */
-      union {null, TrafficConfig} shadowTraffic = null;
-      /** Split traffic is this is not null */
-      union {null, TrafficConfig} splitTraffic = null;
+      /** Shadow traffic destinations */
+      array<DestinationTraffic> shadowTraffic = [];
+      /** Split traffic destinations */
+      array<DestinationTraffic> splitTraffic = [];
     }
 
     /** configuration for shadowed traffic */
     @beta
-    record TrafficConfig {
-      /** Shadow destinations host:port */
-      array<string> destinations = [];
-      /** shadow ratio */
-      double ratio = 0.0;
+    record DestinationTraffic {
+      /** destination host and port */
+      string destination;
+      /** traffic ratio */
+      double ratio = 1.0;
     }
 
 }
