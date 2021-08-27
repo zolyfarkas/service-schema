@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import org.apache.avro.util.ByteArrayBuilder;
 import org.apache.avro.util.Streams;
 
 public class ZstandardCodec extends Codec {
@@ -44,7 +45,7 @@ public class ZstandardCodec extends Codec {
 
   private final int compressionLevel;
   private final boolean useChecksum;
-  private ByteArrayOutputStream outputBuffer;
+  private ByteArrayBuilder outputBuffer;
 
   /**
    * Create a ZstandardCodec instance with the given compressionLevel and checksum
@@ -62,28 +63,28 @@ public class ZstandardCodec extends Codec {
 
   @Override
   public ByteBuffer compress(ByteBuffer data) throws IOException {
-    ByteArrayOutputStream baos = getOutputBuffer(data.remaining());
+    ByteArrayBuilder baos = getOutputBuffer(data.remaining());
     try (OutputStream outputStream = ZstandardLoader.output(baos, compressionLevel, useChecksum)) {
       outputStream.write(data.array(), computeOffset(data), data.remaining());
     }
-    return ByteBuffer.wrap(baos.toByteArray());
+    return ByteBuffer.wrap(baos.getBuffer(), 0, baos.size());
   }
 
   @Override
   public ByteBuffer decompress(ByteBuffer compressedData) throws IOException {
-    ByteArrayOutputStream baos = getOutputBuffer(compressedData.remaining());
+    ByteArrayBuilder baos = getOutputBuffer(compressedData.remaining());
     InputStream bytesIn = new ByteArrayInputStream(compressedData.array(), computeOffset(compressedData),
         compressedData.remaining());
     try (InputStream ios = ZstandardLoader.input(bytesIn)) {
-      Streams.copy(ios, baos);
+      baos.readFrom(ios);
     }
-    return ByteBuffer.wrap(baos.toByteArray());
+    return ByteBuffer.wrap(baos.getBuffer(), 0, baos.size());
   }
 
   // get and initialize the output buffer for use.
-  private ByteArrayOutputStream getOutputBuffer(int suggestedLength) {
+  private ByteArrayBuilder getOutputBuffer(int suggestedLength) {
     if (outputBuffer == null) {
-      outputBuffer = new ByteArrayOutputStream(suggestedLength);
+      outputBuffer = new ByteArrayBuilder(suggestedLength);
     }
     outputBuffer.reset();
     return outputBuffer;
