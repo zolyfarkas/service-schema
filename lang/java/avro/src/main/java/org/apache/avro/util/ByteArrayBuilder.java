@@ -16,6 +16,7 @@
 package org.apache.avro.util;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -196,6 +197,17 @@ public final class ByteArrayBuilder extends OutputStream {
    */
   public int size() {
     return count;
+  }
+
+  public void readFrom(final InputStream in) throws IOException {
+    do {
+      ensureCapacity(count + 8192);
+      int nr = in.read(buf, count, 8192);
+      if (nr < 0) {
+        break;
+      }
+      count += nr;
+    } while (true);
   }
 
   /**
