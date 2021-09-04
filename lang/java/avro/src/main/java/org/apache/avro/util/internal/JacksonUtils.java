@@ -47,6 +47,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
+import org.apache.avro.AvroTypeException;
 
 public final class JacksonUtils {
 
@@ -196,7 +197,7 @@ public final class JacksonUtils {
         case FLOAT:
           return (float) jsonNode.asDouble();
         default:
-          throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
+          throw new AvroTypeException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isLong()) {
       return jsonNode.asLong();
@@ -216,7 +217,7 @@ public final class JacksonUtils {
         case FLOAT:
           return (float) jsonNode.asDouble();
         default:
-          throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
+          throw new AvroTypeException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isTextual()) {
       if (schema == null) {
@@ -235,7 +236,7 @@ public final class JacksonUtils {
             //default value will not be computed now, it will be recomputed again at resolution time.
             return null;
           }
-          throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
+          throw new AvroTypeException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isArray()) {
       List l = new ArrayList(jsonNode.size());
