@@ -164,6 +164,8 @@ will serialize in json to:
 
 ### 16) regex logical type support.
 
+### 17) Duration logical type support. ex: "PT1H"...
+
 ## Examples for above  in action:
 
  * [core-schema](https://github.com/zolyfarkas/core-schema)
