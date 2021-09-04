@@ -138,12 +138,11 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
             List<Schema.Field> fields = nt.getFields();
             List<Schema.Field> newFields = new ArrayList<Schema.Field>(fields.size());
             for (Schema.Field field : fields) {
-              Schema get = replace.get(field.schema());
-              if (get == null) {
+              Schema replacement = replace.get(field.schema());
+              if (replacement == null) {
                 throw new RuntimeException("No replacement for " + field.schema());
               }
-             Schema.Field newField = new Schema.Field(field.name(), get,
-                     field.doc(), field.defaultVal(), field.order());
+             Schema.Field newField = new Schema.Field(field, replacement);
              copyAllProperties(field, newField);
              newFields.add(newField);
             }

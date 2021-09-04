@@ -27,6 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.compiler.schema.Schemas;
+import org.apache.avro.util.internal.UnresolvedSchemas;
+import static org.apache.avro.util.internal.UnresolvedSchemas.UR_SCHEMA_ATTR;
+import static org.apache.avro.util.internal.UnresolvedSchemas.UR_SCHEMA_NAME;
+import static org.apache.avro.util.internal.UnresolvedSchemas.UR_SCHEMA_NS;
 
 /**
  * Utility class to resolve schemas that are unavailable at the time they are referenced in the IDL.
@@ -35,12 +39,6 @@ final class SchemaResolver {
 
   private SchemaResolver() {
   }
-
-  private static final String UR_SCHEMA_ATTR = "org.apache.avro.compiler.idl.unresolved.name";
-
-  private static final String UR_SCHEMA_NAME = "UnresolvedSchema";
-
-  private static final String UR_SCHEMA_NS = "org.apache.avro.compiler";
 
   private static final AtomicInteger COUNTER = new AtomicInteger();
 
@@ -66,9 +64,7 @@ final class SchemaResolver {
    * @return
    */
   static boolean isUnresolvedSchema(final Schema schema) {
-    return (schema.getType() == Schema.Type.RECORD && schema.getProp(UR_SCHEMA_ATTR) != null
-        && schema.getName().startsWith(UR_SCHEMA_NAME)
-        && UR_SCHEMA_NS.equals(schema.getNamespace()));
+    return UnresolvedSchemas.isUnresolvedSchema(schema);
   }
 
   /**

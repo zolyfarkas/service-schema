@@ -623,7 +623,7 @@ public abstract class Schema extends JsonProperties implements Serializable {
       this.schema = schema;
       this.doc = field.doc;
       this.defaultValue = field.defaultValue;
-      this.defaultJavaVal = field.defaultJavaVal;
+      this.defaultJavaVal = JacksonUtils.toObject(defaultValue, schema);
       this.order = field.order;
       putAll(field);
       if (field.aliases != null) {

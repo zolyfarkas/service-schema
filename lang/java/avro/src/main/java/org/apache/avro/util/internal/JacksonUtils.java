@@ -231,6 +231,10 @@ public final class JacksonUtils {
         case FIXED:
           return new Fixed(schema, jsonNode.textValue().getBytes(BYTES_CHARSET));
         default:
+          if (UnresolvedSchemas.isUnresolvedSchema(schema)) {
+            //default value will not be computed now, it will be recomputed again at resolution time.
+            return null;
+          }
           throw new IllegalArgumentException("Unable to convert " + jsonNode + " to " + schema);
       }
     } else if (jsonNode.isArray()) {
