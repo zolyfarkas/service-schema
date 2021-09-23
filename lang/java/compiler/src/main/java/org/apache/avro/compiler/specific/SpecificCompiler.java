@@ -54,7 +54,7 @@ import org.apache.velocity.runtime.log.LogChute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.apache.avro.specific.SpecificData.RESERVED_WORDS;
-
+import org.apache.commons.lang.StringEscapeUtils;
 
 /**
  * Generate specific Java interfaces and classes for protocols and schemas.
@@ -463,6 +463,7 @@ public class SpecificCompiler {
     VelocityContext context = new VelocityContext();
     context.put("this", this);
     context.put("schema", schema);
+    context.put("esc",  new StringEscapeUtils());
     for (GenEntity ent : GenEntity.values()) {
       context.put( GenEntity.class.getSimpleName() + "_" + ent.toString(), ent);
     }
