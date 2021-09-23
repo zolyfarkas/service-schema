@@ -28,10 +28,11 @@ public interface GenericEnumSymbol<E extends GenericEnumSymbol<E>>
     return getSchema().getEnumSymbolAliases().get(toString());
   }
 
+  /** returns the canonical symbol (the value in enum {value....}). */
   default String getSymbol() {
     return toString();
   }
 
-  /** Return the symbol. */
+  /** Return the symbol string representation (this fork allow custom string symbols) */
   String toString();
 }
