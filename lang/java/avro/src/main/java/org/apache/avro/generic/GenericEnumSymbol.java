@@ -21,8 +21,8 @@ import java.util.Set;
 
 
 /** An enum symbol. */
-public interface GenericEnumSymbol<T extends GenericEnumSymbol>
-    extends GenericContainer, Comparable<T> {
+public interface GenericEnumSymbol<E extends GenericEnumSymbol<E>>
+    extends GenericContainer, Comparable<E> {
 
   default Set<String> getAliasses() {
     return getSchema().getEnumSymbolAliases().get(toString());
