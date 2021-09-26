@@ -61,6 +61,7 @@ import org.apache.avro.io.DatumWriter;
 import org.apache.avro.specific.FixedSize;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.SchemaNormalization;
+import org.apache.avro.reflect.AvroMeta.AvroMetas;
 import org.apache.avro.util.Utf8;
 
 /** Utilities to use existing Java classes and interfaces via reflection. */
