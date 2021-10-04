@@ -63,7 +63,7 @@ public class LogicalTypes {
   private static final String LOCAL_TIMESTAMP_MICROS = "local-timestamp-micros";
 
 
-  private static final LogicalType UUID_TYPE = new LogicalType("uuid");
+  private static final LogicalType UUID_TYPE = new LogicalType(UUID);
   private static final Date DATE_TYPE = new Date();
   private static final TimeMillis TIME_MILLIS_TYPE = new TimeMillis();
   private static final TimeMicros TIME_MICROS_TYPE = new TimeMicros();
