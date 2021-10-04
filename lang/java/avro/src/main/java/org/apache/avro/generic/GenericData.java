@@ -63,7 +63,6 @@ import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.JsonDecoder;
 import org.apache.avro.util.Utf8;
 import org.apache.avro.util.internal.Accessor;
-import org.threeten.extra.YearQuarter;
 
 
 /**
@@ -1181,7 +1180,7 @@ public class GenericData {
     IMMUTABLES.add(ZonedDateTime.class.getName());
     IMMUTABLES.add(LocalDateTime.class.getName());
     IMMUTABLES.add(YearMonth.class.getName());
-    IMMUTABLES.add(YearQuarter.class.getName());
+    IMMUTABLES.add("org.threeten.extra.YearQuarter");
     IMMUTABLES.add(Year.class.getName());
     IMMUTABLES.add("org.joda.time.LocalDate");
     IMMUTABLES.add("org.joda.time.DateTime");

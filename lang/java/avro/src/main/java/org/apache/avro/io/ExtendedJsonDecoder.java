@@ -32,7 +32,6 @@ import org.apache.avro.LogicalType;
 import static org.apache.avro.io.JsonDecoder.CHARSET;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
 import org.apache.avro.io.parsing.Parser;
-import org.apache.avro.logical_types.converters.Decimal2Converter;
 
 /**
  * This class extends the JsonDecoder to:
@@ -303,10 +302,34 @@ public final class ExtendedJsonDecoder extends JsonDecoder
       case VALUE_NUMBER_FLOAT:
         BigDecimal decimalValue = in.getDecimalValue();
         in.nextToken();
-        return Decimal2Converter.toBytes(decimalValue);
+        return toBytes(decimalValue);
       default:
         throw error("bytes");
     }
+  }
+
+  private static ByteBuffer toBytes(BigDecimal decimal) {
+    byte[] unscaledValue = decimal.unscaledValue().toByteArray();
+    ByteBuffer buf = ByteBuffer.allocate(5 + unscaledValue.length);
+    writeInt(decimal.scale(), buf);
+    buf.put(unscaledValue);
+    buf.flip();
+    return buf;
+  }
+
+  private static void writeInt(final int n, final ByteBuffer buf) {
+    int val = (n << 1) ^ (n >> 31);
+    if ((val & ~0x7F) == 0) {
+      buf.put((byte) val);
+      return;
+    } else if ((val & ~0x3FFF) == 0) {
+      buf.put((byte) (0x80 | val));
+      buf.put((byte) (val >>> 7));
+      return;
+    }
+    byte[] tmp = new byte[5];
+    int len = BinaryData.encodeInt(n, tmp, 0);
+    buf.put(tmp, 0, len);
   }
 
   @Override

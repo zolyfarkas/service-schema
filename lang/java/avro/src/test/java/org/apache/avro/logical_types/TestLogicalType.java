@@ -17,6 +17,8 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.avro.logical_types.JsonArray;
+import org.spf4j.avro.logical_types.JsonRecord;
 
 public class TestLogicalType {
 

@@ -26,27 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.apache.avro.logical_types.factories.AnyAvroLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.TemporalLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.BigIntegerFactory;
-import org.apache.avro.logical_types.factories.DateLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.DecimalFactory;
-import org.apache.avro.logical_types.factories.DurationLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.InstantLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.JsonAnyLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.JsonArrayLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.JsonRecordLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.LocalTimestampMicrosLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.LocalTimestampMillisLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.RegexpLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.SchemaLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.TimeMicrosLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.TimeMillisLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.TimestampMicrosLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.TimestampMillisLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.URILogicalTypeFactory;
-import org.apache.avro.logical_types.factories.URLLogicalTypeFactory;
-import org.apache.avro.logical_types.factories.UuidLogicalTypeFactory;
 
 
 public class LogicalTypes {
@@ -96,27 +75,6 @@ public class LogicalTypes {
 
 
   static {
-     register(new DecimalFactory());
-     register(new BigIntegerFactory());
-     register(new JsonRecordLogicalTypeFactory());
-     register(new JsonArrayLogicalTypeFactory());
-     register(new JsonAnyLogicalTypeFactory());
-     register(new AnyAvroLogicalTypeFactory());
-     register(new TemporalLogicalTypeFactory());
-     register(new DateLogicalTypeFactory());
-     register(new InstantLogicalTypeFactory());
-     register(new UuidLogicalTypeFactory());
-     register(new URLLogicalTypeFactory());
-     register(new URILogicalTypeFactory());
-     register(new DurationLogicalTypeFactory());
-     register(new RegexpLogicalTypeFactory());
-     register(new SchemaLogicalTypeFactory());
-     register(new TimestampMillisLogicalTypeFactory());
-     register(new TimestampMicrosLogicalTypeFactory());
-     register(new TimeMicrosLogicalTypeFactory());
-     register(new TimeMillisLogicalTypeFactory());
-     register(new LocalTimestampMicrosLogicalTypeFactory());
-     register(new LocalTimestampMillisLogicalTypeFactory());
      ServiceLoader<LogicalTypeFactory> factories
              = ServiceLoader.load(LogicalTypeFactory.class);
      Iterator<LogicalTypeFactory> iterator = factories.iterator();

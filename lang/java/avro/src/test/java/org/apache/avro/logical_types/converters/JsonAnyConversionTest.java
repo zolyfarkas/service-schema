@@ -1,6 +1,7 @@
 
 package org.apache.avro.logical_types.converters;
 
+import org.spf4j.avro.logical_types.converters.JsonAnyConversion;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,10 +16,9 @@ import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.DecoderFactory;
-import org.apache.avro.io.DirectBinaryEncoder;
 import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.logical_types.JsonAny;
 import org.junit.Test;
+import org.spf4j.avro.logical_types.JsonAny;
 
 
 /**

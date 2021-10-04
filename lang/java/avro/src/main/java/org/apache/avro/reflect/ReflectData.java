@@ -104,7 +104,7 @@ public class ReflectData extends SpecificData {
   /** Cause a class to be treated as though it had an {@link Stringable}
    ** annotation. */
   public ReflectData addStringable(Class c) {
-    stringableClasses.add(c);
+    stringableClasses.add(c.getName());
     return this;
   }
 

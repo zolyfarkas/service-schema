@@ -29,24 +29,12 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.UUID;
 import org.apache.avro.data.TimeConversions;
 import org.apache.avro.generic.GenericData;
-import org.apache.avro.logical_types.converters.AnyAvroConverter;
-import org.apache.avro.logical_types.converters.BigIntegerConverter;
-import org.apache.avro.logical_types.converters.DateConverter;
-import org.apache.avro.logical_types.converters.Decimal2Converter;
-import org.apache.avro.logical_types.converters.DurationConverter;
-import org.apache.avro.logical_types.converters.InstantConverter;
-import org.apache.avro.logical_types.converters.JsonAnyConversion;
-import org.apache.avro.logical_types.converters.JsonArrayConversion;
-import org.apache.avro.logical_types.converters.JsonRecordConversion;
-import org.apache.avro.logical_types.converters.RegexpConverter;
-import org.apache.avro.logical_types.converters.SchemaConverter;
-import org.apache.avro.logical_types.converters.TemporalConverter;
-import org.apache.avro.logical_types.converters.URIConverter;
-import org.apache.avro.logical_types.converters.URLConverter;
 import org.apache.avro.util.CopyOnWriteMap;
 
 
@@ -55,29 +43,22 @@ public final class Conversions {
   private static final CopyOnWriteMap<String, Conversion<?>> DEFAULT_CONVERSIONS;
 
   static {
+
     Map<String, Conversion<?>> map = new HashMap<>();
     registerConversion(map, new UUIDConversion());
-    registerConversion(map, new org.apache.avro.logical_types.converters.DecimalConverter());
-    registerConversion(map, new Decimal2Converter());
     registerConversion(map, new TimeConversions.TimeMicrosConversion());
     registerConversion(map, new TimeConversions.TimeMillisConversion());
     registerConversion(map, new TimeConversions.TimestampMicrosConversion());
     registerConversion(map, new TimeConversions.TimestampMillisConversion());
     registerConversion(map, new TimeConversions.LocalTimestampMicrosConversion());
     registerConversion(map, new TimeConversions.LocalTimestampMillisConversion());
-    registerConversion(map, new DateConverter());
-    registerConversion(map, new AnyAvroConverter());
-    registerConversion(map, new BigIntegerConverter());
-    registerConversion(map, new InstantConverter());
-    registerConversion(map, new JsonAnyConversion());
-    registerConversion(map, new JsonArrayConversion());
-    registerConversion(map, new JsonRecordConversion());
-    registerConversion(map, new SchemaConverter());
-    registerConversion(map, new TemporalConverter());
-    registerConversion(map, new URIConverter());
-    registerConversion(map, new URLConverter());
-    registerConversion(map, new DurationConverter());
-    registerConversion(map, new RegexpConverter());
+    ServiceLoader<Conversion> factories
+             = ServiceLoader.load(Conversion.class);
+
+    Iterator<Conversion> iterator = factories.iterator();
+    while (iterator.hasNext()) {
+        registerConversion(map, iterator.next());
+    }
     DEFAULT_CONVERSIONS = new CopyOnWriteMap<>(map);
   }
 

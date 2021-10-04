@@ -46,7 +46,6 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.BinaryDecoder;
-import org.threeten.extra.YearQuarter;
 
 /** Utilities for generated Java classes and interfaces. */
 public class SpecificData extends GenericData {
@@ -87,19 +86,19 @@ public class SpecificData extends GenericData {
    * that wouldn't be otherwise correctly readable or writable should be added
    * here, e.g., those without a no-arg constructor or those whose fields are
    * all transient. */
-  protected Set<Class> stringableClasses = new HashSet<Class>();
+  protected Set<String> stringableClasses = new HashSet<>();
   {
-    stringableClasses.add(java.math.BigDecimal.class);
-    stringableClasses.add(java.math.BigInteger.class);
-    stringableClasses.add(java.net.URI.class);
-    stringableClasses.add(java.net.URL.class);
-    stringableClasses.add(java.io.File.class);
-    stringableClasses.add(java.time.LocalDate.class);
-    stringableClasses.add(java.time.ZonedDateTime.class);
-    stringableClasses.add(java.time.Instant.class);
-    stringableClasses.add(java.time.MonthDay.class);
-    stringableClasses.add(java.time.Year.class);
-    stringableClasses.add(YearQuarter.class);
+    stringableClasses.add(java.math.BigDecimal.class.getName());
+    stringableClasses.add(java.math.BigInteger.class.getName());
+    stringableClasses.add(java.net.URI.class.getName());
+    stringableClasses.add(java.net.URL.class.getName());
+    stringableClasses.add(java.io.File.class.getName());
+    stringableClasses.add(java.time.LocalDate.class.getName());
+    stringableClasses.add(java.time.ZonedDateTime.class.getName());
+    stringableClasses.add(java.time.Instant.class.getName());
+    stringableClasses.add(java.time.MonthDay.class.getName());
+    stringableClasses.add(java.time.Year.class.getName());
+    stringableClasses.add("org.threeten.extra.YearQuarter");
   }
 
   /** For subclasses.  Applications normally use {@link SpecificData#get()}. */
@@ -343,9 +342,9 @@ public class SpecificData extends GenericData {
     return super.getSchemaName(datum);
   }
 
-  /** True iff a class should be serialized with toString(). */
+  /** True if a class should be serialized with toString(). */
   protected boolean isStringable(Class<?> c) {
-    return stringableClasses.contains(c);
+    return stringableClasses.contains(c.getName());
   }
 
   /** Return the protocol for a Java interface. */

@@ -150,9 +150,15 @@
     </dependency>
     <dependency>
       <groupId>org.spf4j</groupId>
+      <artifactId>avro-logical-types-fork</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.spf4j</groupId>
       <artifactId>spf4j-slf4j-test</artifactId>
       <scope>test</scope>
-      <version>8.9.0</version>
+      <version>8.9.1</version>
     </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -165,11 +171,6 @@
     <dependency>
       <groupId>org.xerial.snappy</groupId>
       <artifactId>snappy-java</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.threeten</groupId>
-      <artifactId>threeten-extra</artifactId>
-      <version>1.5.0</version>
     </dependency>
    <dependency>
       <groupId>com.google.code.findbugs</groupId>
