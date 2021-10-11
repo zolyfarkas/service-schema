@@ -35,6 +35,7 @@ import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.avro.data.DateConverter;
 import org.apache.avro.data.TimeConversions;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.CopyOnWriteMap;
@@ -51,6 +52,7 @@ public final class Conversions {
     Map<String, Conversion<?>> map = new HashMap<>();
     registerConversion(map, new DecimalConverter());
     registerConversion(map, new Decimal2Converter());
+    registerConversion(map, new DateConverter());
     registerConversion(map, new UUIDConversion());
     registerConversion(map, new TimeConversions.TimeMicrosConversion());
     registerConversion(map, new TimeConversions.TimeMillisConversion());

@@ -77,6 +77,7 @@ public class LogicalTypes {
   static {
      register(new DecimalFactory());
      register(new Decimal2Factory());
+     register(new DateLogicalTypeFactory());
      ServiceLoader<LogicalTypeFactory> factories
              = ServiceLoader.load(LogicalTypeFactory.class);
      Iterator<LogicalTypeFactory> iterator = factories.iterator();
