@@ -75,6 +75,8 @@ public class LogicalTypes {
 
 
   static {
+     register(new DecimalFactory());
+     register(new Decimal2Factory());
      ServiceLoader<LogicalTypeFactory> factories
              = ServiceLoader.load(LogicalTypeFactory.class);
      Iterator<LogicalTypeFactory> iterator = factories.iterator();
@@ -341,6 +343,10 @@ public class LogicalTypes {
 
   public static LogicalTypeFactory unregister(final String name) {
     return REGISTERED_TYPES.remove(name);
+  }
+
+  public static LogicalTypeFactory getFactory(final String name) {
+    return REGISTERED_TYPES.get(name);
   }
 
   @Nullable

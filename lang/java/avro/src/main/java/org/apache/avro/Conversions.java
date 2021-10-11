@@ -33,9 +33,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.avro.data.TimeConversions;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.CopyOnWriteMap;
+import org.apache.avro.data.Decimal2Converter;
+import org.apache.avro.data.DecimalConverter;
 
 
 public final class Conversions {
@@ -45,6 +49,8 @@ public final class Conversions {
   static {
 
     Map<String, Conversion<?>> map = new HashMap<>();
+    registerConversion(map, new DecimalConverter());
+    registerConversion(map, new Decimal2Converter());
     registerConversion(map, new UUIDConversion());
     registerConversion(map, new TimeConversions.TimeMicrosConversion());
     registerConversion(map, new TimeConversions.TimeMillisConversion());
@@ -67,8 +73,10 @@ public final class Conversions {
   }
 
   private static void registerConversion(Map<String, Conversion<?>> map, Conversion<?> conv) {
-    if (map.put(conv.getLogicalTypeName(), conv) != null) {
-      throw new ExceptionInInitializerError("Duplicate conversion registration: " + conv);
+    Conversion<?> existing = map.put(conv.getLogicalTypeName(), conv);
+    if (existing != null) {
+      Logger.getLogger(LogicalTypes.class.getName())
+              .log(Level.INFO, "Conversion: {0} is being overwritten with {1}", new Object [] {existing, conv});
     }
   }
 
