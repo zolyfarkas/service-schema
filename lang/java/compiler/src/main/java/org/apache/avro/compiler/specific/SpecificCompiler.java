@@ -36,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Protocol;
 import org.apache.avro.Protocol.Message;
@@ -611,7 +612,12 @@ public class SpecificCompiler {
   public String javaType(Schema schema) {
       LogicalType logicalType = schema.getLogicalType();
       if (logicalType != null) {
-          return GenericData.get().getConversionFor(logicalType).getConvertedType().getName();
+          Conversion<Object> conversion = GenericData.get().getConversionFor(logicalType);
+          if (conversion != null) {
+            return conversion.getConvertedType().getName();
+          } else {
+            return javaTypeInternal(schema);
+          }
       } else {
          return javaTypeInternal(schema);
       }
