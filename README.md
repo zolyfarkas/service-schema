@@ -7,11 +7,24 @@ Learn more about Avro, please visit our website at:
 
 ## Overview
 
-  * 1.10.0.1p - latest version, based on jackson 2.9+, aims to be api compatible with avro 1.10.
+  * 1.10.0.5p - latest version, based on jackson 2.9+, aims to be api compatible with avro 1.10.X
   * 1.8.1.50p - latest version, based on jackson 1.9
 
  This fork, contains numerous fixes, and features not implement (but reported) in the original project.
  This fork focuses only on the java implementation. For non-java part please see official fork or other forks.
+
+ Starting with version 1.10.0.4p the additional logical types: any, big-integer, duration, instant,
+ json*, regexp, schema temporal url, uri have moved to a separate library, which you will need to additionally include:
+
+```xml
+    <dependency>
+      <groupId>org.spf4j</groupId>
+      <artifactId>avro-logical-types-fork</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+```
+  you can try using avro-logical-types-official for using those logical types with the official avro library.
 
 Join the discussion on Gitter: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j-avro.png)](https://gitter.im/spf4j-avro/Lobby)
 
