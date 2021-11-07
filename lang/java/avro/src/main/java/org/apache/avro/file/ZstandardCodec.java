@@ -43,7 +43,6 @@ public class ZstandardCodec extends Codec {
 
   private final int compressionLevel;
   private final boolean useChecksum;
-  private ByteArrayBuilder outputBuffer;
 
   /**
    * Create a ZstandardCodec instance with the given compressionLevel and checksum
@@ -70,9 +69,9 @@ public class ZstandardCodec extends Codec {
 
   @Override
   public ByteBuffer decompress(ByteBuffer compressedData) throws IOException {
-    ByteArrayBuilder baos = getOutputBuffer(compressedData.remaining());
-    InputStream bytesIn = new ByteArrayInputStream(compressedData.array(), computeOffset(compressedData),
-        compressedData.remaining());
+    int remaining = compressedData.remaining();
+    ByteArrayBuilder baos = getOutputBuffer(remaining * 2);
+    InputStream bytesIn = new ByteArrayInputStream(compressedData.array(), computeOffset(compressedData), remaining);
     try (InputStream ios = ZstandardLoader.input(bytesIn)) {
       baos.readFrom(ios);
     }
@@ -81,11 +80,7 @@ public class ZstandardCodec extends Codec {
 
   // get and initialize the output buffer for use.
   private ByteArrayBuilder getOutputBuffer(int suggestedLength) {
-    if (outputBuffer == null) {
-      outputBuffer = new ByteArrayBuilder(suggestedLength);
-    }
-    outputBuffer.reset();
-    return outputBuffer;
+    return new ByteArrayBuilder(suggestedLength);
   }
 
   @Override
