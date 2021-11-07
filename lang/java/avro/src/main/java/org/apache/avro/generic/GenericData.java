@@ -581,8 +581,12 @@ public class GenericData {
 /** Renders a Java datum as <a href="http://www.json.org/">JSON</a>. */
   public String toString(Object datum) {
     StringBuilder buffer = new StringBuilder();
-    toString(datum, buffer, new IdentityHashMap<Object, Object>(128) );
-    return buffer.toString();
+    try {
+      toString(datum, buffer, new IdentityHashMap<Object, Object>(128) );
+      return buffer.toString();
+    } catch (StackOverflowError e) {
+      return "StackOverflowError for " + datum.getClass() + ": " + buffer.substring(0, 1024) + "...";
+    }
   }
 
   private static final String TOSTRING_CIRCULAR_REFERENCE_ERROR_TEXT =
@@ -633,16 +637,17 @@ public class GenericData {
       }
       seenObjects.put(datum, datum);
       buffer.append('{');
-      int count = 0;
       @SuppressWarnings(value="unchecked")
-      Map<Object,Object> map = (Map<Object,Object>)datum;
-      int size = map.size();
-      for (Map.Entry<Object,Object> entry : map.entrySet()) {
-        toString(entry.getKey(), buffer, seenObjects);
-        buffer.append(": ");
-        toString(entry.getValue(), buffer, seenObjects);
-        if (++count < size)
-          buffer.append(", ");
+      Map<Object,Object> map = (Map<Object,Object>) datum;
+      Iterator<Map.Entry<Object,Object>>  it = map.entrySet().iterator();
+      if (it.hasNext()) {
+        Map.Entry<Object,Object> entry = it.next();
+        kvToString(entry, buffer, seenObjects);
+        while (it.hasNext()) {
+            buffer.append(", ");
+            entry = it.next();
+            kvToString(entry, buffer, seenObjects);
+        }
       }
       buffer.append('}');
       seenObjects.remove(datum);
@@ -673,6 +678,13 @@ public class GenericData {
     } else {
       buffer.append(datum);
     }
+  }
+
+  private void kvToString(Map.Entry<Object, Object> entry,
+          StringBuilder buffer, IdentityHashMap<Object, Object> seenObjects) {
+    toString(entry.getKey(), buffer, seenObjects);
+    buffer.append(": ");
+    toString(entry.getValue(), buffer, seenObjects);
   }
 
 
