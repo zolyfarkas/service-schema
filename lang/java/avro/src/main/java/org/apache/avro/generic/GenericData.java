@@ -636,11 +636,12 @@ public class GenericData {
       int count = 0;
       @SuppressWarnings(value="unchecked")
       Map<Object,Object> map = (Map<Object,Object>)datum;
+      int size = map.size();
       for (Map.Entry<Object,Object> entry : map.entrySet()) {
         toString(entry.getKey(), buffer, seenObjects);
         buffer.append(": ");
         toString(entry.getValue(), buffer, seenObjects);
-        if (++count < map.size())
+        if (++count < size)
           buffer.append(", ");
       }
       buffer.append('}');
