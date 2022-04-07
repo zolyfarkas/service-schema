@@ -18,6 +18,8 @@
 
 package org.apache.avro;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -234,11 +236,100 @@ public class LogicalTypes {
     }
   }
 
-  /** Date represents a date without a time */
   public static class Date extends LogicalType {
+
+    private final Boolean isYmdInt;
+
+    private final String format;
+
+    private final DateTimeFormatter formatter;
+
+    private final Integer yearIdx;
+
+    private final Integer monthIdx;
+
+    private final Integer dayIdx;
+
     private Date() {
-      super(DATE);
+      this(false, null, null, null, null);
     }
+
+    private Date(Boolean isYmdInt, String format, Integer yearIdx, Integer monthIdx, Integer dayIdx) {
+      super(DATE);
+      this.isYmdInt = isYmdInt;
+      this.format = format;
+      if (format != null) {
+        ZoneId zulu = ZoneId.of("Z");
+        formatter = DateTimeFormatter.ofPattern(format).withZone(zulu);
+      } else {
+        formatter = null;
+      }
+      this.yearIdx = yearIdx;
+      this.monthIdx = monthIdx;
+      this.dayIdx = dayIdx;
+    }
+
+    public Boolean getIsYmdInt() {
+      return isYmdInt;
+    }
+
+    public DateTimeFormatter getFormatter() {
+      return formatter;
+    }
+
+    public Integer getYearIdx() {
+      return yearIdx;
+    }
+
+    public Integer getMonthIdx() {
+      return monthIdx;
+    }
+
+    public Integer getDayIdx() {
+      return dayIdx;
+    }
+
+    @Override
+    public Schema addToSchema(Schema schema) {
+        super.addToSchema(schema);
+        if (isYmdInt != null) {
+          schema.addProp("ymd", isYmdInt);
+        }
+        if (format != null) {
+          schema.addProp("format", format);
+        }
+        return schema;
+    }
+
+  }
+
+  private static class DateLogicalTypeFactory implements LogicalTypeFactory {
+
+    @Override
+    public String getTypeName() {
+      return DATE;
+    }
+
+    @Override
+    public LogicalType fromSchema(final Schema schema) {
+      Boolean isYmd = (Boolean) schema.getObjectProp("ymd");
+      Schema.Type type = schema.getType();
+      if (type == Schema.Type.INT && isYmd == null) {
+        return LogicalTypes.date();
+      } else {
+        String format = schema.getProp("format");
+        Integer yearIdx = null;
+        Integer monthIdx = null;
+        Integer dayIdx = null;
+        if (type == Schema.Type.RECORD) {
+          yearIdx = schema.getField("year").pos();
+          monthIdx = schema.getField("month").pos();
+          dayIdx = schema.getField("day").pos();
+        }
+        return new Date(isYmd, format, yearIdx, monthIdx, dayIdx);
+      }
+    }
+
   }
 
   /** TimeMillis represents a time in milliseconds without a date */
