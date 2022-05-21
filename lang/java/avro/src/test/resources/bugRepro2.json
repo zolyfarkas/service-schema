@@ -4,7 +4,7 @@
   "message": "javax.ws.rs.WebApplicationException: HTTP 404 Not Found",
   "payload": {
     "avsc": {
-      "$ref": "org.spf4j.avro:core-schema:0.17:c"
+      "$ref": "org.spf4j.avro:service-schema:1.0.0:6"
     },
     "content": {
       "code": 404,

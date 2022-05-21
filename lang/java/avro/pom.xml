@@ -138,8 +138,8 @@
   <dependencies>
     <dependency>
       <groupId>org.spf4j.avro</groupId>
-      <artifactId>core-schema</artifactId>
-      <version>0.19</version>
+      <artifactId>service-schema</artifactId>
+      <version>1.0.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

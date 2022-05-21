@@ -136,8 +136,9 @@ public class ExtendedJsonDecoderTest {
   public void  testDefaultValueSerialization() throws IOException {
 
     LogRecord rec = new LogRecord("origin", "trId", LogLevel.DEBUG,
-            Instant.MIN, "logger", "thr", "message", Collections.emptyList()
-            , Collections.emptyMap(), null);
+            Instant.MIN, "logger", "thr", "message", Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyMap(), null, Collections.emptyList());
 
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     ExtendedJsonEncoder encoder = new ExtendedJsonEncoder(rec.getSchema(), bos);

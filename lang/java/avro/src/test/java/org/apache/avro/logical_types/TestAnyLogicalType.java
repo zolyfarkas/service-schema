@@ -43,11 +43,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.spf4j.avro.logical_types.AnyAvro;
 import org.spf4j.base.avro.DebugDetail;
-import org.spf4j.base.avro.HealthRecord;
 import org.spf4j.base.avro.Method;
-import org.spf4j.base.avro.ServiceError;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.base.avro.jmx.MBeanAttributeInfo;
+import org.spf4j.service.avro.HealthRecord;
+import org.spf4j.service.avro.ServiceError;
 
 /**
  *
@@ -61,10 +61,10 @@ public class TestAnyLogicalType {
    SchemaResolvers.registerDefault(new SchemaResolver() {
       @Override
       public Schema resolveSchema(String id) {
-        if (id.matches("org.spf4j.avro:core-schema:.*:c")) {
+        if (id.matches("org.spf4j.avro:service-schema:.*:6")) {
           return ServiceError.getClassSchema();
         } else {
-          throw new UnsupportedOperationException();
+          throw new UnsupportedOperationException("Unknown schema: " + id);
         }
       }
 
