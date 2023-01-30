@@ -22,7 +22,7 @@
   <groupId>org.spf4j.avro</groupId>
   <artifactId>service-schema</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.2</version>
+  <version>1.0.3-SNAPSHOT</version>
   <name>${project.artifactId}-${project.version}</name>
   <description>An schema project defining core entities like: ServiceError.... </description>
   <parent>
@@ -45,7 +45,7 @@
     <connection>${scm.connection}</connection>
     <developerConnection>${scm.connection}</developerConnection>
     <url>${scm.url}</url>
-    <tag>service-schema-1.0.2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <build>
