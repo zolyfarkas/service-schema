@@ -37,7 +37,7 @@
     <avro.validator.validFieldNames>ts,id</avro.validator.validFieldNames>
     <!-- <avro.useSchemaReferencesForAvsc>true</avro.useSchemaReferencesForAvsc> -->
     <core.schema.version>1.0.9</core.schema.version>
-    <skip.avrodoc>true</skip.avrodoc>
+    <skip.avrodoc>false</skip.avrodoc>
   </properties>
 
 
